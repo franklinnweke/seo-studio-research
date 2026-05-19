@@ -1,0 +1,153 @@
+import axios, { AxiosError, type AxiosProgressEvent } from "axios";
+
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    Accept: "application/json",
+  },
+});
+
+export type HealthResponse = {
+  status: string;
+  app: string;
+};
+
+export type ImageUploadFileRecord = {
+  id: string;
+  original_filename: string;
+  stored_filename: string;
+  relative_path: string;
+  content_type: string;
+  size_bytes: number;
+  source: "upload" | "zip";
+  source_archive: string | null;
+};
+
+export type ImageJobCreateResponse = {
+  id: string;
+  type: "image";
+  status: "pending" | "processing" | "processed" | "needs_review" | "accepted" | "failed";
+  accepted_extensions: string[];
+  files: ImageUploadFileRecord[];
+};
+
+export type JobStatusResponse = {
+  id: string;
+  type: "image" | "website";
+  status: "pending" | "processing" | "processed" | "needs_review" | "accepted" | "failed";
+  file_count: number;
+};
+
+export type JobFileListResponse = {
+  job_id: string;
+  files: ImageUploadFileRecord[];
+};
+
+export type ImageCompressionSettings = {
+  mode: "lossy" | "lossless";
+  quality: number;
+  resize_mode: "none" | "max_1920" | "max_1200" | "custom";
+  output_format: "keep_original" | "webp" | "jpg" | "png";
+  custom_max_width: number | null;
+  strip_metadata: boolean;
+  filename_overrides: Record<string, string>;
+};
+
+export type ImageCompressionResult = {
+  id: string;
+  original_filename: string;
+  stored_filename: string;
+  processed_filename: string;
+  relative_path: string;
+  original_format: string;
+  new_format: string;
+  original_size_bytes: number;
+  processed_size_bytes: number;
+  reduction_percent: number;
+  width: number;
+  height: number;
+  status: "processed";
+};
+
+export type ImageCompressionResponse = {
+  job_id: string;
+  status: "processed";
+  settings: ImageCompressionSettings;
+  results: ImageCompressionResult[];
+};
+
+export async function getHealth(): Promise<HealthResponse> {
+  const response = await apiClient.get<HealthResponse>("/health");
+  return response.data;
+}
+
+export async function uploadImageJob(
+  files: File[],
+  onUploadProgress?: (progress: number) => void,
+): Promise<ImageJobCreateResponse> {
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append("files", file);
+  }
+
+  const response = await apiClient.post<ImageJobCreateResponse>("/api/jobs/images", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    onUploadProgress: (event: AxiosProgressEvent) => {
+      if (!event.total || !onUploadProgress) return;
+      onUploadProgress(Math.round((event.loaded * 100) / event.total));
+    },
+  });
+
+  return response.data;
+}
+
+export async function getJobFiles(jobId: string): Promise<JobFileListResponse> {
+  const response = await apiClient.get<JobFileListResponse>(`/api/jobs/${jobId}/files`);
+  return response.data;
+}
+
+export async function processImageJob(
+  jobId: string,
+  settings: ImageCompressionSettings,
+): Promise<ImageCompressionResponse> {
+  const response = await apiClient.post<ImageCompressionResponse>(
+    `/api/jobs/${jobId}/process`,
+    settings,
+  );
+  return response.data;
+}
+
+export function getProcessedImageDownloadUrl(jobId: string, filename: string): string {
+  return `${API_BASE_URL}/api/jobs/${encodeURIComponent(jobId)}/processed/${encodeURIComponent(filename)}`;
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    return getAxiosErrorMessage(error);
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Something went wrong.";
+}
+
+function getAxiosErrorMessage(error: AxiosError): string {
+  const data = error.response?.data;
+
+  if (typeof data === "object" && data !== null && "detail" in data) {
+    const detail = (data as { detail: unknown }).detail;
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail)) return "The request did not pass validation.";
+  }
+
+  if (error.response?.status) {
+    return `Request failed with status ${error.response.status}.`;
+  }
+
+  return error.message;
+}

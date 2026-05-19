@@ -1,0 +1,1084 @@
+{
+  "components": {
+    "schemas": {
+      "Body_create_image_job_api_jobs_images_post": {
+        "properties": {
+          "files": {
+            "description": "One or more image files or ZIP archives. Supported extensions: .jpg, .jpeg, .png, .webp, .zip.",
+            "items": {
+              "format": "binary",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "Body_create_image_job_api_jobs_images_post",
+        "type": "object"
+      },
+      "ExportPlaceholderResponse": {
+        "properties": {
+          "format": {
+            "description": "Requested export format.",
+            "title": "Format",
+            "type": "string"
+          },
+          "job_id": {
+            "description": "Unique job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "status": {
+            "const": "not_implemented",
+            "description": "Placeholder status until export generation is implemented.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "format",
+          "status"
+        ],
+        "title": "ExportPlaceholderResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "app": {
+            "description": "Application identifier.",
+            "title": "App",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "description": "API health status.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "app"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "ImageCompressionResponse": {
+        "properties": {
+          "job_id": {
+            "description": "Image job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "results": {
+            "description": "Per-image compression results.",
+            "items": {
+              "$ref": "#/components/schemas/ImageCompressionResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ImageCompressionSettings",
+            "description": "Compression settings applied."
+          },
+          "status": {
+            "const": "processed",
+            "description": "Image compression job status.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "settings",
+          "results"
+        ],
+        "title": "ImageCompressionResponse",
+        "type": "object"
+      },
+      "ImageCompressionResult": {
+        "properties": {
+          "height": {
+            "description": "Processed image height in pixels.",
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Uploaded image file identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "new_format": {
+            "description": "Processed file format extension.",
+            "title": "New Format",
+            "type": "string"
+          },
+          "original_filename": {
+            "description": "Original filename from upload.",
+            "title": "Original Filename",
+            "type": "string"
+          },
+          "original_format": {
+            "description": "Original file format extension.",
+            "title": "Original Format",
+            "type": "string"
+          },
+          "original_size_bytes": {
+            "description": "Original uploaded file size in bytes.",
+            "title": "Original Size Bytes",
+            "type": "integer"
+          },
+          "processed_filename": {
+            "description": "Processed filename saved under processed storage.",
+            "title": "Processed Filename",
+            "type": "string"
+          },
+          "processed_size_bytes": {
+            "description": "Processed file size in bytes.",
+            "title": "Processed Size Bytes",
+            "type": "integer"
+          },
+          "reduction_percent": {
+            "description": "Percent size reduction after compression.",
+            "title": "Reduction Percent",
+            "type": "number"
+          },
+          "relative_path": {
+            "description": "Processed file path relative to the processed job folder.",
+            "title": "Relative Path",
+            "type": "string"
+          },
+          "status": {
+            "const": "processed",
+            "description": "Processing status for this image.",
+            "title": "Status",
+            "type": "string"
+          },
+          "stored_filename": {
+            "description": "Original stored upload filename.",
+            "title": "Stored Filename",
+            "type": "string"
+          },
+          "width": {
+            "description": "Processed image width in pixels.",
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "original_filename",
+          "stored_filename",
+          "processed_filename",
+          "relative_path",
+          "original_format",
+          "new_format",
+          "original_size_bytes",
+          "processed_size_bytes",
+          "reduction_percent",
+          "width",
+          "height",
+          "status"
+        ],
+        "title": "ImageCompressionResult",
+        "type": "object"
+      },
+      "ImageCompressionSettings": {
+        "properties": {
+          "custom_max_width": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Custom max width used only when resize_mode is custom.",
+            "title": "Custom Max Width"
+          },
+          "filename_overrides": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Optional per-image filename overrides keyed by uploaded image file id. Values may include an extension, but the processed extension is determined by output_format or the source format.",
+            "title": "Filename Overrides",
+            "type": "object"
+          },
+          "mode": {
+            "default": "lossy",
+            "description": "Compression mode.",
+            "enum": [
+              "lossy",
+              "lossless"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "output_format": {
+            "default": "keep_original",
+            "description": "Output image format. keep_original preserves each source extension.",
+            "enum": [
+              "keep_original",
+              "webp",
+              "jpg",
+              "png"
+            ],
+            "title": "Output Format",
+            "type": "string"
+          },
+          "quality": {
+            "default": 80,
+            "description": "Lossy compression quality.",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Quality",
+            "type": "integer"
+          },
+          "resize_mode": {
+            "default": "none",
+            "description": "Optional max-width resize mode.",
+            "enum": [
+              "none",
+              "max_1920",
+              "max_1200",
+              "custom"
+            ],
+            "title": "Resize Mode",
+            "type": "string"
+          },
+          "strip_metadata": {
+            "default": true,
+            "description": "Whether to remove image metadata.",
+            "title": "Strip Metadata",
+            "type": "boolean"
+          }
+        },
+        "title": "ImageCompressionSettings",
+        "type": "object"
+      },
+      "ImageJobCreateResponse": {
+        "properties": {
+          "accepted_extensions": {
+            "description": "File extensions accepted by the upload endpoint.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Accepted Extensions",
+            "type": "array"
+          },
+          "files": {
+            "description": "Validated uploaded image files.",
+            "items": {
+              "$ref": "#/components/schemas/ImageUploadFileRecord"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "id": {
+            "description": "Unique image job identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current job status after upload.",
+            "enum": [
+              "pending",
+              "processing",
+              "processed",
+              "needs_review",
+              "accepted",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "const": "image",
+            "description": "Job workflow type.",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "accepted_extensions",
+          "files"
+        ],
+        "title": "ImageJobCreateResponse",
+        "type": "object"
+      },
+      "ImageUploadFileRecord": {
+        "properties": {
+          "content_type": {
+            "description": "Detected or provided content type.",
+            "title": "Content Type",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique uploaded image file identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "original_filename": {
+            "description": "Original filename provided by the user or ZIP entry.",
+            "title": "Original Filename",
+            "type": "string"
+          },
+          "relative_path": {
+            "description": "Path relative to the job upload folder.",
+            "title": "Relative Path",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Stored image size in bytes.",
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "source": {
+            "description": "Whether the file came directly or from a ZIP.",
+            "enum": [
+              "upload",
+              "zip"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_archive": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Original ZIP filename when the image came from an archive.",
+            "title": "Source Archive"
+          },
+          "stored_filename": {
+            "description": "Sanitized filename stored under the job upload folder.",
+            "title": "Stored Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "original_filename",
+          "stored_filename",
+          "relative_path",
+          "content_type",
+          "size_bytes",
+          "source"
+        ],
+        "title": "ImageUploadFileRecord",
+        "type": "object"
+      },
+      "JobFileListResponse": {
+        "properties": {
+          "files": {
+            "description": "Uploaded image files associated with the job.",
+            "items": {
+              "$ref": "#/components/schemas/ImageUploadFileRecord"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "job_id": {
+            "description": "Unique job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "JobFileListResponse",
+        "type": "object"
+      },
+      "JobStatusResponse": {
+        "properties": {
+          "file_count": {
+            "description": "Number of uploaded image files associated with the job.",
+            "title": "File Count",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Unique job identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current job status.",
+            "enum": [
+              "pending",
+              "processing",
+              "processed",
+              "needs_review",
+              "accepted",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "description": "Job workflow type.",
+            "enum": [
+              "image",
+              "website"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "file_count"
+        ],
+        "title": "JobStatusResponse",
+        "type": "object"
+      },
+      "LinkListResponse": {
+        "properties": {
+          "job_id": {
+            "description": "Unique website job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "links": {
+            "description": "Checked link URLs. Empty until Phase 9 is implemented.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Links",
+            "type": "array"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "LinkListResponse",
+        "type": "object"
+      },
+      "PageListResponse": {
+        "properties": {
+          "job_id": {
+            "description": "Unique website job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "pages": {
+            "description": "Crawled page URLs. Empty until Phase 8 is implemented.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Pages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "PageListResponse",
+        "type": "object"
+      },
+      "SettingsResponse": {
+        "properties": {
+          "frontend_origin": {
+            "description": "Allowed frontend origin for local CORS.",
+            "title": "Frontend Origin",
+            "type": "string"
+          },
+          "ollama_base_url": {
+            "description": "Base URL for the local Ollama runtime.",
+            "title": "Ollama Base Url",
+            "type": "string"
+          },
+          "ollama_model": {
+            "description": "Default Ollama model used by AI workflows.",
+            "title": "Ollama Model",
+            "type": "string"
+          },
+          "storage_root": {
+            "description": "Backend local storage root.",
+            "title": "Storage Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ollama_base_url",
+          "ollama_model",
+          "frontend_origin",
+          "storage_root"
+        ],
+        "title": "SettingsResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "name": "seo-studio maintainers"
+    },
+    "description": "\nThe seo-studio API powers the local proof-of-concept workflow for image optimization,\nwebsite crawling, AI metadata generation, and exports.\n\nThe POC uses local file storage and a separate local Ollama runtime. Long-running\nworker queues, authentication, and persistent databases are intentionally deferred\nuntil beta readiness.\n",
+    "summary": "Local API for the seo-studio optimization POC.",
+    "title": "seo-studio API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/jobs/images": {
+      "post": {
+        "description": "Creates an image job from one or more uploaded files. Accepts direct `.jpg`, `.jpeg`, `.png`, and `.webp` images plus `.zip` archives that contain supported images. Direct image files and ZIP entries are limited to 5MB each. ZIP archives are safely inspected to prevent path traversal.",
+        "operationId": "create_image_job_api_jobs_images_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_image_job_api_jobs_images_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageJobCreateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "The upload is empty, unsupported, too large, unsafe, or not a valid image."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create image upload job",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "description": "Returns status for an image job created by the upload endpoint, including the number of validated uploaded image files.",
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get job status",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/broken-links": {
+      "get": {
+        "description": "Returns broken links for a website job. Phase 9 will include status codes, source pages, timeout handling, and internal/external classification.",
+        "operationId": "list_broken_links_api_jobs__job_id__broken_links_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List broken links",
+        "tags": [
+          "website jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/export.{export_format}": {
+      "get": {
+        "description": "Placeholder export endpoint for CSV, JSON, XLSX, and ZIP downloads. Phase 7 will return generated files with the correct media type.",
+        "operationId": "export_job_api_jobs__job_id__export__export_format__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "export_format",
+            "required": true,
+            "schema": {
+              "title": "Export Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportPlaceholderResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export job results",
+        "tags": [
+          "exports"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/files": {
+      "get": {
+        "description": "Returns validated direct image uploads and extracted ZIP image entries for an image job.",
+        "operationId": "list_job_files_api_jobs__job_id__files_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobFileListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List uploaded image job files",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/links": {
+      "get": {
+        "description": "Returns link check results for a website job. Phase 9 will populate this with internal and external link status data.",
+        "operationId": "list_links_api_jobs__job_id__links_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List checked links",
+        "tags": [
+          "website jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/pages": {
+      "get": {
+        "description": "Returns pages discovered for a website job. Phase 8 will populate this after same-domain crawling and content extraction.",
+        "operationId": "list_pages_api_jobs__job_id__pages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List crawled pages",
+        "tags": [
+          "website jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/process": {
+      "post": {
+        "description": "Processes every validated image in an image job using the provided compression, conversion, and filename cleanup settings. Defaults match the RFC: lossy mode, quality 80, no resize, metadata stripping enabled, and original output format. It can convert output format to WebP, JPG, PNG, or keep the original extension. Optional filename overrides are sanitized, lowercased, de-duplicated, and saved with the selected output extension. Processed files are written to `storage/processed/{job_id}/images`. Transparent images converted to JPG are flattened onto a white background.",
+        "operationId": "process_image_job_api_jobs__job_id__process_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageCompressionSettings",
+                "description": "Processing settings. Quality is most relevant for JPEG and WebP; PNG uses lossless optimization behavior. filename_overrides may be used to manually set cleaned output filenames by uploaded file id."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageCompressionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "The job has no images or settings are invalid."
+          },
+          "404": {
+            "description": "Job or uploaded source file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Process uploaded image files",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/processed/{filename}": {
+      "get": {
+        "description": "Downloads one processed image from `storage/processed/{job_id}/images`. The filename must be a direct processed filename returned by the compression result.",
+        "operationId": "download_processed_image_api_jobs__job_id__processed__filename__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "filename",
+            "required": true,
+            "schema": {
+              "title": "Filename",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Filename is invalid."
+          },
+          "404": {
+            "description": "Processed file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download processed image",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "description": "Returns local runtime settings used by the frontend, including the Ollama endpoint, default model, CORS origin, and backend storage root.",
+        "operationId": "read_settings_api_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Read runtime settings",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Returns a small response confirming the FastAPI service is running.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Check API health",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Operational checks for local development and smoke testing.",
+      "name": "health"
+    },
+    {
+      "description": "Runtime configuration exposed to the frontend.",
+      "name": "settings"
+    },
+    {
+      "description": "Image upload, processing, metadata review, and image result endpoints.",
+      "name": "image jobs"
+    },
+    {
+      "description": "Website crawling, page extraction, broken link, and SEO metadata endpoints.",
+      "name": "website jobs"
+    },
+    {
+      "description": "CSV, JSON, XLSX, and ZIP export endpoints for completed jobs.",
+      "name": "exports"
+    }
+  ]
+}
