@@ -1,3 +1,4 @@
+import json
 from io import BytesIO
 from pathlib import Path
 from zipfile import ZipFile
@@ -30,6 +31,8 @@ def cleanup_job(job_id: str) -> None:
     for job_dir in [
         get_settings().storage_root / "uploads" / job_id,
         get_settings().storage_root / "processed" / job_id,
+        get_settings().storage_root / "exports" / job_id,
+        get_settings().storage_root / "temp" / job_id,
     ]:
         if not job_dir.exists():
             continue
@@ -176,6 +179,89 @@ def test_download_processed_image() -> None:
     assert download_response.status_code == 200
     assert download_response.headers["content-disposition"].startswith("attachment;")
     assert len(download_response.content) > 0
+
+
+def test_download_image_with_metadata_filename_falls_back_to_original() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("Sample Hero.JPG", make_image_bytes("JPEG"), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": file_id,
+                "original_filename": "Sample Hero.JPG",
+                "suggested_filename": "ai-suggested-name",
+                "alt_text": "Sample hero image.",
+                "caption": "Sample hero image.",
+                "confidence": 0.5,
+                "status": "needs_review",
+                "error_message": "",
+            }
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        download_response = client.get(f"/api/jobs/{body['id']}/images/{file_id}/download")
+    finally:
+        cleanup_job(body["id"])
+
+    assert download_response.status_code == 200
+    assert "ai-suggested-name.jpg" in download_response.headers["content-disposition"]
+    assert len(download_response.content) > 0
+
+
+def test_download_image_prefers_processed_output_and_query_filename() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("sample.jpg", make_image_bytes("JPEG"), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+
+    try:
+        client.post(f"/api/jobs/{body['id']}/process", json={"output_format": "webp"})
+        download_response = client.get(
+            f"/api/jobs/{body['id']}/images/{file_id}/download",
+            params={"filename": "Custom Download Name!!.png"},
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert download_response.status_code == 200
+    assert "custom-download-name.webp" in download_response.headers["content-disposition"]
+    with Image.open(BytesIO(download_response.content)) as image:
+        assert image.format == "WEBP"
+
+
+def test_export_processed_images_zip() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[
+            ("files", ("first.jpg", make_image_bytes("JPEG"), "image/jpeg")),
+            ("files", ("second.png", make_image_bytes("PNG"), "image/png")),
+        ],
+    )
+    body = upload_response.json()
+
+    try:
+        client.post(f"/api/jobs/{body['id']}/process", json={"output_format": "webp"})
+        export_response = client.get(f"/api/jobs/{body['id']}/export.zip")
+    finally:
+        cleanup_job(body["id"])
+
+    assert export_response.status_code == 200
+    assert export_response.headers["content-type"] == "application/zip"
+    with ZipFile(BytesIO(export_response.content)) as archive:
+        assert archive.namelist() == ["images/first.webp", "images/second.webp"]
 
 
 def test_rejects_processed_download_path_traversal() -> None:

@@ -331,6 +331,102 @@
         "title": "ImageJobCreateResponse",
         "type": "object"
       },
+      "ImageMetadataListResponse": {
+        "properties": {
+          "job_id": {
+            "description": "Image job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "model": {
+            "description": "AI model used for metadata generation.",
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "description": "AI provider used for metadata generation.",
+            "title": "Provider",
+            "type": "string"
+          },
+          "results": {
+            "description": "Per-image metadata results.",
+            "items": {
+              "$ref": "#/components/schemas/ImageMetadataResult"
+            },
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": [
+          "job_id",
+          "provider",
+          "model"
+        ],
+        "title": "ImageMetadataListResponse",
+        "type": "object"
+      },
+      "ImageMetadataResult": {
+        "properties": {
+          "alt_text": {
+            "description": "AI-generated image alt text.",
+            "title": "Alt Text",
+            "type": "string"
+          },
+          "caption": {
+            "description": "AI-generated image caption.",
+            "title": "Caption",
+            "type": "string"
+          },
+          "confidence": {
+            "default": 0.0,
+            "description": "Model confidence from 0 to 1.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "error_message": {
+            "default": "",
+            "description": "Failure detail when status is failed.",
+            "title": "Error Message",
+            "type": "string"
+          },
+          "id": {
+            "description": "Uploaded image file identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "original_filename": {
+            "description": "Original filename from upload.",
+            "title": "Original Filename",
+            "type": "string"
+          },
+          "status": {
+            "description": "Metadata generation status for this image.",
+            "enum": [
+              "needs_review",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggested_filename": {
+            "description": "AI-generated extension-free filename.",
+            "title": "Suggested Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "original_filename",
+          "suggested_filename",
+          "alt_text",
+          "caption",
+          "status"
+        ],
+        "title": "ImageMetadataResult",
+        "type": "object"
+      },
       "ImageUploadFileRecord": {
         "properties": {
           "content_type": {
@@ -509,6 +605,16 @@
       },
       "SettingsResponse": {
         "properties": {
+          "ai_preview_max_width": {
+            "description": "Maximum preview width sent to AI models.",
+            "title": "Ai Preview Max Width",
+            "type": "integer"
+          },
+          "ai_provider": {
+            "description": "Configured AI provider for metadata workflows.",
+            "title": "Ai Provider",
+            "type": "string"
+          },
           "frontend_origin": {
             "description": "Allowed frontend origin for local CORS.",
             "title": "Frontend Origin",
@@ -531,8 +637,10 @@
           }
         },
         "required": [
+          "ai_provider",
           "ollama_base_url",
           "ollama_model",
+          "ai_preview_max_width",
           "frontend_origin",
           "storage_root"
         ],
@@ -719,6 +827,45 @@
         ]
       }
     },
+    "/api/jobs/{job_id}/export.zip": {
+      "get": {
+        "description": "Creates and downloads a ZIP archive containing every processed image for an image job. The job must already be processed through the image optimizer. Images are stored inside the archive under the `images/` folder.",
+        "operationId": "export_processed_images_zip_api_jobs__job_id__export_zip_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job or processed images were not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download processed images ZIP",
+        "tags": [
+          "exports"
+        ]
+      }
+    },
     "/api/jobs/{job_id}/export.{export_format}": {
       "get": {
         "description": "Placeholder export endpoint for CSV, JSON, XLSX, and ZIP downloads. Phase 7 will return generated files with the correct media type.",
@@ -812,6 +959,220 @@
           }
         },
         "summary": "List uploaded image job files",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/images/metadata": {
+      "get": {
+        "description": "Returns generated AI metadata for an image job. Empty results are returned when metadata has not been generated yet.",
+        "operationId": "list_image_metadata_api_jobs__job_id__images_metadata_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageMetadataListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List AI image metadata",
+        "tags": [
+          "image jobs"
+        ]
+      },
+      "post": {
+        "description": "Generates filename suggestions, alt text, captions, and confidence scores for every image in a job. Images are processed sequentially through the configured AI provider. Failed rows are returned with failed status while successful rows are persisted for review.",
+        "operationId": "generate_all_image_metadata_api_jobs__job_id__images_metadata_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageMetadataListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate AI metadata for all image files",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/images/{image_id}/download": {
+      "get": {
+        "description": "Downloads the processed image for an uploaded image id when processed output exists. If the job has not been processed, downloads the original uploaded image instead. The attachment filename uses the provided filename query value, generated AI filename, or stored filename while preserving the actual downloaded file extension.",
+        "operationId": "download_image_with_metadata_filename_api_jobs__job_id__images__image_id__download_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional extension-free filename to use for the attachment.",
+            "in": "query",
+            "name": "filename",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional extension-free filename to use for the attachment.",
+              "title": "Filename"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job, image, processed file, or original upload not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download image with SEO filename",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/images/{image_id}/metadata": {
+      "post": {
+        "description": "Regenerates filename suggestion, alt text, caption, and confidence score for one uploaded image in an image job.",
+        "operationId": "generate_single_image_metadata_api_jobs__job_id__images__image_id__metadata_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageMetadataResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job or image file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "description": "Configured AI provider request failed."
+          }
+        },
+        "summary": "Regenerate AI metadata for one image",
         "tags": [
           "image jobs"
         ]

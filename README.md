@@ -48,6 +48,24 @@ Open:
 http://127.0.0.1:3000
 ```
 
+### Optional AI Metadata
+
+Phase 5 uses Ollama with `moondream` by default:
+
+```bash
+ollama pull moondream
+ollama serve
+```
+
+The backend reads these optional environment variables:
+
+```text
+SEO_STUDIO_AI_PROVIDER=ollama
+SEO_STUDIO_OLLAMA_BASE_URL=http://localhost:11434
+SEO_STUDIO_OLLAMA_MODEL=moondream
+SEO_STUDIO_AI_PREVIEW_MAX_WIDTH=1024
+```
+
 ## Checks
 
 Backend:
@@ -101,5 +119,9 @@ Implemented phases:
 - Output format conversion selector
 - JPG/WebP/PNG conversion support
 - PNG transparency flattening for JPG output
+- Filename cleanup with editable output filename stems
+- Processed image ZIP download
+- Ollama/moondream AI image metadata backend
+- SEO Metadata page for job-based image metadata generation and review
 
-Next phase: filename cleanup.
+Next phase: review and export hardening.

@@ -19,8 +19,10 @@ router = APIRouter()
 def read_settings() -> SettingsResponse:
     settings = get_settings()
     return SettingsResponse(
+        ai_provider=settings.ai_provider,
         ollama_base_url=settings.ollama_base_url,
         ollama_model=settings.ollama_model,
+        ai_preview_max_width=settings.ai_preview_max_width,
         frontend_origin=", ".join(get_cors_origins(settings)),
         storage_root=str(settings.storage_root),
     )

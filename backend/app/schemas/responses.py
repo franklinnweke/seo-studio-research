@@ -12,8 +12,10 @@ class HealthResponse(BaseModel):
 
 
 class SettingsResponse(BaseModel):
+    ai_provider: str = Field(description="Configured AI provider for metadata workflows.")
     ollama_base_url: str = Field(description="Base URL for the local Ollama runtime.")
     ollama_model: str = Field(description="Default Ollama model used by AI workflows.")
+    ai_preview_max_width: int = Field(description="Maximum preview width sent to AI models.")
     frontend_origin: str = Field(description="Allowed frontend origin for local CORS.")
     storage_root: str = Field(description="Backend local storage root.")
 
@@ -106,6 +108,24 @@ class ImageCompressionResponse(BaseModel):
     status: Literal["processed"] = Field(description="Image compression job status.")
     settings: ImageCompressionSettings = Field(description="Compression settings applied.")
     results: list[ImageCompressionResult] = Field(description="Per-image compression results.")
+
+
+class ImageMetadataResult(BaseModel):
+    id: str = Field(description="Uploaded image file identifier.")
+    original_filename: str = Field(description="Original filename from upload.")
+    suggested_filename: str = Field(description="AI-generated extension-free filename.")
+    alt_text: str = Field(description="AI-generated image alt text.")
+    caption: str = Field(description="AI-generated image caption.")
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Model confidence from 0 to 1.")
+    status: Literal["needs_review", "failed"] = Field(description="Metadata generation status for this image.")
+    error_message: str = Field(default="", description="Failure detail when status is failed.")
+
+
+class ImageMetadataListResponse(BaseModel):
+    job_id: str = Field(description="Image job identifier.")
+    provider: str = Field(description="AI provider used for metadata generation.")
+    model: str = Field(description="AI model used for metadata generation.")
+    results: list[ImageMetadataResult] = Field(default_factory=list, description="Per-image metadata results.")
 
 
 class PageListResponse(BaseModel):

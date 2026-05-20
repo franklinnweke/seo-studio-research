@@ -9,8 +9,10 @@ class Settings(BaseSettings):
     environment: str = "local"
     frontend_origin: str = "http://localhost:3000"
     frontend_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    ai_provider: str = "ollama"
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2-vision"
+    ollama_model: str = "moondream"
+    ai_preview_max_width: int = 1024
     storage_root: Path = Path(__file__).resolve().parent / "storage"
     max_upload_file_size_bytes: int = 5 * 1024 * 1024
     max_zip_file_size_bytes: int = 25 * 1024 * 1024

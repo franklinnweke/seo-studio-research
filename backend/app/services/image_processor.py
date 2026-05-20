@@ -70,6 +70,78 @@ class ImageProcessor:
 
         return resolved_path
 
+    def image_download(self, job_id: str, image_id: str, filename: str | None = None) -> tuple[Path, str]:
+        job = self.upload_service.read_job(job_id)
+        file_record = next((record for record in job.files if record.id == image_id), None)
+        if not file_record:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found.")
+
+        job_data = self.upload_service.read_job_data(job_id)
+        processed_result = self._processed_result_for_image(job_data, image_id)
+        if processed_result:
+            processed_filename = str(processed_result["processed_filename"])
+            path = self.processed_file_path(job_id, processed_filename)
+            return path, self._download_filename(
+                requested_filename=filename,
+                metadata_filename=self._metadata_filename_for_image(job_data, image_id),
+                fallback_filename=processed_filename,
+                extension=path.suffix,
+            )
+
+        source_path = self.upload_root / job_id / file_record.relative_path
+        if not source_path.exists() or not source_path.is_file():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Uploaded file is missing: {file_record.relative_path}",
+            )
+
+        return source_path, self._download_filename(
+            requested_filename=filename,
+            metadata_filename=self._metadata_filename_for_image(job_data, image_id),
+            fallback_filename=file_record.stored_filename,
+            extension=source_path.suffix,
+        )
+
+    def _processed_result_for_image(self, job_data: dict, image_id: str) -> dict | None:
+        compression = job_data.get("compression")
+        if not isinstance(compression, dict):
+            return None
+
+        results = compression.get("results")
+        if not isinstance(results, list):
+            return None
+
+        for result in results:
+            if isinstance(result, dict) and result.get("id") == image_id and result.get("processed_filename"):
+                return result
+        return None
+
+    def _metadata_filename_for_image(self, job_data: dict, image_id: str) -> str | None:
+        metadata = job_data.get("image_metadata")
+        if not isinstance(metadata, dict):
+            return None
+
+        results = metadata.get("results")
+        if not isinstance(results, list):
+            return None
+
+        for result in results:
+            if isinstance(result, dict) and result.get("id") == image_id and result.get("suggested_filename"):
+                return str(result["suggested_filename"])
+        return None
+
+    def _download_filename(
+        self,
+        requested_filename: str | None,
+        metadata_filename: str | None,
+        fallback_filename: str,
+        extension: str,
+    ) -> str:
+        selected = requested_filename or metadata_filename or fallback_filename
+        sanitized = sanitize_filename(selected)
+        stem = Path(sanitized).stem or Path(fallback_filename).stem
+        return f"{stem}{extension.lower()}"
+
     def _compress_file(
         self,
         job_id: str,

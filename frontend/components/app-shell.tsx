@@ -16,7 +16,7 @@ const navigation = [
   { key: "dashboard", label: "Dashboard", icon: Gauge, href: "/" },
   { key: "image-optimizer", label: "Image Optimizer", icon: ImageIcon, href: "/image-optimizer" },
   { key: "website-checker", label: "Website Checker", icon: FileSearch, href: "#" },
-  { key: "seo-metadata", label: "SEO Metadata", icon: Sparkles, href: "#" },
+  { key: "seo-metadata", label: "SEO Metadata", icon: Sparkles, href: "/seo-metadata" },
   { key: "exports", label: "Exports", icon: Archive, href: "#" },
   { key: "settings", label: "Settings", icon: Settings, href: "#" },
 ] satisfies Array<{ key: NavKey; label: string; icon: typeof Gauge; href: string }>;

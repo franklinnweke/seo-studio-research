@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, File, UploadFile, status
+from fastapi import APIRouter, Body, Depends, File, Query, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.config import Settings, get_settings
@@ -8,9 +8,12 @@ from app.schemas.responses import (
     ImageCompressionResponse,
     ImageCompressionSettings,
     ImageJobCreateResponse,
+    ImageMetadataListResponse,
+    ImageMetadataResult,
     JobFileListResponse,
     JobStatusResponse,
 )
+from app.services.ai_metadata_service import AiMetadataService
 from app.services.image_processor import ImageProcessor
 from app.services.image_upload_service import ImageUploadService
 
@@ -24,6 +27,10 @@ def get_image_upload_service(settings: Annotated[Settings, Depends(get_settings)
 
 def get_image_processor(settings: Annotated[Settings, Depends(get_settings)]) -> ImageProcessor:
     return ImageProcessor(settings)
+
+
+def get_ai_metadata_service(settings: Annotated[Settings, Depends(get_settings)]) -> AiMetadataService:
+    return AiMetadataService(settings)
 
 
 @router.post(
@@ -92,6 +99,90 @@ def process_image_job(
     processor: Annotated[ImageProcessor, Depends(get_image_processor)],
 ) -> ImageCompressionResponse:
     return processor.compress_job(job_id, settings)
+
+
+@router.get(
+    "/{job_id}/images/metadata",
+    response_model=ImageMetadataListResponse,
+    summary="List AI image metadata",
+    description=(
+        "Returns generated AI metadata for an image job. Empty results are returned "
+        "when metadata has not been generated yet."
+    ),
+    responses={404: {"description": "Job not found."}},
+)
+def list_image_metadata(
+    job_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageMetadataListResponse:
+    return service.list_image_metadata(job_id)
+
+
+@router.post(
+    "/{job_id}/images/metadata",
+    response_model=ImageMetadataListResponse,
+    summary="Generate AI metadata for all image files",
+    description=(
+        "Generates filename suggestions, alt text, captions, and confidence scores "
+        "for every image in a job. Images are processed sequentially through the "
+        "configured AI provider. Failed rows are returned with failed status while "
+        "successful rows are persisted for review."
+    ),
+    responses={404: {"description": "Job not found."}},
+)
+def generate_all_image_metadata(
+    job_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageMetadataListResponse:
+    return service.generate_all_image_metadata(job_id)
+
+
+@router.post(
+    "/{job_id}/images/{image_id}/metadata",
+    response_model=ImageMetadataResult,
+    summary="Regenerate AI metadata for one image",
+    description=(
+        "Regenerates filename suggestion, alt text, caption, and confidence score "
+        "for one uploaded image in an image job."
+    ),
+    responses={
+        404: {"description": "Job or image file not found."},
+        502: {"description": "Configured AI provider request failed."},
+    },
+)
+def generate_single_image_metadata(
+    job_id: str,
+    image_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageMetadataResult:
+    return service.generate_single_image_metadata(job_id, image_id)
+
+
+@router.get(
+    "/{job_id}/images/{image_id}/download",
+    response_class=FileResponse,
+    summary="Download image with SEO filename",
+    description=(
+        "Downloads the processed image for an uploaded image id when processed output exists. "
+        "If the job has not been processed, downloads the original uploaded image instead. "
+        "The attachment filename uses the provided filename query value, generated AI filename, "
+        "or stored filename while preserving the actual downloaded file extension."
+    ),
+    responses={
+        404: {"description": "Job, image, processed file, or original upload not found."},
+    },
+)
+def download_image_with_metadata_filename(
+    job_id: str,
+    image_id: str,
+    processor: Annotated[ImageProcessor, Depends(get_image_processor)],
+    filename: Annotated[
+        str | None,
+        Query(description="Optional extension-free filename to use for the attachment."),
+    ] = None,
+) -> FileResponse:
+    path, download_filename = processor.image_download(job_id, image_id, filename)
+    return FileResponse(path=path, filename=download_filename)
 
 
 @router.get(

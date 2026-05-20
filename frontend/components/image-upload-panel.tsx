@@ -20,6 +20,7 @@ import {
   getApiErrorMessage,
   getJobFiles,
   getProcessedImageDownloadUrl,
+  getProcessedImagesZipDownloadUrl,
   type ImageCompressionResponse,
   type ImageCompressionSettings,
   type ImageJobCreateResponse,
@@ -580,9 +581,19 @@ export function ImageUploadPanel() {
         <div className="border-t border-[#dfe3e8] px-5 py-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold">Optimization Results</h3>
-            <span className="rounded-md bg-[#eef6f0] px-2 py-1 text-xs font-medium text-[#20744a]">
-              {compressionResult.results.length} processed
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="rounded-md bg-[#eef6f0] px-2 py-1 text-xs font-medium text-[#20744a]">
+                {compressionResult.results.length} processed
+              </span>
+              <a
+                href={getProcessedImagesZipDownloadUrl(compressionResult.job_id)}
+                download={`${compressionResult.job_id}-processed-images.zip`}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-3 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
+              >
+                <FileArchive aria-hidden="true" size={16} />
+                Download ZIP
+              </a>
+            </div>
           </div>
           <div className="overflow-x-auto rounded-lg border border-[#dfe3e8]">
             <table className="w-full min-w-[860px] text-left text-sm">

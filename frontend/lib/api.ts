@@ -15,6 +15,15 @@ export type HealthResponse = {
   app: string;
 };
 
+export type SettingsResponse = {
+  ai_provider: string;
+  ollama_base_url: string;
+  ollama_model: string;
+  ai_preview_max_width: number;
+  frontend_origin: string;
+  storage_root: string;
+};
+
 export type ImageUploadFileRecord = {
   id: string;
   original_filename: string;
@@ -79,8 +88,31 @@ export type ImageCompressionResponse = {
   results: ImageCompressionResult[];
 };
 
+export type ImageMetadataResult = {
+  id: string;
+  original_filename: string;
+  suggested_filename: string;
+  alt_text: string;
+  caption: string;
+  confidence: number;
+  status: "needs_review" | "failed";
+  error_message: string;
+};
+
+export type ImageMetadataListResponse = {
+  job_id: string;
+  provider: string;
+  model: string;
+  results: ImageMetadataResult[];
+};
+
 export async function getHealth(): Promise<HealthResponse> {
   const response = await apiClient.get<HealthResponse>("/health");
+  return response.data;
+}
+
+export async function getSettings(): Promise<SettingsResponse> {
+  const response = await apiClient.get<SettingsResponse>("/api/settings");
   return response.data;
 }
 
@@ -122,6 +154,48 @@ export async function processImageJob(
 
 export function getProcessedImageDownloadUrl(jobId: string, filename: string): string {
   return `${API_BASE_URL}/api/jobs/${encodeURIComponent(jobId)}/processed/${encodeURIComponent(filename)}`;
+}
+
+export function getProcessedImagesZipDownloadUrl(jobId: string): string {
+  return `${API_BASE_URL}/api/jobs/${encodeURIComponent(jobId)}/export.zip`;
+}
+
+export function getMetadataImageDownloadUrl(
+  jobId: string,
+  imageId: string,
+  filename?: string,
+): string {
+  const url = new URL(
+    `${API_BASE_URL}/api/jobs/${encodeURIComponent(jobId)}/images/${encodeURIComponent(imageId)}/download`,
+  );
+  if (filename?.trim()) {
+    url.searchParams.set("filename", filename.trim());
+  }
+  return url.toString();
+}
+
+export async function getImageMetadata(jobId: string): Promise<ImageMetadataListResponse> {
+  const response = await apiClient.get<ImageMetadataListResponse>(
+    `/api/jobs/${jobId}/images/metadata`,
+  );
+  return response.data;
+}
+
+export async function generateImageMetadata(jobId: string): Promise<ImageMetadataListResponse> {
+  const response = await apiClient.post<ImageMetadataListResponse>(
+    `/api/jobs/${jobId}/images/metadata`,
+  );
+  return response.data;
+}
+
+export async function regenerateImageMetadata(
+  jobId: string,
+  imageId: string,
+): Promise<ImageMetadataResult> {
+  const response = await apiClient.post<ImageMetadataResult>(
+    `/api/jobs/${jobId}/images/${imageId}/metadata`,
+  );
+  return response.data;
 }
 
 export function getApiErrorMessage(error: unknown): string {

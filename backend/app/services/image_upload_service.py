@@ -206,6 +206,18 @@ class ImageUploadService:
 
         job_file.write_text(job.model_dump_json(indent=2))
 
+    def read_job_data(self, job_id: str) -> dict:
+        job_file = self.upload_root / job_id / "job.json"
+        if not job_file.exists():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+        return json.loads(job_file.read_text())
+
+    def write_job_data(self, job_id: str, data: dict) -> None:
+        job_file = self.upload_root / job_id / "job.json"
+        if not job_file.exists():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+        job_file.write_text(json.dumps(data, indent=2))
+
     def _read_job(self, job_id: str) -> ImageJobCreateResponse:
         job_file = self.upload_root / job_id / "job.json"
         if not job_file.exists():
