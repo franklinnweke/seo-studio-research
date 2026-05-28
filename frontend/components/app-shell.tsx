@@ -26,7 +26,7 @@ export function AppShell({
   title,
   subtitle,
   sidebarPhase = "Phase 5 active",
-  sidebarDescription = "Generate AI image filenames, alt text, and captions.",
+  sidebarDescription = "Stabilize AI metadata, then add brand document context.",
   children,
 }: {
   active: NavKey;

@@ -124,4 +124,4 @@ Implemented phases:
 - Ollama/moondream AI image metadata backend
 - SEO Metadata page for job-based image metadata generation and review
 
-Next phase: review and export hardening.
+Next phase: brand document context for AI metadata, followed by dual-model AI metadata and focus-aware crop/resize.

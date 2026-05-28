@@ -4,17 +4,20 @@
 
 `seo-studio` is a proof-of-concept platform for AI-powered image and website optimization.
 
-The POC will validate the core workflow before adding production-scale infrastructure. It will support batch image upload, image compression, image conversion, filename cleanup, AI-generated image metadata, website crawling, broken link checking, AI-generated SEO metadata, and export generation.
+The POC will validate the core workflow before adding production-scale infrastructure. It will support batch image upload, image compression, image conversion, filename cleanup, brand-aware AI image metadata, AI focus-aware crop and resize, website crawling, broken link checking, website screenshots, bulk URL checking, AI-generated SEO metadata, and export generation.
 
 ## Goals
 
 - Build a working local image optimization pipeline.
 - Support single image, multi-image, and ZIP upload.
 - Compress and convert images for web use.
+- Let users upload brand documents that provide company and website context for AI output.
 - Generate AI-powered image filenames, alt text, and captions.
+- Resize and crop images around AI-detected focal subjects when target dimensions are required.
 - Let users review, edit, regenerate, and approve generated metadata.
 - Crawl websites with optional Basic Auth.
 - Detect broken links and report their source pages.
+- Capture website screenshots and run bulk URL checks.
 - Generate page summaries, SEO titles, and meta descriptions.
 - Export processed images and reports as CSV, JSON, XLSX, and ZIP.
 - Keep the POC lightweight and easy to run locally.
@@ -56,8 +59,11 @@ The POC will validate the core workflow before adding production-scale infrastru
 ### AI Runtime
 
 - Ollama for local development
-- Default model: `llama3.2-vision`
+- Default vision model: `llama3.2-vision`
+- Default language model: configurable Ollama text model
 - Alternative model: `llava:7b`
+
+The long-term AI path separates image understanding from language generation. A vision model analyzes image content and focal areas. A language model combines the visual analysis with optional brand document context to generate filenames, alt text, captions, and descriptions.
 
 ## Repository Structure
 
@@ -491,15 +497,100 @@ Follow-up:
 
 - Build review workflow before final exports.
 
-### Phase 6: Review UI
+### Phase 6: Brand Context Documents
 
-Allow users to review, edit, approve, or regenerate image metadata.
+Let users upload brand documents before AI metadata generation so filenames, alt text, captions, and descriptions can reflect company and website context.
+
+Backend tasks:
+
+- Accept `.docx`, `.txt`, and `.pdf` brand document uploads for an image job.
+- Extract plain text from uploaded brand documents.
+- Store extracted brand context with the job metadata.
+- Add size and file-type validation for brand documents.
+- Make brand context available to image metadata prompts.
+
+Frontend tasks:
+
+- Add brand document upload UI before AI generation.
+- Show uploaded brand document name, extraction status, and validation errors.
+- Let users remove or replace the brand document before generation.
+
+Manual verification:
+
+- Upload `.txt`, `.docx`, and `.pdf` brand documents.
+- Confirm extracted context is stored with the job.
+- Generate image metadata with and without brand context and compare output.
+
+Follow-up:
+
+- Use the extracted context in the dual-model metadata generation flow.
+
+### Phase 7: Dual-Model AI Image Metadata
+
+Separate visual understanding from language generation for higher-quality metadata.
+
+Backend tasks:
+
+- Add a vision analysis step that returns visible subjects, scene description, and likely focal areas.
+- Add a language generation step that combines visual analysis, brand context, and filename rules.
+- Support separate configurable vision and language model names.
+- Keep the existing single-model Ollama path as a local fallback.
+- Store the model/provider details used for each generated result.
+
+Frontend tasks:
+
+- Show model/provider details in the AI metadata review panel.
+- Improve failed AI states when either the vision or language step fails.
+- Keep regenerate actions available per image.
+
+Manual verification:
+
+- Generate metadata with brand context enabled.
+- Confirm output follows filename, alt text, caption, and confidence constraints.
+- Confirm failures are shown per image without crashing the whole request.
+
+Follow-up:
+
+- Add focal crop workflow once vision analysis is reliable.
+
+### Phase 8: AI Focus-Aware Resize and Crop
+
+Resize and crop images around AI-detected focal subjects when the user needs exact website dimensions.
+
+Backend tasks:
+
+- Add fixed-dimension crop settings with target width and height.
+- Use vision analysis to identify the most important subject or focal area.
+- Generate a proposed crop rectangle that preserves the focal subject.
+- Save crop preview metadata and approved crop settings.
+- Apply approved crop settings during image processing/export.
+
+Frontend tasks:
+
+- Add target width and height controls.
+- Show AI-proposed crop preview before applying it.
+- Require user approval before exporting cropped images.
+- Show manual fallback controls when AI focus detection fails.
+
+Manual verification:
+
+- Upload an image where the main subject is off-center.
+- Generate a target crop and confirm the subject remains visible.
+- Reject or adjust a proposed crop and confirm the final export uses the approved crop.
+
+Follow-up:
+
+- Add a full review UI that combines metadata, filenames, and crop decisions.
+
+### Phase 9: Review UI
+
+Allow users to review, edit, approve, or regenerate image metadata and crop decisions.
 
 Frontend tasks:
 
 - Add TanStack Table review UI.
-- Show preview, original filename, suggested filename, alt text, caption, status, and actions.
-- Add inline editable fields.
+- Show preview, original filename, suggested filename, alt text, caption, crop status, metadata status, and actions.
+- Add inline editable fields and detail drawer editing.
 - Add row action menu.
 - Add bulk selection.
 - Add accept selected and accept all.
@@ -511,7 +602,7 @@ Backend tasks:
 - Add regenerate image metadata endpoint.
 - Add accept image result endpoint.
 - Add accept all endpoint.
-- Persist edited values.
+- Persist edited values and approved crop settings.
 
 Manual verification:
 
@@ -520,12 +611,13 @@ Manual verification:
 - Accept selected rows.
 - Accept all rows.
 - Regenerate a single row.
+- Confirm approved crop settings persist.
 
 Follow-up:
 
 - Add exports once review state is reliable.
 
-### Phase 7: Export System
+### Phase 10: Export System
 
 Export processed images and metadata reports.
 
@@ -557,7 +649,7 @@ Follow-up:
 
 - Start website workflow after image workflow is usable end to end.
 
-### Phase 8: Website Crawler
+### Phase 11: Website Crawler
 
 Crawl websites and extract page content.
 
@@ -591,13 +683,14 @@ Follow-up:
 
 - Add broken link checking using crawled pages.
 
-### Phase 9: Broken Link Checker
+### Phase 12: Broken Link Checker and Bulk URL Checker
 
 Detect broken links across crawled pages.
 
 Backend tasks:
 
 - Extract links from crawled pages.
+- Accept a pasted or uploaded list of URLs for bulk checking.
 - Classify links as internal or external.
 - Deduplicate target URL checks where possible.
 - Check HTTP status with timeout handling.
@@ -607,6 +700,7 @@ Backend tasks:
 Frontend tasks:
 
 - Add broken links table.
+- Add bulk URL checker input.
 - Add status badges.
 - Add filters for broken only, redirects, internal, external, timeouts, and status code.
 - Add export broken links action.
@@ -614,15 +708,43 @@ Frontend tasks:
 Manual verification:
 
 - Run link check on crawled pages.
+- Run bulk URL check from a pasted URL list.
 - Confirm broken links show source page.
 - Filter by broken only.
 - Export broken link report.
 
 Follow-up:
 
-- Add AI SEO metadata generation after crawl and link data are stable.
+- Add website screenshots and AI SEO metadata generation after crawl and link data are stable.
 
-### Phase 10: AI SEO Metadata Generator
+### Phase 13: Website Screenshot Tool
+
+Capture screenshots for crawled pages or user-provided URLs.
+
+Backend tasks:
+
+- Add screenshot job support for page URLs.
+- Capture desktop-sized screenshots for POC use.
+- Store screenshot file paths with the job.
+- Return screenshot preview/download URLs.
+
+Frontend tasks:
+
+- Add screenshot action for crawled pages and bulk URLs.
+- Show screenshot status and preview links.
+- Add screenshot export support.
+
+Manual verification:
+
+- Capture a screenshot for a public page.
+- Confirm the screenshot file is stored and previewable.
+- Confirm screenshot failures show clear messages.
+
+Follow-up:
+
+- Use crawled text and screenshots as optional SEO review context.
+
+### Phase 14: AI SEO Metadata Generator
 
 Generate page summaries, SEO titles, and meta descriptions.
 
@@ -657,7 +779,7 @@ Follow-up:
 
 - Harden the POC for demo use.
 
-### Phase 11: POC Hardening
+### Phase 15: POC Hardening
 
 Prepare the POC for demo and stakeholder review.
 
@@ -690,7 +812,7 @@ Follow-up:
 
 - Decide whether to move into beta readiness work.
 
-### Phase 12: Beta Data Persistence
+### Phase 16: Beta Data Persistence
 
 Move metadata persistence from JSON files to a relational database while keeping binary files in file/object storage.
 
@@ -754,6 +876,9 @@ Includes:
 
 - Ollama integration
 - Image preview generation
+- Brand document upload and text extraction
+- Vision model analysis
+- Language model generation with brand context
 - AI filename generation
 - AI alt text generation
 - AI caption generation
@@ -767,23 +892,37 @@ Acceptance criteria:
 - User can regenerate metadata.
 - User can edit metadata.
 
-### Milestone 3: Review and Export UI
+### Milestone 3: AI Focus-Aware Crop and Review UI
 
 Includes:
 
+- Target crop width and height controls
+- AI focal subject detection
+- Crop preview
+- User approval before export
 - Editable image metadata table
 - Accept and regenerate actions
 - Bulk approval
+
+Acceptance criteria:
+
+- AI proposes a crop that keeps an off-center subject visible.
+- User can approve or adjust crop output before export.
+- User can review generated metadata.
+- User can manually edit fields.
+- User can approve selected rows.
+
+### Milestone 4: Export UI
+
+Includes:
+
 - CSV, JSON, XLSX, and ZIP exports
 
 Acceptance criteria:
 
-- User can review generated metadata.
-- User can manually edit fields.
-- User can approve selected rows.
 - User can export images and reports.
 
-### Milestone 4: Website Crawler
+### Milestone 5: Website Crawler
 
 Includes:
 
@@ -801,7 +940,7 @@ Acceptance criteria:
 - Crawled pages are listed in the UI.
 - Page content is stored for later AI processing.
 
-### Milestone 5: Broken Link Checker
+### Milestone 6: Broken Link Checker and Bulk URL Checker
 
 Includes:
 
@@ -810,6 +949,7 @@ Includes:
 - HTTP status checking
 - Timeout handling
 - Broken link report
+- Bulk URL input and report
 - Filters
 - CSV export
 
@@ -820,11 +960,13 @@ Acceptance criteria:
 - Source pages are shown.
 - User can filter broken links.
 - User can export broken link report.
+- User can check a standalone list of URLs.
 
-### Milestone 6: AI SEO Metadata Generator
+### Milestone 7: Website Screenshots and AI SEO Metadata Generator
 
 Includes:
 
+- Website screenshot capture
 - AI page summary generation
 - AI SEO title generation
 - AI meta description generation
@@ -835,12 +977,13 @@ Includes:
 
 Acceptance criteria:
 
+- User can capture and preview screenshots for website pages.
 - AI generates summary, title, and meta description.
 - User can edit generated metadata.
 - User can approve generated metadata.
 - User can export SEO metadata report.
 
-### Milestone 7: POC Hardening
+### Milestone 8: POC Hardening
 
 Includes:
 
@@ -860,7 +1003,7 @@ Acceptance criteria:
 - Demo workflow works end to end.
 - Temporary files are cleaned up.
 
-### Milestone 8: Beta Data Persistence
+### Milestone 9: Beta Data Persistence
 
 Includes:
 
@@ -893,16 +1036,20 @@ Acceptance criteria:
 7. Build filename cleanup.
 8. Build ZIP and CSV export.
 9. Integrate Ollama.
-10. Generate AI image metadata.
-11. Build review UI.
-12. Build website crawler.
-13. Add Basic Auth support.
-14. Build broken link checker.
-15. Build AI page metadata generator.
-16. Add JSON and XLSX exports.
-17. Add cleanup and logging.
-18. Add PostgreSQL metadata persistence.
-19. Prepare Redis/background worker architecture.
+10. Add brand document upload and text extraction.
+11. Generate AI image metadata with vision and language model stages.
+12. Build AI focus-aware crop and resize.
+13. Build review UI.
+14. Add JSON, XLSX, and ZIP exports.
+15. Build website crawler.
+16. Add Basic Auth support.
+17. Build broken link checker.
+18. Build bulk URL checker.
+19. Build website screenshot tool.
+20. Build AI page metadata generator.
+21. Add cleanup and logging.
+22. Add PostgreSQL metadata persistence.
+23. Prepare Redis/background worker architecture.
 
 ## Assumptions
 
@@ -911,8 +1058,9 @@ Acceptance criteria:
 - AI-generated filenames do not overwrite processed files until user approval.
 - Basic Auth credentials are used for crawling only and are not persisted.
 - JavaScript-rendered page crawling is out of scope for the POC.
-- The SEO metadata generator initially uses the same configured Ollama runtime.
-- Brand tone rules are out of scope for the first POC.
+- The SEO metadata generator initially uses the same configured Ollama runtime unless a separate text model is configured.
+- Brand document uploads are included in the POC and provide prompt context, not a long-term enterprise knowledge base.
+- AI crop suggestions must be previewed and approved before export.
 - Client-specific export templates are out of scope for the first POC.
 - Local file storage plus JSON metadata is enough for the POC.
 - PostgreSQL is planned for beta metadata persistence.

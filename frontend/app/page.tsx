@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 const metrics = [
   { label: "Images processed", value: "0", detail: "Upload and compression are ready" },
   { label: "Average savings", value: "0%", detail: "Shown after image compression" },
-  { label: "Broken links", value: "0", detail: "Crawler starts in Phase 8" },
+  { label: "Broken links", value: "0", detail: "Crawler starts in Phase 11" },
   { label: "Metadata generated", value: "0", detail: "AI starts in Phase 5" },
 ];
 
@@ -17,11 +17,17 @@ const phases = [
   ["Phase 3", "Image conversion", "Complete"],
   ["Phase 4", "Filename cleanup", "Complete"],
   ["Phase 5", "AI image metadata", "Active"],
-  ["Phase 6", "Review UI", "Planned"],
-  ["Phase 7", "Export system", "Planned"],
-  ["Phase 8", "Website crawler", "Planned"],
-  ["Phase 9", "Broken link checker", "Planned"],
-  ["Phase 10", "AI SEO metadata generator", "Planned"],
+  ["Phase 6", "Brand context documents", "Planned"],
+  ["Phase 7", "Dual-model AI metadata", "Planned"],
+  ["Phase 8", "AI focus-aware crop", "Planned"],
+  ["Phase 9", "Review UI", "Planned"],
+  ["Phase 10", "Export system", "Planned"],
+  ["Phase 11", "Website crawler", "Planned"],
+  ["Phase 12", "Broken links and bulk URLs", "Planned"],
+  ["Phase 13", "Website screenshots", "Planned"],
+  ["Phase 14", "AI SEO metadata generator", "Planned"],
+  ["Phase 15", "POC hardening", "Planned"],
+  ["Phase 16", "Beta persistence", "Planned"],
 ];
 
 const statusClassNames: Record<string, string> = {
@@ -95,7 +101,7 @@ export default function Home() {
           <div className="mt-5 space-y-3 text-sm text-[#475467]">
             <p>Upload, compression, and conversion are implemented.</p>
             <p>Image Optimizer now includes editable cleaned filename stems.</p>
-            <p>Next phase adds AI-generated image filenames, alt text, and captions.</p>
+            <p>Next phase adds brand document context before AI-generated image metadata.</p>
           </div>
         </div>
       </section>
