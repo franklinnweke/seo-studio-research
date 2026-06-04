@@ -27,6 +27,17 @@ def make_zip(entries: dict[str, bytes]) -> bytes:
     return buffer.getvalue()
 
 
+def make_docx(text: str) -> bytes:
+    document_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        "<w:body><w:p><w:r><w:t>"
+        + text
+        + "</w:t></w:r></w:p></w:body></w:document>"
+    )
+    return make_zip({"word/document.xml": document_xml.encode("utf-8")})
+
+
 def cleanup_job(job_id: str) -> None:
     for job_dir in [
         get_settings().storage_root / "uploads" / job_id,
@@ -101,6 +112,101 @@ def test_get_job_and_files_after_upload() -> None:
     assert job_response.json()["file_count"] == 1
     assert files_response.status_code == 200
     assert files_response.json()["files"][0]["original_filename"] == "sample.png"
+
+
+def test_brand_context_starts_empty_for_image_job() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("sample.png", make_image_bytes(), "image/png"))],
+    )
+    body = upload_response.json()
+
+    try:
+        response = client.get(f"/api/jobs/{body['id']}/brand-context")
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    assert response.json()["documents"] == []
+    assert response.json()["combined_text"] == ""
+
+
+def test_upload_txt_brand_context() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("sample.png", make_image_bytes(), "image/png"))],
+    )
+    body = upload_response.json()
+
+    try:
+        response = client.post(
+            f"/api/jobs/{body['id']}/brand-context",
+            files=[
+                (
+                    "files",
+                    (
+                        "brand voice.txt",
+                        b"We help students learn with calm, direct language.",
+                        "text/plain",
+                    ),
+                )
+            ],
+        )
+        stored_response = client.get(f"/api/jobs/{body['id']}/brand-context")
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    assert response.json()["documents"][0]["stored_filename"] == "brand-voice.txt"
+    assert "calm, direct language" in response.json()["combined_text"]
+    assert stored_response.json()["combined_text"] == response.json()["combined_text"]
+
+
+def test_upload_docx_brand_context_extracts_text() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("sample.png", make_image_bytes(), "image/png"))],
+    )
+    body = upload_response.json()
+
+    try:
+        response = client.post(
+            f"/api/jobs/{body['id']}/brand-context",
+            files=[
+                (
+                    "files",
+                    (
+                        "brand.docx",
+                        make_docx("Friendly education brand for parents and students."),
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ),
+                )
+            ],
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    assert "Friendly education brand" in response.json()["combined_text"]
+
+
+def test_rejects_unsupported_brand_context_file() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("sample.png", make_image_bytes(), "image/png"))],
+    )
+    body = upload_response.json()
+
+    try:
+        response = client.post(
+            f"/api/jobs/{body['id']}/brand-context",
+            files=[("files", ("brand.csv", b"name,value", "text/csv"))],
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 400
+    assert "not supported" in response.json()["detail"]
 
 
 def test_rejects_unsupported_upload() -> None:

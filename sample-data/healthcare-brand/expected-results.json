@@ -1,0 +1,66 @@
+{
+  "brand": "Northstar Family Health",
+  "notes": "Expected model output should be close in meaning, not necessarily exact text. The strongest results use calm healthcare language, avoid diagnosis, and keep filenames short.",
+  "images": [
+    {
+      "file": "doctor-consultation.png",
+      "expected_filename": "primary-care-consultation",
+      "expected_alt_text": "A clinician discusses care with a patient during a primary care consultation.",
+      "expected_caption": "A calm primary care consultation between a clinician and patient.",
+      "visible_subjects": ["clinician", "patient", "desk", "medical chart"],
+      "brand_alignment_checks": [
+        "Uses clinician or care team language.",
+        "Does not diagnose the patient.",
+        "Keeps the wording calm and professional."
+      ]
+    },
+    {
+      "file": "family-clinic-reception.png",
+      "expected_filename": "family-health-clinic-reception",
+      "expected_alt_text": "A welcoming clinic reception area with a family checking in for an appointment.",
+      "expected_caption": "A family checks in at a welcoming health clinic reception desk.",
+      "visible_subjects": ["clinic reception", "family", "front desk", "appointment"],
+      "brand_alignment_checks": [
+        "Mentions clinic or appointment context.",
+        "Does not imply emergency care.",
+        "Uses family health language where appropriate."
+      ]
+    },
+    {
+      "file": "blood-pressure-screening.png",
+      "expected_filename": "preventive-health-screening",
+      "expected_alt_text": "A clinician checks a patient's blood pressure during a preventive health screening.",
+      "expected_caption": "A routine blood pressure check during a preventive care visit.",
+      "visible_subjects": ["blood pressure cuff", "clinician", "patient arm", "screening"],
+      "brand_alignment_checks": [
+        "Calls it a screening or routine check.",
+        "Does not claim abnormal or normal results.",
+        "Avoids diagnosis."
+      ]
+    },
+    {
+      "file": "telehealth-appointment.png",
+      "expected_filename": "telehealth-care-appointment",
+      "expected_alt_text": "A patient joins a telehealth appointment with a clinician on a laptop screen.",
+      "expected_caption": "A patient connects with a clinician through a telehealth appointment.",
+      "visible_subjects": ["patient", "laptop", "video call", "clinician"],
+      "brand_alignment_checks": [
+        "Mentions telehealth or virtual appointment.",
+        "Does not identify a specific condition.",
+        "Keeps language patient-friendly."
+      ]
+    },
+    {
+      "file": "pharmacy-medication-review.png",
+      "expected_filename": "medication-review-consultation",
+      "expected_alt_text": "A healthcare professional reviews medication information with a patient.",
+      "expected_caption": "A healthcare professional supports a patient during a medication review.",
+      "visible_subjects": ["healthcare professional", "patient", "medicine bottle", "clipboard"],
+      "brand_alignment_checks": [
+        "Mentions medication review only if visible.",
+        "Does not recommend or name a medication.",
+        "Avoids treatment claims."
+      ]
+    }
+  ]
+}

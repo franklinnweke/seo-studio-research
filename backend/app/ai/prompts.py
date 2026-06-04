@@ -20,6 +20,15 @@ Return:
 }
 """
 
+IMAGE_METADATA_BRAND_CONTEXT_BLOCK = """
+
+Brand context:
+{brand_context}
+
+Use brand context only for tone, audience, approved terminology, and filename wording.
+Do not claim visible details from the brand context unless they are visible in the image.
+"""
+
 IMAGE_METADATA_RETRY_PROMPT = """Return only valid JSON for the provided image.
 
 Do not include markdown, commentary, code fences, or explanations.

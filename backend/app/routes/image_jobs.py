@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 
 from app.config import Settings, get_settings
 from app.schemas.responses import (
+    BrandContextResponse,
     ImageCompressionResponse,
     ImageCompressionSettings,
     ImageJobCreateResponse,
@@ -14,6 +15,7 @@ from app.schemas.responses import (
     JobStatusResponse,
 )
 from app.services.ai_metadata_service import AiMetadataService
+from app.services.brand_context_service import BrandContextService
 from app.services.image_processor import ImageProcessor
 from app.services.image_upload_service import ImageUploadService
 
@@ -31,6 +33,10 @@ def get_image_processor(settings: Annotated[Settings, Depends(get_settings)]) ->
 
 def get_ai_metadata_service(settings: Annotated[Settings, Depends(get_settings)]) -> AiMetadataService:
     return AiMetadataService(settings)
+
+
+def get_brand_context_service(settings: Annotated[Settings, Depends(get_settings)]) -> BrandContextService:
+    return BrandContextService(settings)
 
 
 @router.post(
@@ -63,6 +69,51 @@ async def create_image_job(
     ],
 ) -> ImageJobCreateResponse:
     return await service.create_job(files)
+
+
+@router.get(
+    "/{job_id}/brand-context",
+    response_model=BrandContextResponse,
+    summary="Read brand context documents",
+    description=(
+        "Returns brand context documents attached to an image job and the extracted "
+        "plain text that will be included in AI image metadata prompts. Empty "
+        "documents and text are returned when no brand context has been uploaded."
+    ),
+    responses={404: {"description": "Job not found."}},
+)
+def read_brand_context(
+    job_id: str,
+    service: Annotated[BrandContextService, Depends(get_brand_context_service)],
+) -> BrandContextResponse:
+    return service.get_brand_context(job_id)
+
+
+@router.post(
+    "/{job_id}/brand-context",
+    response_model=BrandContextResponse,
+    summary="Upload brand context documents",
+    description=(
+        "Attaches one or more brand context documents to an image job. Supports "
+        "`.txt`, `.docx`, and `.pdf` files. The backend stores the original "
+        "documents under the job folder, extracts plain text, truncates the "
+        "combined context to the configured prompt limit, and persists it in "
+        "`storage/uploads/{job_id}/job.json` for later AI metadata generation."
+    ),
+    responses={
+        400: {"description": "The upload is empty, unsupported, too large, or has no extractable text."},
+        404: {"description": "Job not found."},
+    },
+)
+async def upload_brand_context(
+    job_id: str,
+    service: Annotated[BrandContextService, Depends(get_brand_context_service)],
+    files: Annotated[
+        list[UploadFile],
+        File(description="One or more brand context documents. Supported extensions: .txt, .docx, .pdf."),
+    ],
+) -> BrandContextResponse:
+    return await service.upload_brand_context(job_id, files)
 
 
 @router.post(

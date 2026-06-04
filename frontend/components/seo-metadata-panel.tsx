@@ -2,16 +2,29 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Download, Eye, Loader2, RefreshCw, Search, Sparkles, X } from "lucide-react";
+import {
+  AlertCircle,
+  Download,
+  Eye,
+  FileText,
+  Loader2,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Upload,
+  X,
+} from "lucide-react";
 
 import {
   generateImageMetadata,
   getApiErrorMessage,
+  getBrandContext,
   getImageMetadata,
   getJobFiles,
   getMetadataImageDownloadUrl,
   getSettings,
   regenerateImageMetadata,
+  uploadBrandContext,
   type ImageMetadataListResponse,
 } from "@/lib/api";
 import { setActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
@@ -36,6 +49,12 @@ function displayText(value: string, fallback = "Not generated") {
   return value.trim() || fallback;
 }
 
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function resultToEdit(result: {
   suggested_filename: string;
   alt_text: string;
@@ -55,6 +74,8 @@ export function SeoMetadataPanel() {
   const [activeJobId, setActiveJobId] = useState(workspaceJobId);
   const [metadataEdits, setMetadataEdits] = useState<Record<string, MetadataEdit>>({});
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [selectedBrandFiles, setSelectedBrandFiles] = useState<File[]>([]);
+  const [brandUploadProgress, setBrandUploadProgress] = useState(0);
 
   const settingsQuery = useQuery({
     queryKey: ["settings"],
@@ -71,6 +92,21 @@ export function SeoMetadataPanel() {
     queryKey: ["image-metadata", activeJobId],
     queryFn: () => getImageMetadata(activeJobId),
     enabled: Boolean(activeJobId),
+  });
+
+  const brandContextQuery = useQuery({
+    queryKey: ["brand-context", activeJobId],
+    queryFn: () => getBrandContext(activeJobId),
+    enabled: Boolean(activeJobId),
+  });
+
+  const brandUploadMutation = useMutation({
+    mutationFn: (files: File[]) => uploadBrandContext(activeJobId, files, setBrandUploadProgress),
+    onSuccess: (brandContext) => {
+      queryClient.setQueryData(["brand-context", activeJobId], brandContext);
+      setSelectedBrandFiles([]);
+      setBrandUploadProgress(0);
+    },
   });
 
   const generateMutation = useMutation({
@@ -128,6 +164,9 @@ export function SeoMetadataPanel() {
     setActiveImageJobId(nextJobId);
     setMetadataEdits({});
     setSelectedImageId(null);
+    setSelectedBrandFiles([]);
+    setBrandUploadProgress(0);
+    brandUploadMutation.reset();
     generateMutation.reset();
     regenerateMutation.reset();
   };
@@ -152,6 +191,11 @@ export function SeoMetadataPanel() {
           selectedRow.edit.suggested_filename,
         )
       : "";
+  const brandContext = brandContextQuery.data;
+  const brandDocuments = brandContext?.documents ?? [];
+  const brandContextPreview = brandContext?.combined_text ?? "";
+  const brandUploadDisabled =
+    !activeJobId || selectedBrandFiles.length === 0 || brandUploadMutation.isPending;
 
   return (
     <section className="space-y-5">
@@ -200,11 +244,130 @@ export function SeoMetadataPanel() {
       </div>
 
       {activeJobId ? (
-        <div className="rounded-lg border border-[#dfe3e8] bg-white">
+        <>
+          <div className="rounded-lg border border-[#dfe3e8] bg-white">
+            <div className="flex flex-col gap-3 border-b border-[#dfe3e8] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-base font-semibold">Brand Context</h2>
+                <p className="mt-1 text-sm text-[#667085]">
+                  Attach TXT, DOCX, or PDF files to guide AI naming, tone, and wording.
+                </p>
+              </div>
+              <span className="rounded-md bg-[#f2f4f7] px-2.5 py-1 text-sm text-[#475467]">
+                {brandDocuments.length} document{brandDocuments.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            <div className="grid gap-5 p-5 xl:grid-cols-[0.9fr_1.1fr]">
+              <div className="space-y-3">
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-[#151923]">Brand documents</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".txt,.docx,.pdf,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(event) => setSelectedBrandFiles(Array.from(event.target.files ?? []))}
+                    className="block w-full rounded-md border border-[#dfe3e8] bg-white px-3 py-2 text-sm text-[#475467] file:mr-3 file:rounded-md file:border-0 file:bg-[#edf4ff] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#1d4ed8]"
+                  />
+                </label>
+
+                {selectedBrandFiles.length > 0 ? (
+                  <div className="rounded-md border border-[#dfe3e8] bg-[#fafbfc] p-3">
+                    <p className="text-xs font-medium uppercase text-[#667085]">Selected</p>
+                    <div className="mt-2 space-y-1">
+                      {selectedBrandFiles.map((file) => (
+                        <p key={`${file.name}-${file.size}`} className="truncate text-sm text-[#475467]" title={file.name}>
+                          {file.name} · {formatBytes(file.size)}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {brandUploadMutation.isPending ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs text-[#667085]">
+                      <span>Uploading context</span>
+                      <span>{brandUploadProgress}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-[#edf0f2]">
+                      <div className="h-full bg-[#1d4ed8]" style={{ width: `${brandUploadProgress}%` }} />
+                    </div>
+                  </div>
+                ) : null}
+
+                {brandUploadMutation.isError || brandContextQuery.isError ? (
+                  <div className="flex items-start gap-2 rounded-md border border-[#f2b8b5] bg-[#fff5f5] p-3 text-sm text-[#b42318]">
+                    <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
+                    <span>
+                      {getApiErrorMessage(brandUploadMutation.error ?? brandContextQuery.error)}
+                    </span>
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  disabled={brandUploadDisabled}
+                  onClick={() => brandUploadMutation.mutate(selectedBrandFiles)}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
+                >
+                  {brandUploadMutation.isPending ? (
+                    <Loader2 aria-hidden="true" className="animate-spin" size={16} />
+                  ) : (
+                    <Upload aria-hidden="true" size={16} />
+                  )}
+                  Upload context
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-lg border border-[#dfe3e8]">
+                  <div className="border-b border-[#dfe3e8] px-4 py-3">
+                    <h3 className="text-sm font-medium text-[#151923]">Attached documents</h3>
+                  </div>
+                  {brandDocuments.length > 0 ? (
+                    <div className="divide-y divide-[#edf0f2]">
+                      {brandDocuments.map((document) => (
+                        <div key={document.id} className="flex items-start gap-3 px-4 py-3">
+                          <FileText aria-hidden="true" className="mt-0.5 shrink-0 text-[#475467]" size={16} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-[#151923]" title={document.original_filename}>
+                              {document.original_filename}
+                            </p>
+                            <p className="mt-1 text-xs text-[#667085]">
+                              {formatBytes(document.size_bytes)} · {document.extracted_chars} chars extracted
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="px-4 py-6 text-sm text-[#667085]">
+                      No brand context attached yet. Metadata generation will use image content only.
+                    </p>
+                  )}
+                </div>
+
+                {brandContextPreview ? (
+                  <div className="rounded-md border border-[#dfe3e8] bg-[#fafbfc] p-3">
+                    <p className="text-xs font-medium uppercase text-[#667085]">Context preview</p>
+                    <p className="mt-2 max-h-24 overflow-hidden text-sm leading-6 text-[#475467]">
+                      {brandContextPreview}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-[#dfe3e8] bg-white">
           <div className="flex flex-col gap-3 border-b border-[#dfe3e8] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-base font-semibold">AI Image Metadata</h2>
-              <p className="mt-1 text-sm text-[#667085]">{activeJobId}</p>
+              <p className="mt-1 text-sm text-[#667085]">
+                {activeJobId}
+                {brandDocuments.length > 0 ? " · using brand context" : ""}
+              </p>
             </div>
             <button
               type="button"
@@ -339,7 +502,8 @@ export function SeoMetadataPanel() {
               </table>
             </div>
           )}
-        </div>
+          </div>
+        </>
       ) : null}
 
       {selectedRow ? (

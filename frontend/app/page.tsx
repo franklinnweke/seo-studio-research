@@ -28,8 +28,8 @@ const phases = [
   ["Phase 2", "Image compression", "Complete"],
   ["Phase 3", "Image conversion", "Complete"],
   ["Phase 4", "Filename cleanup", "Complete"],
-  ["Phase 5", "AI image metadata", "Active"],
-  ["Phase 6", "Brand context documents", "Planned"],
+  ["Phase 5", "AI image metadata", "Complete"],
+  ["Phase 6", "Brand context documents", "Active"],
   ["Phase 7", "Dual-model AI metadata", "Planned"],
   ["Phase 8", "AI focus-aware crop", "Planned"],
   ["Phase 9", "Review UI", "Planned"],
@@ -225,13 +225,13 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-base font-semibold">Current Target</h2>
-              <p className="text-sm text-[#667085]">Phase 5 AI image metadata</p>
+              <p className="text-sm text-[#667085]">Phase 6 brand context documents</p>
             </div>
           </div>
           <div className="mt-5 space-y-3 text-sm text-[#475467]">
-            <p>Upload, compression, and conversion are implemented.</p>
-            <p>Image Optimizer now includes editable cleaned filename stems.</p>
-            <p>Next phase adds brand document context before AI-generated image metadata.</p>
+            <p>Upload, compression, conversion, and AI metadata are implemented.</p>
+            <p>Brand documents can guide AI filename, alt text, and caption wording.</p>
+            <p>Next phase splits image analysis and language generation into dual-model metadata.</p>
           </div>
         </div>
       </section>

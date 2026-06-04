@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from app.ai.ollama_client import OllamaClient
 from app.ai.prompts import (
+    IMAGE_METADATA_BRAND_CONTEXT_BLOCK,
     IMAGE_METADATA_PROMPT,
     IMAGE_METADATA_RETRY_PROMPT,
 )
@@ -56,10 +57,11 @@ class AiMetadataService:
 
     def generate_all_image_metadata(self, job_id: str) -> ImageMetadataListResponse:
         job = self.upload_service.read_job(job_id)
+        brand_context = self._brand_context_for_job(job_id)
         results: list[ImageMetadataResult] = []
         for file_record in job.files:
             try:
-                result = self._generate_for_file(job_id, file_record)
+                result = self._generate_for_file(job_id, file_record, brand_context)
             except Exception as exc:
                 result = self._failed_result(file_record, exc)
             results.append(result)
@@ -79,8 +81,9 @@ class AiMetadataService:
         if not file_record:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found.")
 
+        brand_context = self._brand_context_for_job(job_id)
         try:
-            result = self._generate_for_file(job_id, file_record)
+            result = self._generate_for_file(job_id, file_record, brand_context)
         except Exception as exc:
             result = self._failed_result(file_record, exc)
         current = self.list_image_metadata(job_id)
@@ -96,7 +99,12 @@ class AiMetadataService:
         )
         return result
 
-    def _generate_for_file(self, job_id: str, file_record: ImageUploadFileRecord) -> ImageMetadataResult:
+    def _generate_for_file(
+        self,
+        job_id: str,
+        file_record: ImageUploadFileRecord,
+        brand_context: str,
+    ) -> ImageMetadataResult:
         source_path = self.upload_root / job_id / file_record.relative_path
         if not source_path.exists():
             raise HTTPException(
@@ -106,7 +114,7 @@ class AiMetadataService:
 
         preview_path = self._create_preview(job_id, source_path)
         try:
-            payload = self._request_metadata(preview_path)
+            payload = self._request_metadata(preview_path, brand_context)
         finally:
             preview_path.unlink(missing_ok=True)
 
@@ -137,11 +145,11 @@ class AiMetadataService:
 
         return preview_path
 
-    def _request_metadata(self, preview_path: Path) -> AiImageMetadataPayload:
+    def _request_metadata(self, preview_path: Path, brand_context: str) -> AiImageMetadataPayload:
         errors: list[str] = []
         prompts = (
-            ("main", IMAGE_METADATA_PROMPT),
-            ("json_retry", IMAGE_METADATA_RETRY_PROMPT),
+            ("main", self._metadata_prompt(IMAGE_METADATA_PROMPT, brand_context)),
+            ("json_retry", self._metadata_prompt(IMAGE_METADATA_RETRY_PROMPT, brand_context)),
         )
         for attempt_name, prompt in prompts:
             started_at = perf_counter()
@@ -221,6 +229,24 @@ class AiMetadataService:
             description = re.sub(r"\s*```$", "", description)
         description = re.sub(r"\s+", " ", description).strip()
         return description[:240].strip()
+
+    def _brand_context_for_job(self, job_id: str) -> str:
+        data = self.upload_service.read_job_data(job_id)
+        brand_context = data.get("brand_context")
+        if not isinstance(brand_context, dict):
+            return ""
+        combined_text = brand_context.get("combined_text", "")
+        if not isinstance(combined_text, str):
+            return ""
+        return combined_text[: self.settings.max_brand_context_chars].strip()
+
+    def _metadata_prompt(self, base_prompt: str, brand_context: str) -> str:
+        if not brand_context:
+            return base_prompt
+        return (
+            base_prompt.rstrip()
+            + IMAGE_METADATA_BRAND_CONTEXT_BLOCK.format(brand_context=brand_context)
+        )
 
     def _write_metadata_response(self, response: ImageMetadataListResponse) -> None:
         data = self.upload_service.read_job_data(response.job_id)

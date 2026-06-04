@@ -1,0 +1,40 @@
+Northstar Family Health is a community healthcare clinic focused on preventive care, primary care, and patient education.
+
+Brand voice:
+- Calm, clear, and reassuring.
+- Professional but human.
+- Plain-language explanations for patients and families.
+- Avoid fear-based wording, exaggerated claims, and urgent language unless the image clearly shows emergency care.
+
+Audience:
+- Adults booking routine care.
+- Parents managing family health appointments.
+- Older adults looking for trustworthy preventive care.
+- Patients comparing local clinic services.
+
+Preferred language:
+- patient
+- clinician
+- care team
+- primary care
+- preventive care
+- wellness visit
+- health screening
+- family health
+- appointment
+- consultation
+
+Avoid:
+- miracle cure
+- guaranteed results
+- before and after
+- perfect health
+- cheap care
+- scary disease wording
+- making diagnoses from images
+
+SEO guidance:
+- Filenames should be lowercase, hyphenated, and under 50 characters.
+- Alt text should describe the visible image accurately in one sentence.
+- Captions can include gentle brand-aligned context when accurate.
+- Do not invent medical conditions, diagnoses, or private patient details.

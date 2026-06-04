@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     max_upload_file_size_bytes: int = 5 * 1024 * 1024
     max_zip_file_size_bytes: int = 25 * 1024 * 1024
     max_files_per_image_job: int = 50
+    max_brand_context_file_size_bytes: int = 5 * 1024 * 1024
+    max_brand_context_chars: int = 8000
 
     model_config = SettingsConfigDict(env_prefix="SEO_STUDIO_", env_file=".env", extra="ignore")
 

@@ -19,6 +19,102 @@
         "title": "Body_create_image_job_api_jobs_images_post",
         "type": "object"
       },
+      "Body_upload_brand_context_api_jobs__job_id__brand_context_post": {
+        "properties": {
+          "files": {
+            "description": "One or more brand context documents. Supported extensions: .txt, .docx, .pdf.",
+            "items": {
+              "format": "binary",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_brand_context_api_jobs__job_id__brand_context_post",
+        "type": "object"
+      },
+      "BrandContextDocument": {
+        "properties": {
+          "content_type": {
+            "description": "Detected or provided content type.",
+            "title": "Content Type",
+            "type": "string"
+          },
+          "extracted_chars": {
+            "description": "Number of extracted text characters used for AI context.",
+            "title": "Extracted Chars",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Unique brand context document identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "original_filename": {
+            "description": "Original brand document filename.",
+            "title": "Original Filename",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Stored document size in bytes.",
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "stored_filename": {
+            "description": "Sanitized filename stored under the job folder.",
+            "title": "Stored Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "original_filename",
+          "stored_filename",
+          "content_type",
+          "size_bytes",
+          "extracted_chars"
+        ],
+        "title": "BrandContextDocument",
+        "type": "object"
+      },
+      "BrandContextResponse": {
+        "properties": {
+          "combined_text": {
+            "default": "",
+            "description": "Combined extracted brand context text passed to AI metadata generation.",
+            "title": "Combined Text",
+            "type": "string"
+          },
+          "documents": {
+            "description": "Uploaded brand context documents attached to the image job.",
+            "items": {
+              "$ref": "#/components/schemas/BrandContextDocument"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "job_id": {
+            "description": "Image job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "max_chars": {
+            "description": "Maximum combined text characters retained for AI prompts.",
+            "title": "Max Chars",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "max_chars"
+        ],
+        "title": "BrandContextResponse",
+        "type": "object"
+      },
       "ExportPlaceholderResponse": {
         "properties": {
           "format": {
@@ -785,6 +881,109 @@
           }
         },
         "summary": "Get job status",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/brand-context": {
+      "get": {
+        "description": "Returns brand context documents attached to an image job and the extracted plain text that will be included in AI image metadata prompts. Empty documents and text are returned when no brand context has been uploaded.",
+        "operationId": "read_brand_context_api_jobs__job_id__brand_context_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read brand context documents",
+        "tags": [
+          "image jobs"
+        ]
+      },
+      "post": {
+        "description": "Attaches one or more brand context documents to an image job. Supports `.txt`, `.docx`, and `.pdf` files. The backend stores the original documents under the job folder, extracts plain text, truncates the combined context to the configured prompt limit, and persists it in `storage/uploads/{job_id}/job.json` for later AI metadata generation.",
+        "operationId": "upload_brand_context_api_jobs__job_id__brand_context_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_brand_context_api_jobs__job_id__brand_context_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "The upload is empty, unsupported, too large, or has no extractable text."
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload brand context documents",
         "tags": [
           "image jobs"
         ]

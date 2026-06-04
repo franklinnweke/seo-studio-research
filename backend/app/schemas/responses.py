@@ -58,6 +58,28 @@ class JobFileListResponse(BaseModel):
     )
 
 
+class BrandContextDocument(BaseModel):
+    id: str = Field(description="Unique brand context document identifier.")
+    original_filename: str = Field(description="Original brand document filename.")
+    stored_filename: str = Field(description="Sanitized filename stored under the job folder.")
+    content_type: str = Field(description="Detected or provided content type.")
+    size_bytes: int = Field(description="Stored document size in bytes.")
+    extracted_chars: int = Field(description="Number of extracted text characters used for AI context.")
+
+
+class BrandContextResponse(BaseModel):
+    job_id: str = Field(description="Image job identifier.")
+    documents: list[BrandContextDocument] = Field(
+        default_factory=list,
+        description="Uploaded brand context documents attached to the image job.",
+    )
+    combined_text: str = Field(
+        default="",
+        description="Combined extracted brand context text passed to AI metadata generation.",
+    )
+    max_chars: int = Field(description="Maximum combined text characters retained for AI prompts.")
+
+
 CompressionMode = Literal["lossy", "lossless"]
 ResizeMode = Literal["none", "max_1920", "max_1200", "custom"]
 OutputFormat = Literal["keep_original", "webp", "jpg", "png"]

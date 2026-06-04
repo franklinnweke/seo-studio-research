@@ -56,6 +56,22 @@ export type JobFileListResponse = {
   files: ImageUploadFileRecord[];
 };
 
+export type BrandContextDocument = {
+  id: string;
+  original_filename: string;
+  stored_filename: string;
+  content_type: string;
+  size_bytes: number;
+  extracted_chars: number;
+};
+
+export type BrandContextResponse = {
+  job_id: string;
+  documents: BrandContextDocument[];
+  combined_text: string;
+  max_chars: number;
+};
+
 export type ImageCompressionSettings = {
   mode: "lossy" | "lossless";
   quality: number;
@@ -144,6 +160,36 @@ export async function uploadImageJob(
 
 export async function getJobFiles(jobId: string): Promise<JobFileListResponse> {
   const response = await apiClient.get<JobFileListResponse>(`/api/jobs/${jobId}/files`);
+  return response.data;
+}
+
+export async function getBrandContext(jobId: string): Promise<BrandContextResponse> {
+  const response = await apiClient.get<BrandContextResponse>(`/api/jobs/${jobId}/brand-context`);
+  return response.data;
+}
+
+export async function uploadBrandContext(
+  jobId: string,
+  files: File[],
+  onUploadProgress?: (progress: number) => void,
+): Promise<BrandContextResponse> {
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append("files", file);
+  }
+
+  const response = await apiClient.post<BrandContextResponse>(
+    `/api/jobs/${jobId}/brand-context`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (event: AxiosProgressEvent) => {
+        if (!event.total || !onUploadProgress) return;
+        onUploadProgress(Math.round((event.loaded * 100) / event.total));
+      },
+    },
+  );
+
   return response.data;
 }
 

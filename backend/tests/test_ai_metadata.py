@@ -1,3 +1,4 @@
+import json
 from io import BytesIO
 from pathlib import Path
 
@@ -16,10 +17,12 @@ class FakeAiClient:
     def __init__(self, responses: list[str]) -> None:
         self.responses = responses
         self.calls = 0
+        self.prompts: list[str] = []
 
     def generate_image_metadata(self, image_path: Path, prompt: str) -> str:
         assert image_path.exists()
         self.calls += 1
+        self.prompts.append(prompt)
         return self.responses.pop(0)
 
 
@@ -99,6 +102,34 @@ def test_ai_metadata_retries_invalid_json_once() -> None:
 
     assert response.results[0].suggested_filename == "retry-name"
     assert response.results[0].status == "needs_review"
+
+
+def test_ai_metadata_prompt_includes_brand_context() -> None:
+    body = create_image_job()
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["brand_context"] = {
+        "job_id": body["id"],
+        "documents": [],
+        "combined_text": "Use a warm tutoring brand voice for students.",
+        "max_chars": 8000,
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+    fake_client = FakeAiClient(
+        [
+            '{"filename":"student-study-guide","alt_text":"Blue square graphic.","caption":"A blue square graphic.","confidence":0.7}'
+        ]
+    )
+    service = AiMetadataService(get_settings(), client=fake_client)
+
+    try:
+        response = service.generate_all_image_metadata(body["id"])
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.results[0].suggested_filename == "student-study-guide"
+    assert "Use a warm tutoring brand voice" in fake_client.prompts[0]
+    assert "Do not claim visible details from the brand context" in fake_client.prompts[0]
 
 
 def test_ai_metadata_fails_cleanly_when_json_retry_fails() -> None:

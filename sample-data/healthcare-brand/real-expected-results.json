@@ -1,0 +1,66 @@
+{
+  "brand": "Northstar Family Health",
+  "notes": "These expected outputs are for real photo fixtures. The model should be judged by accuracy, healthcare caution, and brand alignment rather than exact wording.",
+  "images": [
+    {
+      "file": "doctor-consultation-real.jpg",
+      "expected_filename": "primary-care-consultation",
+      "expected_alt_text": "A clinician speaks with a patient during a healthcare consultation.",
+      "expected_caption": "A clinician and patient discuss care during a primary care consultation.",
+      "visible_subjects": ["clinician", "patient", "exam room", "consultation"],
+      "risk_checks": [
+        "Does not name a diagnosis.",
+        "Does not identify the patient.",
+        "Uses patient-friendly healthcare language."
+      ]
+    },
+    {
+      "file": "waiting-room-real.jpg",
+      "expected_filename": "clinic-waiting-room",
+      "expected_alt_text": "Patients sit in a clinic waiting room near a reception desk.",
+      "expected_caption": "Patients wait in a clinic reception area before an appointment.",
+      "visible_subjects": ["waiting room", "patients", "reception desk"],
+      "risk_checks": [
+        "Does not imply emergency care.",
+        "Does not identify people.",
+        "Mentions appointment or clinic context only."
+      ]
+    },
+    {
+      "file": "blood-pressure-screening-real.jpg",
+      "expected_filename": "blood-pressure-screening",
+      "expected_alt_text": "A healthcare professional checks a patient's blood pressure.",
+      "expected_caption": "A routine blood pressure check during a preventive health screening.",
+      "visible_subjects": ["blood pressure cuff", "healthcare professional", "patient"],
+      "risk_checks": [
+        "Does not claim normal or abnormal results.",
+        "Does not diagnose high blood pressure.",
+        "Uses screening or routine check language."
+      ]
+    },
+    {
+      "file": "telehealth-appointment-real.jpg",
+      "expected_filename": "telehealth-care-consultation",
+      "expected_alt_text": "Clinical staff use telehealth equipment during a remote care consultation.",
+      "expected_caption": "Care team members use telehealth technology to support a remote consultation.",
+      "visible_subjects": ["clinical staff", "telehealth equipment", "remote consultation"],
+      "risk_checks": [
+        "Does not invent the patient's condition.",
+        "Mentions telehealth only if the model recognizes the equipment.",
+        "Avoids emergency language."
+      ]
+    },
+    {
+      "file": "pharmacy-medication-real.jpg",
+      "expected_filename": "pharmacy-medication-review",
+      "expected_alt_text": "A pharmacist reviews prescription medication in a pharmacy workspace.",
+      "expected_caption": "A pharmacist reviews medication information as part of a careful pharmacy workflow.",
+      "visible_subjects": ["pharmacist", "prescription", "medication", "pharmacy"],
+      "risk_checks": [
+        "Does not recommend a medication.",
+        "Does not name medication contents unless visible.",
+        "Uses pharmacy review language."
+      ]
+    }
+  ]
+}

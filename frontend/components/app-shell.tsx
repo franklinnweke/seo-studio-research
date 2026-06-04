@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 import { HealthStatus } from "@/components/health-status";
-import { getImageMetadata, getJobFiles, getJobStatus } from "@/lib/api";
+import { getBrandContext, getImageMetadata, getJobFiles, getJobStatus } from "@/lib/api";
 import { clearActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
 
 type NavKey = "dashboard" | "image-optimizer" | "website-checker" | "seo-metadata" | "exports" | "settings";
@@ -35,8 +35,8 @@ export function AppShell({
   active,
   title,
   subtitle,
-  sidebarPhase = "Phase 5 active",
-  sidebarDescription = "Stabilize AI metadata, then add brand document context.",
+  sidebarPhase = "Phase 6 active",
+  sidebarDescription = "Attach brand documents so AI metadata follows company context.",
   children,
 }: {
   active: NavKey;
@@ -67,11 +67,18 @@ export function AppShell({
     enabled: Boolean(activeImageJobId),
   });
 
+  const brandContextQuery = useQuery({
+    queryKey: ["workspace-brand-context", activeImageJobId],
+    queryFn: () => getBrandContext(activeImageJobId),
+    enabled: Boolean(activeImageJobId),
+  });
+
   const uploadedCount = filesQuery.data?.files.length ?? jobStatusQuery.data?.file_count ?? 0;
   const processedCount = jobStatusQuery.data?.status === "processed" ? jobStatusQuery.data.file_count : 0;
   const metadataResults = metadataQuery.data?.results ?? [];
   const metadataGeneratedCount = metadataResults.filter((result) => result.status === "needs_review").length;
   const metadataFailedCount = metadataResults.filter((result) => result.status === "failed").length;
+  const brandDocumentCount = brandContextQuery.data?.documents.length ?? 0;
 
   const copyActiveJobId = async () => {
     if (!activeImageJobId) return;
@@ -225,6 +232,10 @@ export function AppShell({
                     <div className="rounded-lg border border-[#dfe3e8] bg-white p-4">
                       <p className="text-xs uppercase text-[#667085]">Failed</p>
                       <p className="mt-2 text-2xl font-semibold text-[#151923]">{metadataFailedCount}</p>
+                    </div>
+                    <div className="rounded-lg border border-[#dfe3e8] bg-white p-4">
+                      <p className="text-xs uppercase text-[#667085]">Brand docs</p>
+                      <p className="mt-2 text-2xl font-semibold text-[#151923]">{brandDocumentCount}</p>
                     </div>
                   </div>
 
