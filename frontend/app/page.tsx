@@ -1,4 +1,16 @@
-import { Activity } from "lucide-react";
+import Link from "next/link";
+import {
+  Activity,
+  Archive,
+  Camera,
+  FileSearch,
+  ImageIcon,
+  Link2,
+  Maximize2,
+  Search,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 
@@ -36,6 +48,72 @@ const statusClassNames: Record<string, string> = {
   Planned: "bg-[#f2f4f7] text-[#475467]",
 };
 
+const tools = [
+  {
+    title: "Image Optimizer",
+    description: "Upload, compress, convert, rename, and download optimized image files.",
+    icon: ImageIcon,
+    href: "/image-optimizer",
+    status: "Active",
+  },
+  {
+    title: "SEO Metadata",
+    description: "Generate filenames, alt text, captions, and downloadable SEO-ready images.",
+    icon: Sparkles,
+    href: "/seo-metadata",
+    status: "Active",
+  },
+  {
+    title: "Image Compressor",
+    description: "Lossy and lossless compression controls for smaller production assets.",
+    icon: Archive,
+    href: null,
+    status: "Coming soon",
+  },
+  {
+    title: "AI Image Resizer",
+    description: "Resize and crop around image focal points for fixed website dimensions.",
+    icon: Maximize2,
+    href: null,
+    status: "Coming soon",
+  },
+  {
+    title: "Website Checker",
+    description: "Crawl pages, inspect content, and prepare website quality reports.",
+    icon: FileSearch,
+    href: null,
+    status: "Coming soon",
+  },
+  {
+    title: "Bulk URL Checker",
+    description: "Check status codes and redirects across lists of URLs.",
+    icon: Link2,
+    href: null,
+    status: "Coming soon",
+  },
+  {
+    title: "Website Screenshot Tool",
+    description: "Capture page screenshots for review, reporting, and client work.",
+    icon: Camera,
+    href: null,
+    status: "Coming soon",
+  },
+  {
+    title: "SEO Quick Checker",
+    description: "Pull headings, meta tags, alt tags, and core page signals from a URL.",
+    icon: Search,
+    href: null,
+    status: "Coming soon",
+  },
+  {
+    title: "Settings",
+    description: "Configure AI runtime, image defaults, and local processing limits.",
+    icon: Settings,
+    href: null,
+    status: "Coming soon",
+  },
+] as const;
+
 export default function Home() {
   return (
     <AppShell
@@ -43,6 +121,58 @@ export default function Home() {
       title="Dashboard"
       subtitle="Build status for the image and website optimization POC."
     >
+      <section>
+        <div>
+          <h2 className="text-xl font-semibold text-[#151923]">Welcome back</h2>
+          <p className="mt-1 text-sm text-[#667085]">Pick a tool to continue the current image workflow.</p>
+        </div>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            const isActive = tool.status === "Active";
+            const cardClassName =
+              "group flex min-h-48 flex-col rounded-lg border border-[#dfe3e8] bg-white p-5 text-left transition hover:border-[#b8c0cc] hover:shadow-sm";
+            const content = (
+              <>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#f2f4f7] text-[#475467] group-hover:bg-[#edf4ff] group-hover:text-[#1d4ed8]">
+                    <Icon aria-hidden="true" size={20} />
+                  </div>
+                  <span
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold uppercase ${
+                      isActive ? "bg-[#fff4e5] text-[#b45309]" : "bg-[#f2f4f7] text-[#667085]"
+                    }`}
+                  >
+                    {tool.status}
+                  </span>
+                </div>
+                <div className="mt-7">
+                  <h3 className="text-base font-semibold text-[#151923]">{tool.title}</h3>
+                  <p className="mt-3 max-w-md text-sm leading-6 text-[#667085]">{tool.description}</p>
+                </div>
+                <div className="mt-auto pt-6 text-sm font-medium text-[#1d4ed8]">
+                  {isActive ? "Open tool" : "Planned"}
+                </div>
+              </>
+            );
+
+            if (tool.href) {
+              return (
+                <Link key={tool.title} href={tool.href} className={cardClassName}>
+                  {content}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={tool.title} className={`${cardClassName} opacity-75`}>
+                {content}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-lg border border-[#dfe3e8] bg-white p-5">

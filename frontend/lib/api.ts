@@ -19,6 +19,7 @@ export type SettingsResponse = {
   ai_provider: string;
   ollama_base_url: string;
   ollama_model: string;
+  ollama_timeout_seconds: number;
   ai_preview_max_width: number;
   frontend_origin: string;
   storage_root: string;
@@ -113,6 +114,11 @@ export async function getHealth(): Promise<HealthResponse> {
 
 export async function getSettings(): Promise<SettingsResponse> {
   const response = await apiClient.get<SettingsResponse>("/api/settings");
+  return response.data;
+}
+
+export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
+  const response = await apiClient.get<JobStatusResponse>(`/api/jobs/${jobId}`);
   return response.data;
 }
 

@@ -22,6 +22,7 @@ def read_settings() -> SettingsResponse:
         ai_provider=settings.ai_provider,
         ollama_base_url=settings.ollama_base_url,
         ollama_model=settings.ollama_model,
+        ollama_timeout_seconds=settings.ollama_timeout_seconds,
         ai_preview_max_width=settings.ai_preview_max_width,
         frontend_origin=", ".join(get_cors_origins(settings)),
         storage_root=str(settings.storage_root),

@@ -15,6 +15,7 @@ class SettingsResponse(BaseModel):
     ai_provider: str = Field(description="Configured AI provider for metadata workflows.")
     ollama_base_url: str = Field(description="Base URL for the local Ollama runtime.")
     ollama_model: str = Field(description="Default Ollama model used by AI workflows.")
+    ollama_timeout_seconds: float = Field(description="Timeout in seconds for each Ollama request.")
     ai_preview_max_width: int = Field(description="Maximum preview width sent to AI models.")
     frontend_origin: str = Field(description="Allowed frontend origin for local CORS.")
     storage_root: str = Field(description="Backend local storage root.")

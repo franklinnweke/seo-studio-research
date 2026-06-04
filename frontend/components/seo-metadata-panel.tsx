@@ -14,6 +14,7 @@ import {
   regenerateImageMetadata,
   type ImageMetadataListResponse,
 } from "@/lib/api";
+import { setActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
 
 type MetadataEdit = {
   suggested_filename: string;
@@ -49,8 +50,9 @@ function resultToEdit(result: {
 
 export function SeoMetadataPanel() {
   const queryClient = useQueryClient();
-  const [jobIdInput, setJobIdInput] = useState("");
-  const [activeJobId, setActiveJobId] = useState("");
+  const workspaceJobId = useActiveImageJobId();
+  const [jobIdInput, setJobIdInput] = useState(workspaceJobId);
+  const [activeJobId, setActiveJobId] = useState(workspaceJobId);
   const [metadataEdits, setMetadataEdits] = useState<Record<string, MetadataEdit>>({});
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
@@ -121,7 +123,9 @@ export function SeoMetadataPanel() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setActiveJobId(jobIdInput.trim());
+    const nextJobId = jobIdInput.trim();
+    setActiveJobId(nextJobId);
+    setActiveImageJobId(nextJobId);
     setMetadataEdits({});
     setSelectedImageId(null);
     generateMutation.reset();
@@ -140,6 +144,14 @@ export function SeoMetadataPanel() {
   };
 
   const selectedRow = rows.find(({ file }) => file.id === selectedImageId) ?? null;
+  const selectedPreviewUrl =
+    activeJobId && selectedRow
+      ? getMetadataImageDownloadUrl(
+          activeJobId,
+          selectedRow.file.id,
+          selectedRow.edit.suggested_filename,
+        )
+      : "";
 
   return (
     <section className="space-y-5">
@@ -358,6 +370,29 @@ export function SeoMetadataPanel() {
             </div>
 
             <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+              <div className="overflow-hidden rounded-lg border border-[#dfe3e8] bg-[#f6f7f9]">
+                <div className="flex aspect-[16/10] items-center justify-center bg-[#eef2f6]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedPreviewUrl}
+                    alt={
+                      selectedRow.edit.alt_text.trim()
+                        ? selectedRow.edit.alt_text
+                        : `Preview of ${selectedRow.file.original_filename}`
+                    }
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div className="border-t border-[#dfe3e8] px-4 py-3">
+                  <p className="truncate text-sm font-medium text-[#151923]" title={selectedRow.file.original_filename}>
+                    {selectedRow.file.original_filename}
+                  </p>
+                  <p className="mt-1 text-xs text-[#667085]">
+                    Preview uses the processed image when available.
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3 rounded-lg border border-[#dfe3e8] bg-[#fafbfc] p-4 text-sm">
                 <div>
                   <p className="text-xs font-medium uppercase text-[#667085]">Original filename</p>

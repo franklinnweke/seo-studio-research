@@ -101,7 +101,7 @@ def test_ai_metadata_retries_invalid_json_once() -> None:
     assert response.results[0].status == "needs_review"
 
 
-def test_ai_metadata_falls_back_to_description_when_json_fails() -> None:
+def test_ai_metadata_fails_cleanly_when_json_retry_fails() -> None:
     body = create_image_job()
     service = AiMetadataService(
         get_settings(),
@@ -109,7 +109,6 @@ def test_ai_metadata_falls_back_to_description_when_json_fails() -> None:
             [
                 "This is not JSON.",
                 "",
-                "A blue anatomy graphic with white text.",
             ]
         ),
     )
@@ -120,10 +119,35 @@ def test_ai_metadata_falls_back_to_description_when_json_fails() -> None:
         cleanup_job(body["id"])
 
     result = response.results[0]
-    assert result.status == "needs_review"
-    assert result.suggested_filename == "a-blue-anatomy-graphic-with-white-text"
-    assert result.alt_text == "A blue anatomy graphic with white text."
-    assert result.confidence == 0.5
+    assert result.status == "failed"
+    assert result.suggested_filename == "hero-image"
+    assert result.alt_text == ""
+    assert result.confidence == 0.0
+    assert "AI response was not valid JSON after retry" in result.error_message
+
+
+def test_generate_single_image_metadata_persists_failed_result() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    service = AiMetadataService(
+        get_settings(),
+        client=FakeAiClient(
+            [
+                "not JSON",
+                "still not JSON",
+            ]
+        ),
+    )
+
+    try:
+        result = service.generate_single_image_metadata(body["id"], file_id)
+        stored = service.list_image_metadata(body["id"])
+    finally:
+        cleanup_job(body["id"])
+
+    assert result.status == "failed"
+    assert result.error_message
+    assert stored.results[0].status == "failed"
 
 
 def test_preview_image_respects_max_width() -> None:

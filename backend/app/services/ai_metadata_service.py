@@ -1,5 +1,7 @@
 import json
+import logging
 import re
+from time import perf_counter
 from pathlib import Path
 from typing import Any, Protocol
 from uuid import uuid4
@@ -11,7 +13,6 @@ from pydantic import BaseModel, Field, ValidationError
 
 from app.ai.ollama_client import OllamaClient
 from app.ai.prompts import (
-    IMAGE_METADATA_DESCRIPTION_PROMPT,
     IMAGE_METADATA_PROMPT,
     IMAGE_METADATA_RETRY_PROMPT,
 )
@@ -19,6 +20,9 @@ from app.config import Settings
 from app.schemas.responses import ImageMetadataListResponse, ImageMetadataResult, ImageUploadFileRecord
 from app.services.image_upload_service import ImageUploadService
 from app.utils.slugify import slugify
+
+
+logger = logging.getLogger(__name__)
 
 
 class ImageMetadataClient(Protocol):
@@ -39,7 +43,11 @@ class AiMetadataService:
         self.upload_service = ImageUploadService(settings)
         self.upload_root = settings.storage_root / "uploads"
         self.temp_root = settings.storage_root / "temp"
-        self.client = client or OllamaClient(settings.ollama_base_url, settings.ollama_model)
+        self.client = client or OllamaClient(
+            settings.ollama_base_url,
+            settings.ollama_model,
+            settings.ollama_timeout_seconds,
+        )
 
     def list_image_metadata(self, job_id: str) -> ImageMetadataListResponse:
         self.upload_service.read_job(job_id)
@@ -53,16 +61,7 @@ class AiMetadataService:
             try:
                 result = self._generate_for_file(job_id, file_record)
             except Exception as exc:
-                result = ImageMetadataResult(
-                    id=file_record.id,
-                    original_filename=file_record.original_filename,
-                    suggested_filename=slugify(Path(file_record.stored_filename).stem),
-                    alt_text="",
-                    caption="",
-                    confidence=0.0,
-                    status="failed",
-                    error_message=self._public_error_message(exc),
-                )
+                result = self._failed_result(file_record, exc)
             results.append(result)
 
         response = ImageMetadataListResponse(
@@ -80,7 +79,10 @@ class AiMetadataService:
         if not file_record:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found.")
 
-        result = self._generate_for_file(job_id, file_record)
+        try:
+            result = self._generate_for_file(job_id, file_record)
+        except Exception as exc:
+            result = self._failed_result(file_record, exc)
         current = self.list_image_metadata(job_id)
         next_results = [existing for existing in current.results if existing.id != image_id]
         next_results.append(result)
@@ -137,39 +139,54 @@ class AiMetadataService:
 
     def _request_metadata(self, preview_path: Path) -> AiImageMetadataPayload:
         errors: list[str] = []
-        for prompt in (IMAGE_METADATA_PROMPT, IMAGE_METADATA_RETRY_PROMPT):
+        prompts = (
+            ("main", IMAGE_METADATA_PROMPT),
+            ("json_retry", IMAGE_METADATA_RETRY_PROMPT),
+        )
+        for attempt_name, prompt in prompts:
+            started_at = perf_counter()
             try:
+                logger.info(
+                    "Requesting AI image metadata attempt=%s model=%s timeout_seconds=%s",
+                    attempt_name,
+                    self.settings.ollama_model,
+                    self.settings.ollama_timeout_seconds,
+                )
                 content = self.client.generate_image_metadata(preview_path, prompt)
-                return self._parse_metadata_payload(content)
+                payload = self._parse_metadata_payload(content)
+                logger.info(
+                    "AI image metadata attempt succeeded attempt=%s model=%s duration_seconds=%.2f",
+                    attempt_name,
+                    self.settings.ollama_model,
+                    perf_counter() - started_at,
+                )
+                return payload
             except (ValueError, ValidationError, json.JSONDecodeError) as exc:
                 errors.append(str(exc))
+                logger.warning(
+                    "AI image metadata attempt returned invalid JSON attempt=%s model=%s duration_seconds=%.2f error=%s",
+                    attempt_name,
+                    self.settings.ollama_model,
+                    perf_counter() - started_at,
+                    exc,
+                )
                 continue
             except httpx.HTTPError as exc:
+                logger.warning(
+                    "AI image metadata request failed attempt=%s model=%s duration_seconds=%.2f error=%s",
+                    attempt_name,
+                    self.settings.ollama_model,
+                    perf_counter() - started_at,
+                    exc,
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail=f"Ollama request failed: {exc}",
                 ) from exc
 
-        try:
-            description = self.client.generate_image_metadata(preview_path, IMAGE_METADATA_DESCRIPTION_PROMPT)
-        except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Ollama request failed: {exc}",
-            ) from exc
-
-        description = self._clean_description(description)
-        if not description:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"AI response was not valid JSON after retry. {'; '.join(errors)}",
-            )
-
-        return AiImageMetadataPayload(
-            filename=slugify(description),
-            alt_text=description,
-            caption=description,
-            confidence=0.5,
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI response was not valid JSON after retry. {'; '.join(errors)}",
         )
 
     def _parse_metadata_payload(self, content: str) -> AiImageMetadataPayload:
@@ -209,6 +226,18 @@ class AiMetadataService:
         data = self.upload_service.read_job_data(response.job_id)
         data["image_metadata"] = response.model_dump()
         self.upload_service.write_job_data(response.job_id, data)
+
+    def _failed_result(self, file_record: ImageUploadFileRecord, exc: Exception) -> ImageMetadataResult:
+        return ImageMetadataResult(
+            id=file_record.id,
+            original_filename=file_record.original_filename,
+            suggested_filename=slugify(Path(file_record.stored_filename).stem),
+            alt_text="",
+            caption="",
+            confidence=0.0,
+            status="failed",
+            error_message=self._public_error_message(exc),
+        )
 
     def _response_from_job_data(self, job_id: str, data: dict[str, Any]) -> ImageMetadataListResponse:
         metadata = data.get("image_metadata")

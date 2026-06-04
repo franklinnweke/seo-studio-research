@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     ai_provider: str = "ollama"
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "moondream"
+    ollama_timeout_seconds: float = 90.0
     ai_preview_max_width: int = 1024
     storage_root: Path = Path(__file__).resolve().parent / "storage"
     max_upload_file_size_bytes: int = 5 * 1024 * 1024

@@ -27,6 +27,7 @@ import {
   processImageJob,
   uploadImageJob,
 } from "@/lib/api";
+import { setActiveImageJobId } from "@/lib/workspace";
 
 const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".zip"];
 const ACCEPTED_MIME_TYPES = {
@@ -104,6 +105,7 @@ export function ImageUploadPanel() {
     },
     onSuccess: (job) => {
       setLastJob(job);
+      setActiveImageJobId(job.id);
       setCompressionResult(null);
       setFilenameOverrides(
         Object.fromEntries(job.files.map((file) => [file.id, filenameStem(file.stored_filename)])),
