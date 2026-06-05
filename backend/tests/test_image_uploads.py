@@ -8,14 +8,49 @@ from PIL import Image
 
 from app.config import get_settings
 from app.main import app
+from app.services.image_processor import ImageProcessor
 
 
 client = TestClient(app)
 
 
+class FakeCropClient:
+    def generate_image_metadata(self, image_path: Path, prompt: str) -> str:
+        return """
+        {
+          "target_width": 600,
+          "target_height": 400,
+          "subject": "person wearing red",
+          "bounding_box": {
+            "x": 0.05,
+            "y": 0.30,
+            "width": 0.20,
+            "height": 0.40
+          },
+          "confidence": 0.92,
+          "reason": "The requested subject is on the left side of the image."
+        }
+        """
+
+
+class FailingCropClient:
+    def generate_image_metadata(self, image_path: Path, prompt: str) -> str:
+        raise RuntimeError("vision model unavailable")
+
+
 def make_image_bytes(format_name: str = "PNG") -> bytes:
     buffer = BytesIO()
     Image.new("RGB", (16, 16), color=(42, 84, 126)).save(buffer, format=format_name)
+    return buffer.getvalue()
+
+
+def make_split_image_bytes() -> bytes:
+    image = Image.new("RGB", (1000, 1000), color=(20, 60, 180))
+    for x in range(0, 300):
+        for y in range(0, 1000):
+            image.putpixel((x, y), (220, 20, 20))
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
     return buffer.getvalue()
 
 
@@ -397,6 +432,195 @@ def test_process_image_job_with_resize() -> None:
     result = process_response.json()["results"][0]
     assert result["width"] == 1200
     assert result["height"] == 600
+
+
+def test_process_image_job_with_exact_crop() -> None:
+    buffer = BytesIO()
+    Image.new("RGB", (1200, 800), color=(42, 84, 126)).save(buffer, format="JPEG")
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("wide.jpg", buffer.getvalue(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+
+    try:
+        process_response = client.post(
+            f"/api/jobs/{body['id']}/process",
+            json={
+                "resize_mode": "exact",
+                "target_width": 600,
+                "target_height": 400,
+                "output_format": "webp",
+            },
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert process_response.status_code == 200
+    result = process_response.json()["results"][0]
+    assert result["width"] == 600
+    assert result["height"] == 400
+    assert result["new_format"] == "webp"
+
+
+def test_process_image_job_with_fit_inside_padding() -> None:
+    buffer = BytesIO()
+    Image.new("RGB", (1200, 800), color=(42, 84, 126)).save(buffer, format="JPEG")
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("wide.jpg", buffer.getvalue(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+
+    try:
+        process_response = client.post(
+            f"/api/jobs/{body['id']}/process",
+            json={
+                "resize_mode": "fit_inside",
+                "target_width": 600,
+                "target_height": 600,
+                "output_format": "png",
+            },
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert process_response.status_code == 200
+    result = process_response.json()["results"][0]
+    assert result["width"] == 600
+    assert result["height"] == 600
+
+
+def test_resize_instruction_parser_extracts_settings() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("sample.jpg", make_image_bytes("JPEG"), "image/jpeg"))],
+    )
+    body = upload_response.json()
+
+    try:
+        response = client.post(
+            f"/api/jobs/{body['id']}/resize-instructions",
+            json={"instruction": "Resize into 600 x 400 WEBP files at quality 90."},
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    settings = response.json()["settings"]
+    assert settings["resize_mode"] == "exact"
+    assert settings["target_width"] == 600
+    assert settings["target_height"] == 400
+    assert settings["output_format"] == "webp"
+    assert settings["quality"] == 90
+
+
+def test_crop_review_marks_mismatched_ratio() -> None:
+    buffer = BytesIO()
+    Image.new("RGB", (1200, 800), color=(42, 84, 126)).save(buffer, format="JPEG")
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("wide.jpg", buffer.getvalue(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+
+    try:
+        response = client.post(
+            f"/api/jobs/{body['id']}/resize-review",
+            json={"resize_mode": "exact", "target_width": 600, "target_height": 600},
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["needs_review"] is True
+    assert item["focus_x"] == 0.5
+    assert item["focus_y"] == 0.5
+
+
+def test_resize_instruction_can_request_ai_crop_box() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    processor = ImageProcessor(get_settings(), client=FakeCropClient())
+
+    try:
+        response = processor.parse_resize_instruction(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.settings.resize_mode == "exact"
+    assert response.settings.target_width == 600
+    assert response.settings.target_height == 400
+    assert file_id in response.settings.crop_boxes
+    assert response.settings.crop_subjects[file_id] == "person wearing red"
+    assert response.settings.crop_confidences[file_id] == 0.92
+    assert any("AI suggested a crop" in note for note in response.notes)
+    assert response.warnings == []
+
+
+def test_resize_instruction_ai_crop_failure_returns_warning() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    processor = ImageProcessor(get_settings(), client=FailingCropClient())
+
+    try:
+        response = processor.parse_resize_instruction(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.settings.resize_mode == "exact"
+    assert response.settings.target_width == 600
+    assert response.settings.target_height == 400
+    assert file_id not in response.settings.crop_boxes
+    assert any("AI crop suggestion failed" in warning for warning in response.warnings)
+
+
+def test_process_image_job_uses_ai_crop_box() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    processor = ImageProcessor(get_settings(), client=FakeCropClient())
+    instruction_response = processor.parse_resize_instruction(
+        body["id"],
+        "crop a 600 x 400 image showing only the person wearing red",
+    )
+
+    try:
+        process_response = client.post(
+            f"/api/jobs/{body['id']}/process",
+            json=instruction_response.settings.model_dump(),
+        )
+        filename = process_response.json()["results"][0]["processed_filename"]
+        processed_path = get_settings().storage_root / "processed" / body["id"] / "images" / filename
+        with Image.open(processed_path) as processed_image:
+            pixel = processed_image.convert("RGB").getpixel((processed_image.width // 4, processed_image.height // 2))
+    finally:
+        cleanup_job(body["id"])
+
+    assert process_response.status_code == 200
+    result = process_response.json()["results"][0]
+    assert result["id"] == file_id
+    assert result["width"] == 600
+    assert result["height"] == 400
+    assert pixel[0] > pixel[2]
 
 
 def test_process_image_job_converts_to_webp() -> None:

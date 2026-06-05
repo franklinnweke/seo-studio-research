@@ -11,6 +11,7 @@ import {
   FileSearch,
   Gauge,
   ImageIcon,
+  Maximize2,
   Settings,
   Sparkles,
   X,
@@ -20,11 +21,19 @@ import { HealthStatus } from "@/components/health-status";
 import { getBrandContext, getImageMetadata, getJobFiles, getJobStatus } from "@/lib/api";
 import { clearActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
 
-type NavKey = "dashboard" | "image-optimizer" | "website-checker" | "seo-metadata" | "exports" | "settings";
+type NavKey =
+  | "dashboard"
+  | "image-optimizer"
+  | "image-resizer"
+  | "website-checker"
+  | "seo-metadata"
+  | "exports"
+  | "settings";
 
 const navigation = [
   { key: "dashboard", label: "Dashboard", icon: Gauge, href: "/" },
   { key: "image-optimizer", label: "Image Optimizer", icon: ImageIcon, href: "/image-optimizer" },
+  { key: "image-resizer", label: "Image Resizer", icon: Maximize2, href: "/image-resizer" },
   { key: "website-checker", label: "Website Checker", icon: FileSearch, href: "#" },
   { key: "seo-metadata", label: "SEO Metadata", icon: Sparkles, href: "/seo-metadata" },
   { key: "exports", label: "Exports", icon: Archive, href: "#" },
@@ -35,8 +44,8 @@ export function AppShell({
   active,
   title,
   subtitle,
-  sidebarPhase = "Phase 6 active",
-  sidebarDescription = "Attach brand documents so AI metadata follows company context.",
+  sidebarPhase = "Phase 8 active",
+  sidebarDescription = "Resize images into fixed website dimensions with crop review before processing.",
   children,
 }: {
   active: NavKey;
@@ -246,6 +255,13 @@ export function AppShell({
                       className="flex h-10 items-center justify-center rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white"
                     >
                       Open Image Optimizer
+                    </Link>
+                    <Link
+                      href="/image-resizer"
+                      onClick={() => setWorkspaceOpen(false)}
+                      className="flex h-10 items-center justify-center rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
+                    >
+                      Open Image Resizer
                     </Link>
                     <Link
                       href="/seo-metadata"

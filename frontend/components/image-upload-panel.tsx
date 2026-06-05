@@ -44,8 +44,18 @@ const DEFAULT_COMPRESSION_SETTINGS: ImageCompressionSettings = {
   resize_mode: "none",
   output_format: "keep_original",
   custom_max_width: null,
+  target_width: null,
+  target_height: null,
+  prevent_upscaling: true,
+  crop_focus_x: 0.5,
+  crop_focus_y: 0.5,
+  pad_color: "#ffffff",
   strip_metadata: true,
   filename_overrides: {},
+  crop_boxes: {},
+  crop_subjects: {},
+  crop_reasons: {},
+  crop_confidences: {},
 };
 
 function formatBytes(bytes: number) {

@@ -75,11 +75,28 @@ export type BrandContextResponse = {
 export type ImageCompressionSettings = {
   mode: "lossy" | "lossless";
   quality: number;
-  resize_mode: "none" | "max_1920" | "max_1200" | "custom";
+  resize_mode: "none" | "max_1920" | "max_1200" | "custom" | "exact" | "fit_inside";
   output_format: "keep_original" | "webp" | "jpg" | "png";
   custom_max_width: number | null;
+  target_width: number | null;
+  target_height: number | null;
+  prevent_upscaling: boolean;
+  crop_focus_x: number;
+  crop_focus_y: number;
+  pad_color: string;
   strip_metadata: boolean;
   filename_overrides: Record<string, string>;
+  crop_boxes: Record<string, CropBox>;
+  crop_subjects: Record<string, string>;
+  crop_reasons: Record<string, string>;
+  crop_confidences: Record<string, number>;
+};
+
+export type CropBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 export type ImageCompressionResult = {
@@ -103,6 +120,37 @@ export type ImageCompressionResponse = {
   status: "processed";
   settings: ImageCompressionSettings;
   results: ImageCompressionResult[];
+};
+
+export type ResizeInstructionResponse = {
+  instruction: string;
+  settings: ImageCompressionSettings;
+  notes: string[];
+  warnings: string[];
+};
+
+export type CropReviewItem = {
+  id: string;
+  original_filename: string;
+  width: number;
+  height: number;
+  target_width: number;
+  target_height: number;
+  needs_review: boolean;
+  focus_x: number;
+  focus_y: number;
+  confidence: number;
+  source: "center" | "preset" | "ai";
+  crop_box: CropBox | null;
+  subject: string;
+  reason: string;
+};
+
+export type CropReviewResponse = {
+  job_id: string;
+  target_width: number;
+  target_height: number;
+  items: CropReviewItem[];
 };
 
 export type ImageMetadataResult = {
@@ -199,6 +247,28 @@ export async function processImageJob(
 ): Promise<ImageCompressionResponse> {
   const response = await apiClient.post<ImageCompressionResponse>(
     `/api/jobs/${jobId}/process`,
+    settings,
+  );
+  return response.data;
+}
+
+export async function parseResizeInstructions(
+  jobId: string,
+  instruction: string,
+): Promise<ResizeInstructionResponse> {
+  const response = await apiClient.post<ResizeInstructionResponse>(
+    `/api/jobs/${jobId}/resize-instructions`,
+    { instruction },
+  );
+  return response.data;
+}
+
+export async function reviewImageCrops(
+  jobId: string,
+  settings: ImageCompressionSettings,
+): Promise<CropReviewResponse> {
+  const response = await apiClient.post<CropReviewResponse>(
+    `/api/jobs/${jobId}/resize-review`,
     settings,
   );
   return response.data;

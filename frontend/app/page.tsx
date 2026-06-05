@@ -29,9 +29,9 @@ const phases = [
   ["Phase 3", "Image conversion", "Complete"],
   ["Phase 4", "Filename cleanup", "Complete"],
   ["Phase 5", "AI image metadata", "Complete"],
-  ["Phase 6", "Brand context documents", "Active"],
+  ["Phase 6", "Brand context documents", "Complete"],
   ["Phase 7", "Dual-model AI metadata", "Planned"],
-  ["Phase 8", "AI focus-aware crop", "Planned"],
+  ["Phase 8", "AI focus-aware crop", "Active"],
   ["Phase 9", "Review UI", "Planned"],
   ["Phase 10", "Export system", "Planned"],
   ["Phase 11", "Website crawler", "Planned"],
@@ -74,8 +74,8 @@ const tools = [
     title: "AI Image Resizer",
     description: "Resize and crop around image focal points for fixed website dimensions.",
     icon: Maximize2,
-    href: null,
-    status: "Coming soon",
+    href: "/image-resizer",
+    status: "Active",
   },
   {
     title: "Website Checker",
@@ -126,7 +126,7 @@ export default function Home() {
           <h2 className="text-xl font-semibold text-[#151923]">Welcome back</h2>
           <p className="mt-1 text-sm text-[#667085]">Pick a tool to continue the current image workflow.</p>
         </div>
-        <div className="mt-5 grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="mt-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {tools.map((tool) => {
             const Icon = tool.icon;
             const isActive = tool.status === "Active";
@@ -225,13 +225,13 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-base font-semibold">Current Target</h2>
-              <p className="text-sm text-[#667085]">Phase 6 brand context documents</p>
+              <p className="text-sm text-[#667085]">Phase 8 image resizer</p>
             </div>
           </div>
           <div className="mt-5 space-y-3 text-sm text-[#475467]">
             <p>Upload, compression, conversion, and AI metadata are implemented.</p>
-            <p>Brand documents can guide AI filename, alt text, and caption wording.</p>
-            <p>Next phase splits image analysis and language generation into dual-model metadata.</p>
+            <p>Brand documents now guide AI filename, alt text, and caption wording.</p>
+            <p>Current target adds exact website-size resizing with crop review before processing.</p>
           </div>
         </div>
       </section>

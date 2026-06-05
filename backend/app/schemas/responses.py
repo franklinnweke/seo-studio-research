@@ -81,8 +81,15 @@ class BrandContextResponse(BaseModel):
 
 
 CompressionMode = Literal["lossy", "lossless"]
-ResizeMode = Literal["none", "max_1920", "max_1200", "custom"]
+ResizeMode = Literal["none", "max_1920", "max_1200", "custom", "exact", "fit_inside"]
 OutputFormat = Literal["keep_original", "webp", "jpg", "png"]
+
+
+class CropBox(BaseModel):
+    x: float = Field(ge=0.0, le=1.0, description="Normalized left edge of the crop or subject box.")
+    y: float = Field(ge=0.0, le=1.0, description="Normalized top edge of the crop or subject box.")
+    width: float = Field(ge=0.0, le=1.0, description="Normalized box width.")
+    height: float = Field(ge=0.0, le=1.0, description="Normalized box height.")
 
 
 class ImageCompressionSettings(BaseModel):
@@ -99,6 +106,39 @@ class ImageCompressionSettings(BaseModel):
         le=10000,
         description="Custom max width used only when resize_mode is custom.",
     )
+    target_width: int | None = Field(
+        default=None,
+        ge=1,
+        le=10000,
+        description="Target output width used by exact crop and fit-inside resize modes.",
+    )
+    target_height: int | None = Field(
+        default=None,
+        ge=1,
+        le=10000,
+        description="Target output height used by exact crop and fit-inside resize modes.",
+    )
+    prevent_upscaling: bool = Field(
+        default=True,
+        description="Whether exact and fit-inside resize modes should avoid enlarging smaller source images.",
+    )
+    crop_focus_x: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Normalized horizontal crop focus from 0 left to 1 right.",
+    )
+    crop_focus_y: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Normalized vertical crop focus from 0 top to 1 bottom.",
+    )
+    pad_color: str = Field(
+        default="#ffffff",
+        pattern=r"^#[0-9a-fA-F]{6}$",
+        description="Canvas background color used by fit-inside resize mode.",
+    )
     strip_metadata: bool = Field(default=True, description="Whether to remove image metadata.")
     filename_overrides: dict[str, str] = Field(
         default_factory=dict,
@@ -107,6 +147,25 @@ class ImageCompressionSettings(BaseModel):
             "Values may include an extension, but the processed extension is determined "
             "by output_format or the source format."
         ),
+    )
+    crop_boxes: dict[str, CropBox] = Field(
+        default_factory=dict,
+        description=(
+            "Optional normalized crop boxes keyed by uploaded image file id. "
+            "Used by AI-assisted exact crop workflows when a subject should stay in frame."
+        ),
+    )
+    crop_subjects: dict[str, str] = Field(
+        default_factory=dict,
+        description="Optional AI-detected crop subjects keyed by uploaded image file id.",
+    )
+    crop_reasons: dict[str, str] = Field(
+        default_factory=dict,
+        description="Optional AI crop explanations keyed by uploaded image file id.",
+    )
+    crop_confidences: dict[str, float] = Field(
+        default_factory=dict,
+        description="Optional AI crop confidence scores keyed by uploaded image file id.",
     )
 
 
@@ -131,6 +190,51 @@ class ImageCompressionResponse(BaseModel):
     status: Literal["processed"] = Field(description="Image compression job status.")
     settings: ImageCompressionSettings = Field(description="Compression settings applied.")
     results: list[ImageCompressionResult] = Field(description="Per-image compression results.")
+
+
+class ResizeInstructionRequest(BaseModel):
+    instruction: str = Field(
+        min_length=1,
+        max_length=1000,
+        description="Natural-language resize instruction to convert into editable processing settings.",
+    )
+
+
+class ResizeInstructionResponse(BaseModel):
+    instruction: str = Field(description="Original instruction provided by the user.")
+    settings: ImageCompressionSettings = Field(description="Parsed resize and conversion settings.")
+    notes: list[str] = Field(
+        default_factory=list,
+        description="Human-readable notes about how the instruction was interpreted.",
+    )
+    warnings: list[str] = Field(
+        default_factory=list,
+        description="Recoverable warnings raised while interpreting the instruction.",
+    )
+
+
+class CropReviewItem(BaseModel):
+    id: str = Field(description="Uploaded image file identifier.")
+    original_filename: str = Field(description="Original filename from upload.")
+    width: int = Field(description="Original image width in pixels.")
+    height: int = Field(description="Original image height in pixels.")
+    target_width: int = Field(description="Requested target width in pixels.")
+    target_height: int = Field(description="Requested target height in pixels.")
+    needs_review: bool = Field(description="Whether source and target ratios differ enough to review cropping.")
+    focus_x: float = Field(ge=0.0, le=1.0, description="Suggested normalized crop focus x coordinate.")
+    focus_y: float = Field(ge=0.0, le=1.0, description="Suggested normalized crop focus y coordinate.")
+    confidence: float = Field(ge=0.0, le=1.0, description="Suggestion confidence from 0 to 1.")
+    source: Literal["center", "preset", "ai"] = Field(description="How the crop suggestion was produced.")
+    crop_box: CropBox | None = Field(default=None, description="Optional normalized AI crop or subject box.")
+    subject: str = Field(default="", description="Subject the AI crop suggestion is trying to preserve.")
+    reason: str = Field(default="", description="Short explanation for the crop suggestion.")
+
+
+class CropReviewResponse(BaseModel):
+    job_id: str = Field(description="Image job identifier.")
+    target_width: int = Field(description="Requested target width in pixels.")
+    target_height: int = Field(description="Requested target height in pixels.")
+    items: list[CropReviewItem] = Field(description="Per-image crop review suggestions.")
 
 
 class ImageMetadataResult(BaseModel):

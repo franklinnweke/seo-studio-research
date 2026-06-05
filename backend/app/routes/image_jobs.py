@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 from app.config import Settings, get_settings
 from app.schemas.responses import (
     BrandContextResponse,
+    CropReviewResponse,
     ImageCompressionResponse,
     ImageCompressionSettings,
     ImageJobCreateResponse,
@@ -13,6 +14,8 @@ from app.schemas.responses import (
     ImageMetadataResult,
     JobFileListResponse,
     JobStatusResponse,
+    ResizeInstructionRequest,
+    ResizeInstructionResponse,
 )
 from app.services.ai_metadata_service import AiMetadataService
 from app.services.brand_context_service import BrandContextService
@@ -150,6 +153,59 @@ def process_image_job(
     processor: Annotated[ImageProcessor, Depends(get_image_processor)],
 ) -> ImageCompressionResponse:
     return processor.compress_job(job_id, settings)
+
+
+@router.post(
+    "/{job_id}/resize-instructions",
+    response_model=ResizeInstructionResponse,
+    summary="Parse image resize instructions",
+    description=(
+        "Converts a natural-language resize request into editable image processing "
+        "settings. The POC parser recognizes common dimensions such as `600 x 400`, "
+        "output formats like WebP/JPG/PNG, lossless mode, quality values, and fit-inside "
+        "language. When the instruction asks to crop around a visible subject, the backend "
+        "can request an AI vision crop suggestion and attach normalized crop boxes to the "
+        "returned settings. The returned settings can be reviewed in the UI before processing."
+    ),
+    responses={404: {"description": "Job not found."}},
+)
+def parse_resize_instructions(
+    job_id: str,
+    request: Annotated[
+        ResizeInstructionRequest,
+        Body(description="Natural-language resize request to interpret for the image job."),
+    ],
+    processor: Annotated[ImageProcessor, Depends(get_image_processor)],
+) -> ResizeInstructionResponse:
+    processor.upload_service.read_job(job_id)
+    return processor.parse_resize_instruction(job_id, request.instruction)
+
+
+@router.post(
+    "/{job_id}/resize-review",
+    response_model=CropReviewResponse,
+    summary="Review crop requirements",
+    description=(
+        "Inspects uploaded images against exact resize settings and returns per-image "
+        "crop review suggestions. Images whose aspect ratio does not match the target "
+        "ratio are marked for review before final processing. Suggestions include "
+        "normalized crop focus coordinates and optional AI crop boxes that can be "
+        "reviewed in the UI before final processing."
+    ),
+    responses={
+        400: {"description": "Exact target width and height are required."},
+        404: {"description": "Job or uploaded source file not found."},
+    },
+)
+def review_image_crops(
+    job_id: str,
+    settings: Annotated[
+        ImageCompressionSettings,
+        Body(description="Resize settings used to determine crop review requirements."),
+    ],
+    processor: Annotated[ImageProcessor, Depends(get_image_processor)],
+) -> CropReviewResponse:
+    return processor.crop_review(job_id, settings)
 
 
 @router.get(
