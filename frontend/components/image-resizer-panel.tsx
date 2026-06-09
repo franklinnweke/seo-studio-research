@@ -20,6 +20,14 @@ import {
 } from "lucide-react";
 
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   getApiErrorMessage,
   getMetadataImageDownloadUrl,
   getProcessedImageDownloadUrl,
@@ -27,6 +35,7 @@ import {
   parseResizeInstructions,
   processImageJob,
   reviewImageCrops,
+  suggestAiCrop,
   type CropReviewResponse,
   type ImageCompressionResponse,
   type ImageCompressionResult,
@@ -143,6 +152,24 @@ export function ImageResizerPanel() {
     },
   });
 
+  const aiCropMutation = useMutation({
+    mutationFn: async () => {
+      if (!lastJob) throw new Error("Upload images before finding an AI crop.");
+      return suggestAiCrop(lastJob.id, instruction, settings);
+    },
+    onSuccess: async (response) => {
+      const nextSettings = { ...settings, ...response.settings };
+      setSettings(nextSettings);
+      setInstructionNotes(response.notes);
+      setInstructionWarnings(response.warnings ?? []);
+      if (lastJob) {
+        const review = await reviewImageCrops(lastJob.id, nextSettings);
+        setCropReview(review);
+        setCropModalOpen(true);
+      }
+    },
+  });
+
   const cropReviewMutation = useMutation({
     mutationFn: async () => {
       if (!lastJob) throw new Error("Upload images before reviewing crops.");
@@ -182,6 +209,7 @@ export function ImageResizerPanel() {
       setInstructionNotes([]);
       uploadMutation.reset();
       instructionMutation.reset();
+      aiCropMutation.reset();
       processMutation.reset();
       cropReviewMutation.reset();
 
@@ -205,7 +233,12 @@ export function ImageResizerPanel() {
       ? `${settings.target_width} x ${settings.target_height}`
       : "No target";
   const reviewCount = cropReview?.items.filter((item) => item.needs_review).length ?? 0;
-  const busy = uploadMutation.isPending || cropReviewMutation.isPending || processMutation.isPending;
+  const busy =
+    uploadMutation.isPending ||
+    instructionMutation.isPending ||
+    aiCropMutation.isPending ||
+    cropReviewMutation.isPending ||
+    processMutation.isPending;
 
   const applyPreset = (width: number, height: number) => {
     setActiveTab("preset");
@@ -215,10 +248,6 @@ export function ImageResizerPanel() {
       target_width: width,
       target_height: height,
     }));
-  };
-
-  const setCropFocus = (focusX: number, focusY: number) => {
-    setSettings((current) => ({ ...current, crop_focus_x: focusX, crop_focus_y: focusY }));
   };
 
   const setManualCropFocus = (imageId: string, focusX: number, focusY: number) => {
@@ -490,19 +519,30 @@ export function ImageResizerPanel() {
                   placeholder="Resize the 10 large JPG photos over 2000px wide into 600 x 400 WEBP files for website content sections."
                   className="w-full rounded-lg border border-[#dfe3e8] px-3 py-2 text-sm"
                 />
-                <button
-                  type="button"
-                  disabled={!lastJob || instruction.trim().length === 0 || instructionMutation.isPending}
-                  onClick={() => instructionMutation.mutate()}
-                  className="inline-flex h-10 items-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {instructionMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                  Interpret instructions
-                </button>
-                {instructionMutation.isError ? (
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    disabled={!lastJob || instruction.trim().length === 0 || instructionMutation.isPending}
+                    onClick={() => instructionMutation.mutate()}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {instructionMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+                    Interpret instructions
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!lastJob || instruction.trim().length === 0 || aiCropMutation.isPending}
+                    onClick={() => aiCropMutation.mutate()}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#173f3f] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
+                  >
+                    {aiCropMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Crop size={16} />}
+                    Find crop with AI
+                  </button>
+                </div>
+                {instructionMutation.isError || aiCropMutation.isError ? (
                   <div className="flex items-start gap-2 rounded-md border border-[#f2b8b5] bg-[#fff5f5] p-3 text-sm text-[#b42318]">
                     <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
-                    <span>{getApiErrorMessage(instructionMutation.error)}</span>
+                    <span>{getApiErrorMessage(instructionMutation.error ?? aiCropMutation.error)}</span>
                   </div>
                 ) : null}
                 {instructionWarnings.length > 0 ? (
@@ -848,27 +888,19 @@ function CropReviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#151923]/55 p-4">
-      <div className="w-full max-w-5xl rounded-lg bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 px-5 py-4">
-          <div>
-            <h2 className="text-base font-semibold">Crop review - Image 1 of {cropReview.items.length}</h2>
-            <p className="mt-1 text-sm text-[#667085]">
-              {item.original_filename} · original {item.width} x {item.height} · target {item.target_width} x {item.target_height}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#475467] hover:bg-[#f2f4f7]"
-            aria-label="Close crop review"
-            title="Close"
-          >
-            <X aria-hidden="true" size={16} />
-          </button>
-        </div>
+    <Dialog open onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] max-w-5xl overflow-hidden p-0">
+        <DialogHeader className="border-b border-[#dfe3e8] px-5 py-4 pr-12">
+          <DialogTitle>Crop review - Image 1 of {cropReview.items.length}</DialogTitle>
+          <DialogDescription>
+            {item.original_filename} · original {item.width} x {item.height} · target{" "}
+            {item.target_width} x {item.target_height}
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="grid gap-5 px-5 pb-5 lg:grid-cols-[1fr_280px]">
+        <div className="grid max-h-[calc(100vh-12rem)] gap-5 overflow-y-auto px-5 py-5 lg:grid-cols-[1fr_300px]">
           <div
             className="relative overflow-hidden rounded-lg border border-[#dfe3e8] bg-[#151923]"
             style={{ aspectRatio: `${item.target_width} / ${item.target_height}` }}
@@ -971,7 +1003,7 @@ function CropReviewModal({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-[#dfe3e8] px-5 py-4">
+        <DialogFooter className="sticky bottom-0 border-t border-[#dfe3e8] bg-white px-5 py-4 sm:justify-between">
           <button
             type="button"
             onClick={() => updateFocus(0.5, 0.5)}
@@ -989,8 +1021,8 @@ function CropReviewModal({
             {isProcessing ? <Loader2 className="animate-spin" size={16} /> : <Crop size={16} />}
             Apply crop
           </button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

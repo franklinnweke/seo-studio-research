@@ -34,6 +34,7 @@ def test_current_routes_are_documented() -> None:
         ("/api/jobs/{job_id}", "get"),
         ("/api/jobs/{job_id}/process", "post"),
         ("/api/jobs/{job_id}/resize-instructions", "post"),
+        ("/api/jobs/{job_id}/resize-ai-crop", "post"),
         ("/api/jobs/{job_id}/resize-review", "post"),
         ("/api/jobs/{job_id}/processed/{filename}", "get"),
         ("/api/jobs/{job_id}/files", "get"),

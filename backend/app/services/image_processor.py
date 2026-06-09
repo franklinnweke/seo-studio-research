@@ -128,7 +128,25 @@ class ImageProcessor:
         if not notes:
             notes.append("No specific resize instruction detected; using RFC processing defaults.")
 
-        if self._should_request_ai_crop(normalized, settings):
+        return ResizeInstructionResponse(
+            instruction=instruction,
+            settings=settings,
+            notes=notes,
+            warnings=warnings,
+        )
+
+    def suggest_ai_crop(
+        self,
+        job_id: str,
+        instruction: str,
+        settings: ImageCompressionSettings,
+    ) -> ResizeInstructionResponse:
+        normalized = instruction.lower()
+        notes: list[str] = []
+        warnings: list[str] = []
+        if not self._should_request_ai_crop(normalized, settings):
+            warnings.append("AI crop needs an exact crop instruction with a target size and visible subject.")
+        else:
             ai_notes, ai_warnings = self._apply_ai_crop_suggestions(job_id, instruction, settings)
             notes.extend(ai_notes)
             warnings.extend(ai_warnings)

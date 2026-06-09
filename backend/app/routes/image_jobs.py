@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 
 from app.config import Settings, get_settings
 from app.schemas.responses import (
+    AiCropSuggestionRequest,
     BrandContextResponse,
     CropReviewResponse,
     ImageCompressionResponse,
@@ -163,9 +164,8 @@ def process_image_job(
         "Converts a natural-language resize request into editable image processing "
         "settings. The POC parser recognizes common dimensions such as `600 x 400`, "
         "output formats like WebP/JPG/PNG, lossless mode, quality values, and fit-inside "
-        "language. When the instruction asks to crop around a visible subject, the backend "
-        "can request an AI vision crop suggestion and attach normalized crop boxes to the "
-        "returned settings. The returned settings can be reviewed in the UI before processing."
+        "language. This endpoint does not call the AI model; subject-aware AI crop suggestions "
+        "are requested separately through the AI crop endpoint so parsing stays responsive."
     ),
     responses={404: {"description": "Job not found."}},
 )
@@ -206,6 +206,34 @@ def review_image_crops(
     processor: Annotated[ImageProcessor, Depends(get_image_processor)],
 ) -> CropReviewResponse:
     return processor.crop_review(job_id, settings)
+
+
+@router.post(
+    "/{job_id}/resize-ai-crop",
+    response_model=ResizeInstructionResponse,
+    summary="Suggest AI crop boxes",
+    description=(
+        "Requests AI vision crop suggestions for an exact resize instruction. This endpoint "
+        "is intentionally separate from resize instruction parsing because model calls can be "
+        "slow or fail. The response returns updated processing settings with optional crop "
+        "boxes, plus notes or warnings that the UI can show before crop review."
+    ),
+    responses={
+        400: {"description": "Exact target width and height are required."},
+        404: {"description": "Job or uploaded source file not found."},
+        502: {"description": "Configured AI provider request failed or returned invalid crop JSON."},
+    },
+)
+def suggest_ai_crop(
+    job_id: str,
+    request: Annotated[
+        AiCropSuggestionRequest,
+        Body(description="Subject-aware crop request and current resize settings."),
+    ],
+    processor: Annotated[ImageProcessor, Depends(get_image_processor)],
+) -> ResizeInstructionResponse:
+    processor.upload_service.read_job(job_id)
+    return processor.suggest_ai_crop(job_id, request.instruction, request.settings)
 
 
 @router.get(

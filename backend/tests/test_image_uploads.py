@@ -539,34 +539,7 @@ def test_crop_review_marks_mismatched_ratio() -> None:
     assert item["focus_y"] == 0.5
 
 
-def test_resize_instruction_can_request_ai_crop_box() -> None:
-    upload_response = client.post(
-        "/api/jobs/images",
-        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
-    )
-    body = upload_response.json()
-    file_id = body["files"][0]["id"]
-    processor = ImageProcessor(get_settings(), client=FakeCropClient())
-
-    try:
-        response = processor.parse_resize_instruction(
-            body["id"],
-            "crop a 600 x 400 image showing only the person wearing red",
-        )
-    finally:
-        cleanup_job(body["id"])
-
-    assert response.settings.resize_mode == "exact"
-    assert response.settings.target_width == 600
-    assert response.settings.target_height == 400
-    assert file_id in response.settings.crop_boxes
-    assert response.settings.crop_subjects[file_id] == "person wearing red"
-    assert response.settings.crop_confidences[file_id] == 0.92
-    assert any("AI suggested a crop" in note for note in response.notes)
-    assert response.warnings == []
-
-
-def test_resize_instruction_ai_crop_failure_returns_warning() -> None:
+def test_resize_instruction_parses_without_ai_crop_call() -> None:
     upload_response = client.post(
         "/api/jobs/images",
         files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
@@ -587,6 +560,68 @@ def test_resize_instruction_ai_crop_failure_returns_warning() -> None:
     assert response.settings.target_width == 600
     assert response.settings.target_height == 400
     assert file_id not in response.settings.crop_boxes
+    assert any("Detected crop-to-exact behavior." in note for note in response.notes)
+    assert response.warnings == []
+
+
+def test_ai_crop_suggestion_can_request_ai_crop_box() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    processor = ImageProcessor(get_settings(), client=FakeCropClient())
+
+    try:
+        parsed = processor.parse_resize_instruction(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+        )
+        response = processor.suggest_ai_crop(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+            parsed.settings,
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.settings.resize_mode == "exact"
+    assert response.settings.target_width == 600
+    assert response.settings.target_height == 400
+    assert file_id in response.settings.crop_boxes
+    assert response.settings.crop_subjects[file_id] == "person wearing red"
+    assert response.settings.crop_confidences[file_id] == 0.92
+    assert any("AI suggested a crop" in note for note in response.notes)
+    assert response.warnings == []
+
+
+def test_ai_crop_suggestion_failure_returns_warning() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    processor = ImageProcessor(get_settings(), client=FailingCropClient())
+
+    try:
+        parsed = processor.parse_resize_instruction(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+        )
+        response = processor.suggest_ai_crop(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+            parsed.settings,
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.settings.resize_mode == "exact"
+    assert response.settings.target_width == 600
+    assert response.settings.target_height == 400
+    assert file_id not in response.settings.crop_boxes
     assert any("AI crop suggestion failed" in warning for warning in response.warnings)
 
 
@@ -598,9 +633,14 @@ def test_process_image_job_uses_ai_crop_box() -> None:
     body = upload_response.json()
     file_id = body["files"][0]["id"]
     processor = ImageProcessor(get_settings(), client=FakeCropClient())
-    instruction_response = processor.parse_resize_instruction(
+    parsed = processor.parse_resize_instruction(
         body["id"],
         "crop a 600 x 400 image showing only the person wearing red",
+    )
+    instruction_response = processor.suggest_ai_crop(
+        body["id"],
+        "crop a 600 x 400 image showing only the person wearing red",
+        parsed.settings,
     )
 
     try:

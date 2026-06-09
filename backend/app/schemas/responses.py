@@ -200,6 +200,15 @@ class ResizeInstructionRequest(BaseModel):
     )
 
 
+class AiCropSuggestionRequest(BaseModel):
+    instruction: str = Field(
+        min_length=1,
+        max_length=1000,
+        description="Natural-language subject-aware crop instruction.",
+    )
+    settings: ImageCompressionSettings = Field(description="Current resize settings to augment with AI crop boxes.")
+
+
 class ResizeInstructionResponse(BaseModel):
     instruction: str = Field(description="Original instruction provided by the user.")
     settings: ImageCompressionSettings = Field(description="Parsed resize and conversion settings.")

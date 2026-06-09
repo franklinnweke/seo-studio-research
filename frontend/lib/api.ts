@@ -263,6 +263,18 @@ export async function parseResizeInstructions(
   return response.data;
 }
 
+export async function suggestAiCrop(
+  jobId: string,
+  instruction: string,
+  settings: ImageCompressionSettings,
+): Promise<ResizeInstructionResponse> {
+  const response = await apiClient.post<ResizeInstructionResponse>(
+    `/api/jobs/${jobId}/resize-ai-crop`,
+    { instruction, settings },
+  );
+  return response.data;
+}
+
 export async function reviewImageCrops(
   jobId: string,
   settings: ImageCompressionSettings,
