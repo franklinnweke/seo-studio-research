@@ -1,0 +1,88 @@
+name: Sprint task
+description: Track sprint work with rubric-aligned acceptance criteria and demo evidence.
+title: "[Sprint]: "
+labels: ["type:feature"]
+body:
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Sprint
+      options:
+        - Sprint 1
+        - Sprint 2
+        - Sprint 3
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Frontend
+        - Backend
+        - AI
+        - Docs
+        - QA
+    validations:
+      required: true
+  - type: dropdown
+    id: rubric
+    attributes:
+      label: Rubric focus
+      options:
+        - Goal Achievement and Quality
+        - Process, Documentation, and Version Control
+        - Technical Complexity and Effort
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: GitHub username or team member name.
+      placeholder: "@username"
+    validations:
+      required: true
+  - type: input
+    id: story_points
+    attributes:
+      label: Story points
+      placeholder: "1, 2, 3, 5, or 8"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: State the user or technical outcome this task should deliver.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+      description: Use checkboxes so the team can verify the work during sprint review.
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+  - type: textarea
+    id: demo_evidence
+    attributes:
+      label: Demo evidence
+      description: Link screenshots, screen recordings, API output, PRs, or test logs here.
+      value: |
+        - Screenshot/video:
+        - PR:
+        - Test output:
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and risks
+      description: List blockers, prerequisite issues, or known technical risk.
+    validations:
+      required: false
