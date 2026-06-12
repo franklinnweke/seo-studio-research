@@ -209,3 +209,63 @@ def test_image_metadata_endpoint_returns_missing_image_404() -> None:
         cleanup_job(body["id"])
 
     assert response.status_code == 404
+
+
+def test_image_metadata_csv_export_includes_selected_seo_fields() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": file_id,
+                "original_filename": "Hero Image!!.png",
+                "suggested_filename": "blue-hero-image",
+                "alt_text": "Blue square graphic.",
+                "caption": "A blue square graphic.",
+                "confidence": 0.87,
+                "status": "needs_review",
+                "error_message": "",
+            }
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        response = client.get(
+            f"/api/jobs/{body['id']}/images/metadata.csv",
+            params=[
+                ("fields", "original_filename"),
+                ("fields", "suggested_filename"),
+                ("fields", "alt_text"),
+                ("fields", "download_filename"),
+            ],
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert f'{body["id"]}-image-metadata.csv' in response.headers["content-disposition"]
+    lines = response.text.strip().splitlines()
+    assert lines[0] == "original_filename,suggested_filename,alt_text,download_filename"
+    assert "Hero Image!!.png,blue-hero-image,Blue square graphic.,blue-hero-image.png" in lines[1]
+
+
+def test_image_metadata_csv_export_rejects_unknown_fields() -> None:
+    body = create_image_job()
+
+    try:
+        response = client.get(
+            f"/api/jobs/{body['id']}/images/metadata.csv",
+            params={"fields": "not_a_field"},
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 400
+    assert "Unsupported CSV field" in response.json()["detail"]

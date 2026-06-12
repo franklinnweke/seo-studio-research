@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const ACTIVE_IMAGE_JOB_KEY = "seo-studio.activeImageJobId";
 const ACTIVE_IMAGE_JOB_EVENT = "seo-studio:active-image-job";
@@ -12,6 +12,25 @@ function readActiveImageJobId() {
 
 function notifyActiveImageJobChange(jobId: string) {
   window.dispatchEvent(new CustomEvent(ACTIVE_IMAGE_JOB_EVENT, { detail: jobId }));
+}
+
+function subscribeActiveImageJobId(onStoreChange: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === ACTIVE_IMAGE_JOB_KEY) {
+      onStoreChange();
+    }
+  };
+
+  const handleCustomEvent = () => {
+    onStoreChange();
+  };
+
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(ACTIVE_IMAGE_JOB_EVENT, handleCustomEvent);
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(ACTIVE_IMAGE_JOB_EVENT, handleCustomEvent);
+  };
 }
 
 export function setActiveImageJobId(jobId: string) {
@@ -29,26 +48,5 @@ export function clearActiveImageJobId() {
 }
 
 export function useActiveImageJobId() {
-  const [activeImageJobId, setActiveImageJobIdState] = useState(readActiveImageJobId);
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === ACTIVE_IMAGE_JOB_KEY) {
-        setActiveImageJobIdState(event.newValue ?? "");
-      }
-    };
-
-    const handleCustomEvent = (event: Event) => {
-      setActiveImageJobIdState((event as CustomEvent<string>).detail ?? "");
-    };
-
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener(ACTIVE_IMAGE_JOB_EVENT, handleCustomEvent);
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener(ACTIVE_IMAGE_JOB_EVENT, handleCustomEvent);
-    };
-  }, []);
-
-  return activeImageJobId;
+  return useSyncExternalStore(subscribeActiveImageJobId, readActiveImageJobId, () => "");
 }

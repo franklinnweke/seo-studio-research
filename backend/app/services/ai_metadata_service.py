@@ -1,6 +1,8 @@
 import json
 import logging
 import re
+import csv
+from io import StringIO
 from time import perf_counter
 from pathlib import Path
 from typing import Any, Protocol
@@ -20,6 +22,7 @@ from app.ai.prompts import (
 from app.config import Settings
 from app.schemas.responses import ImageMetadataListResponse, ImageMetadataResult, ImageUploadFileRecord
 from app.services.image_upload_service import ImageUploadService
+from app.utils.file_utils import sanitize_filename
 from app.utils.slugify import slugify
 
 
@@ -39,6 +42,26 @@ class AiImageMetadataPayload(BaseModel):
 
 
 class AiMetadataService:
+    CSV_FIELD_LABELS: dict[str, str] = {
+        "image_id": "image_id",
+        "original_filename": "original_filename",
+        "suggested_filename": "suggested_filename",
+        "download_filename": "download_filename",
+        "source_path": "source_path",
+        "processed_filename": "processed_filename",
+        "processed_path": "processed_path",
+        "download_path": "download_path",
+        "alt_text": "alt_text",
+        "caption": "caption",
+        "confidence": "confidence",
+        "metadata_status": "metadata_status",
+        "error_message": "error_message",
+        "content_type": "content_type",
+        "size_bytes": "size_bytes",
+        "source": "source",
+        "source_archive": "source_archive",
+    }
+
     def __init__(self, settings: Settings, client: ImageMetadataClient | None = None) -> None:
         self.settings = settings
         self.upload_service = ImageUploadService(settings)
@@ -54,6 +77,33 @@ class AiMetadataService:
         self.upload_service.read_job(job_id)
         data = self.upload_service.read_job_data(job_id)
         return self._response_from_job_data(job_id, data)
+
+    def export_image_metadata_csv(self, job_id: str, fields: list[str] | None = None) -> str:
+        job = self.upload_service.read_job(job_id)
+        job_data = self.upload_service.read_job_data(job_id)
+        selected_fields = self._csv_fields(fields)
+        metadata_by_id = {
+            result.id: result
+            for result in self._response_from_job_data(job_id, job_data).results
+        }
+        processed_by_id = self._processed_results_by_id(job_data)
+
+        output = StringIO()
+        writer = csv.DictWriter(
+            output,
+            fieldnames=selected_fields,
+            extrasaction="ignore",
+            lineterminator="\n",
+        )
+        writer.writeheader()
+
+        for file_record in job.files:
+            metadata = metadata_by_id.get(file_record.id)
+            processed = processed_by_id.get(file_record.id)
+            row = self._csv_row(job_id, file_record, metadata, processed)
+            writer.writerow({field: row[field] for field in selected_fields})
+
+        return output.getvalue()
 
     def generate_all_image_metadata(self, job_id: str) -> ImageMetadataListResponse:
         job = self.upload_service.read_job(job_id)
@@ -280,3 +330,93 @@ class AiMetadataService:
         if isinstance(exc, HTTPException):
             return str(exc.detail)
         return str(exc) or "Metadata generation failed."
+
+    def _csv_fields(self, fields: list[str] | None) -> list[str]:
+        if not fields:
+            return list(self.CSV_FIELD_LABELS)
+
+        selected: list[str] = []
+        invalid: list[str] = []
+        for field in fields:
+            normalized = field.strip()
+            if not normalized:
+                continue
+            if normalized not in self.CSV_FIELD_LABELS:
+                invalid.append(normalized)
+                continue
+            if normalized not in selected:
+                selected.append(normalized)
+
+        if invalid:
+            accepted = ", ".join(self.CSV_FIELD_LABELS)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported CSV field(s): {', '.join(invalid)}. Accepted fields: {accepted}.",
+            )
+        if not selected:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one CSV field must be selected.",
+            )
+        return selected
+
+    def _processed_results_by_id(self, job_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        compression = job_data.get("compression")
+        if not isinstance(compression, dict):
+            return {}
+        results = compression.get("results")
+        if not isinstance(results, list):
+            return {}
+        return {
+            str(result["id"]): result
+            for result in results
+            if isinstance(result, dict) and result.get("id")
+        }
+
+    def _csv_row(
+        self,
+        job_id: str,
+        file_record: ImageUploadFileRecord,
+        metadata: ImageMetadataResult | None,
+        processed: dict[str, Any] | None,
+    ) -> dict[str, str | int | float]:
+        processed_filename = str(processed.get("processed_filename", "")) if processed else ""
+        processed_relative_path = str(processed.get("relative_path", "")) if processed else ""
+        extension = Path(processed_filename or file_record.stored_filename).suffix
+        metadata_filename = metadata.suggested_filename if metadata and metadata.suggested_filename else None
+        download_filename = self._download_filename(
+            metadata_filename=metadata_filename,
+            fallback_filename=processed_filename or file_record.stored_filename,
+            extension=extension,
+        )
+
+        return {
+            "image_id": file_record.id,
+            "original_filename": file_record.original_filename,
+            "suggested_filename": metadata.suggested_filename if metadata else "",
+            "download_filename": download_filename,
+            "source_path": f"uploads/{job_id}/{file_record.relative_path}",
+            "processed_filename": processed_filename,
+            "processed_path": f"processed/{job_id}/{processed_relative_path}" if processed_relative_path else "",
+            "download_path": f"/api/jobs/{job_id}/images/{file_record.id}/download",
+            "alt_text": metadata.alt_text if metadata else "",
+            "caption": metadata.caption if metadata else "",
+            "confidence": metadata.confidence if metadata else "",
+            "metadata_status": metadata.status if metadata else "pending",
+            "error_message": metadata.error_message if metadata else "",
+            "content_type": file_record.content_type,
+            "size_bytes": file_record.size_bytes,
+            "source": file_record.source,
+            "source_archive": file_record.source_archive or "",
+        }
+
+    def _download_filename(
+        self,
+        metadata_filename: str | None,
+        fallback_filename: str,
+        extension: str,
+    ) -> str:
+        selected = metadata_filename or fallback_filename
+        sanitized = sanitize_filename(selected)
+        stem = Path(sanitized).stem or Path(fallback_filename).stem
+        return f"{stem}{extension.lower()}"

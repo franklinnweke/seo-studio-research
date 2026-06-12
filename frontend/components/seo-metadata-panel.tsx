@@ -19,6 +19,7 @@ import {
   generateImageMetadata,
   getApiErrorMessage,
   getBrandContext,
+  getImageMetadataCsvDownloadUrl,
   getImageMetadata,
   getJobFiles,
   getMetadataImageDownloadUrl,
@@ -40,6 +41,16 @@ const emptyEdit: MetadataEdit = {
   alt_text: "",
   caption: "",
 };
+
+const csvExportFields = [
+  { key: "original_filename", label: "Image" },
+  { key: "suggested_filename", label: "Filename" },
+  { key: "alt_text", label: "Alt Text" },
+  { key: "confidence", label: "Confidence" },
+  { key: "metadata_status", label: "Status" },
+] as const;
+
+const defaultCsvExportFields = csvExportFields.map((field) => field.key);
 
 function confidenceLabel(confidence: number) {
   return `${Math.round(confidence * 100)}%`;
@@ -76,6 +87,8 @@ export function SeoMetadataPanel() {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedBrandFiles, setSelectedBrandFiles] = useState<File[]>([]);
   const [brandUploadProgress, setBrandUploadProgress] = useState(0);
+  const [selectedCsvFields, setSelectedCsvFields] = useState<string[]>(defaultCsvExportFields);
+  const [isCsvFieldSelectionOpen, setIsCsvFieldSelectionOpen] = useState(false);
 
   const settingsQuery = useQuery({
     queryKey: ["settings"],
@@ -169,6 +182,7 @@ export function SeoMetadataPanel() {
     brandUploadMutation.reset();
     generateMutation.reset();
     regenerateMutation.reset();
+    setIsCsvFieldSelectionOpen(false);
   };
 
   const updateEdit = (imageId: string, update: Partial<MetadataEdit>) => {
@@ -196,6 +210,18 @@ export function SeoMetadataPanel() {
   const brandContextPreview = brandContext?.combined_text ?? "";
   const brandUploadDisabled =
     !activeJobId || selectedBrandFiles.length === 0 || brandUploadMutation.isPending;
+  const csvExportUrl =
+    activeJobId && selectedCsvFields.length > 0
+      ? getImageMetadataCsvDownloadUrl(activeJobId, selectedCsvFields)
+      : "";
+
+  const toggleCsvField = (field: string) => {
+    setSelectedCsvFields((current) =>
+      current.includes(field)
+        ? current.filter((item) => item !== field)
+        : [...current, field],
+    );
+  };
 
   return (
     <section className="space-y-5">
@@ -361,35 +387,84 @@ export function SeoMetadataPanel() {
           </div>
 
           <div className="rounded-lg border border-[#dfe3e8] bg-white">
-          <div className="flex flex-col gap-3 border-b border-[#dfe3e8] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-base font-semibold">AI Image Metadata</h2>
-              <p className="mt-1 text-sm text-[#667085]">
-                {activeJobId}
-                {brandDocuments.length > 0 ? " · using brand context" : ""}
-              </p>
+          <div className="border-b border-[#dfe3e8]">
+            <div className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-base font-semibold">AI Image Metadata</h2>
+                <p className="mt-1 text-sm text-[#667085]">
+                  {activeJobId}
+                  {brandDocuments.length > 0 ? " · using brand context" : ""}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                {rows.length > 0 && isCsvFieldSelectionOpen && selectedCsvFields.length > 0 ? (
+                  <a
+                    href={csvExportUrl}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
+                  >
+                    <Download aria-hidden="true" size={16} />
+                    Download selected
+                  </a>
+                ) : rows.length > 0 && isCsvFieldSelectionOpen ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#98a2b3]"
+                  >
+                    <Download aria-hidden="true" size={16} />
+                    Download selected
+                  </button>
+                ) : rows.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsCsvFieldSelectionOpen(true)}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
+                  >
+                    <Download aria-hidden="true" size={16} />
+                    Download CSV
+                  </button>
+                ) : null}
+                {isCsvFieldSelectionOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCsvFields(defaultCsvExportFields);
+                      setIsCsvFieldSelectionOpen(false);
+                    }}
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#f2f4f7]"
+                  >
+                    Cancel
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={files.length === 0 || generateMutation.isPending}
+                  onClick={() => generateMutation.mutate()}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
+                >
+                  {generateMutation.isPending ? (
+                    <Loader2 aria-hidden="true" className="animate-spin" size={16} />
+                  ) : (
+                    <Sparkles aria-hidden="true" size={16} />
+                  )}
+                  Generate metadata
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              disabled={files.length === 0 || generateMutation.isPending}
-              onClick={() => generateMutation.mutate()}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
-            >
-              {generateMutation.isPending ? (
-                <Loader2 aria-hidden="true" className="animate-spin" size={16} />
-              ) : (
-                <Sparkles aria-hidden="true" size={16} />
-              )}
-              Generate metadata
-            </button>
           </div>
 
-          {filesQuery.isError || metadataQuery.isError || generateMutation.isError ? (
+          {filesQuery.isError ||
+          metadataQuery.isError ||
+          generateMutation.isError ||
+          regenerateMutation.isError ? (
             <div className="m-5 flex items-start gap-2 rounded-md border border-[#f2b8b5] bg-[#fff5f5] p-3 text-sm text-[#b42318]">
               <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
               <span>
                 {getApiErrorMessage(
-                  filesQuery.error ?? metadataQuery.error ?? generateMutation.error,
+                  filesQuery.error ??
+                    metadataQuery.error ??
+                    generateMutation.error ??
+                    regenerateMutation.error,
                 )}
               </span>
             </div>
@@ -405,11 +480,71 @@ export function SeoMetadataPanel() {
               <table className="w-full min-w-[960px] table-fixed text-left text-sm">
                 <thead className="bg-[#fafbfc] text-[#667085]">
                   <tr>
-                    <th className="w-[18%] px-4 py-3 font-medium">Image</th>
-                    <th className="w-[30%] px-4 py-3 font-medium">Filename</th>
-                    <th className="w-[28%] px-4 py-3 font-medium">Alt Text</th>
-                    <th className="w-[9%] px-4 py-3 font-medium">Confidence</th>
-                    <th className="w-[9%] px-4 py-3 font-medium">Status</th>
+                    <th className="w-[18%] px-4 py-3 font-medium">
+                      <label className="inline-flex items-center gap-2">
+                        {isCsvFieldSelectionOpen ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedCsvFields.includes("original_filename")}
+                            onChange={() => toggleCsvField("original_filename")}
+                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
+                          />
+                        ) : null}
+                        Image
+                      </label>
+                    </th>
+                    <th className="w-[30%] px-4 py-3 font-medium">
+                      <label className="inline-flex items-center gap-2">
+                        {isCsvFieldSelectionOpen ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedCsvFields.includes("suggested_filename")}
+                            onChange={() => toggleCsvField("suggested_filename")}
+                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
+                          />
+                        ) : null}
+                        Filename
+                      </label>
+                    </th>
+                    <th className="w-[28%] px-4 py-3 font-medium">
+                      <label className="inline-flex items-center gap-2">
+                        {isCsvFieldSelectionOpen ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedCsvFields.includes("alt_text")}
+                            onChange={() => toggleCsvField("alt_text")}
+                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
+                          />
+                        ) : null}
+                        Alt Text
+                      </label>
+                    </th>
+                    <th className="w-[9%] px-4 py-3 font-medium">
+                      <label className="inline-flex items-center gap-2">
+                        {isCsvFieldSelectionOpen ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedCsvFields.includes("confidence")}
+                            onChange={() => toggleCsvField("confidence")}
+                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
+                          />
+                        ) : null}
+                        Confidence
+                      </label>
+                    </th>
+                    <th className="w-[9%] px-4 py-3 font-medium">
+                      <label className="inline-flex items-center gap-2">
+                        {isCsvFieldSelectionOpen ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedCsvFields.includes("metadata_status")}
+                            onChange={() => toggleCsvField("metadata_status")}
+                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
+                          />
+                        ) : null}
+                        Status
+                      </label>
+                    </th>
                     <th className="w-[140px] px-4 py-3 text-center font-medium">Actions</th>
                   </tr>
                 </thead>

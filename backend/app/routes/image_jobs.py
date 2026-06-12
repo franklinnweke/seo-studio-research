@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Body, Depends, File, Query, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.config import Settings, get_settings
@@ -251,6 +251,37 @@ def list_image_metadata(
     service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
 ) -> ImageMetadataListResponse:
     return service.list_image_metadata(job_id)
+
+
+@router.get(
+    "/{job_id}/images/metadata.csv",
+    response_class=Response,
+    summary="Export AI image metadata CSV",
+    description=(
+        "Exports one CSV row per uploaded image in a job. Optional repeated `fields` "
+        "query values control which SEO and file columns are included. The export joins "
+        "uploaded image records, generated AI metadata when available, and processed "
+        "image filenames when the job has been optimized."
+    ),
+    responses={
+        400: {"description": "One or more requested CSV fields are not supported."},
+        404: {"description": "Job not found."},
+    },
+)
+def export_image_metadata_csv(
+    job_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+    fields: Annotated[
+        list[str] | None,
+        Query(description="CSV fields to include. Repeat this query value for multiple columns."),
+    ] = None,
+) -> Response:
+    csv_content = service.export_image_metadata_csv(job_id, fields)
+    return Response(
+        content=csv_content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{job_id}-image-metadata.csv"'},
+    )
 
 
 @router.post(
