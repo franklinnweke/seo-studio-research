@@ -44,6 +44,21 @@ class AiCropPayload(BaseModel):
     reason: str = ""
 
 
+VISION_MODEL_HINTS = (
+    "vision",
+    "llava",
+    "bakllava",
+    "moondream",
+    "minicpm-v",
+    "qwen2-vl",
+    "qwen2.5-vl",
+    "qwen2.5vl",
+    "qwen25vl",
+    "qwen-vl",
+    "gemma3",
+)
+
+
 class ImageProcessor:
     def __init__(self, settings: Settings, client: ImageCropClient | None = None) -> None:
         self.settings = settings
@@ -53,7 +68,7 @@ class ImageProcessor:
         self.temp_root = settings.storage_root / "temp"
         self.client = client or OllamaClient(
             settings.ollama_base_url,
-            settings.ollama_model,
+            settings.vision_model,
             settings.ollama_timeout_seconds,
         )
 
@@ -142,8 +157,26 @@ class ImageProcessor:
         settings: ImageCompressionSettings,
     ) -> ResizeInstructionResponse:
         normalized = instruction.lower()
+        parsed_settings = self.parse_resize_instruction(job_id, instruction).settings
         notes: list[str] = []
         warnings: list[str] = []
+
+        if parsed_settings.target_width and parsed_settings.target_height:
+            if (
+                settings.target_width != parsed_settings.target_width
+                or settings.target_height != parsed_settings.target_height
+            ):
+                notes.append(
+                    f"Updated target size from instruction to "
+                    f"{parsed_settings.target_width} x {parsed_settings.target_height}."
+                )
+            settings.target_width = parsed_settings.target_width
+            settings.target_height = parsed_settings.target_height
+            settings.resize_mode = parsed_settings.resize_mode
+
+        if parsed_settings.output_format != "keep_original":
+            settings.output_format = parsed_settings.output_format
+
         if not self._should_request_ai_crop(normalized, settings):
             warnings.append("AI crop needs an exact crop instruction with a target size and visible subject.")
         else:
@@ -460,8 +493,10 @@ class ImageProcessor:
                     file_record.id,
                     exc,
                 )
+                detail = exc.detail if isinstance(exc, HTTPException) else str(exc)
                 warnings.append(
-                    f"AI crop suggestion failed for {file_record.original_filename}; using center crop fallback."
+                    f"AI crop suggestion failed for {file_record.original_filename}: {detail} "
+                    "Using center crop fallback."
                 )
             finally:
                 preview_path.unlink(missing_ok=True)
@@ -491,20 +526,33 @@ class ImageProcessor:
         instruction: str,
         settings: ImageCompressionSettings,
     ) -> AiCropPayload:
+        if isinstance(self.client, OllamaClient) and not self._is_vision_model(self.settings.vision_model):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Configured Ollama vision model '{self.settings.vision_model}' is not recognized as a vision model. "
+                    "Install/select a vision model such as moondream, llava, llama3.2-vision, or qwen2.5-vl."
+                ),
+            )
+
         prompt = self._ai_crop_prompt(instruction, settings)
         started_at = perf_counter()
+        timeout_seconds = min(self.settings.ai_crop_timeout_seconds, self.settings.ollama_timeout_seconds)
         try:
             logger.info(
                 "Requesting AI crop suggestion model=%s timeout_seconds=%s",
-                self.settings.ollama_model,
-                self.settings.ollama_timeout_seconds,
+                self.settings.vision_model,
+                timeout_seconds,
             )
-            content = self.client.generate_image_metadata(preview_path, prompt)
+            if isinstance(self.client, OllamaClient):
+                content = self.client.generate_image_metadata(preview_path, prompt, timeout_seconds=timeout_seconds)
+            else:
+                content = self.client.generate_image_metadata(preview_path, prompt)
             data = json.loads(self._extract_json_object(content))
             payload = AiCropPayload.model_validate(data)
             logger.info(
                 "AI crop suggestion succeeded model=%s duration_seconds=%.2f",
-                self.settings.ollama_model,
+                self.settings.vision_model,
                 perf_counter() - started_at,
             )
             return payload
@@ -518,6 +566,10 @@ class ImageProcessor:
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"Ollama crop request failed: {exc}",
             ) from exc
+
+    def _is_vision_model(self, model_name: str) -> bool:
+        normalized = model_name.lower()
+        return any(hint in normalized for hint in VISION_MODEL_HINTS)
 
     def _ai_crop_prompt(self, instruction: str, settings: ImageCompressionSettings) -> str:
         return f"""You are helping crop an image for a website.

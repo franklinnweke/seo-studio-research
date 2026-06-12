@@ -15,7 +15,10 @@ class SettingsResponse(BaseModel):
     ai_provider: str = Field(description="Configured AI provider for metadata workflows.")
     ollama_base_url: str = Field(description="Base URL for the local Ollama runtime.")
     ollama_model: str = Field(description="Default Ollama model used by AI workflows.")
+    vision_model: str = Field(description="Ollama vision model used for image inspection and crop targeting.")
+    language_model: str = Field(description="Ollama language model used for SEO metadata writing.")
     ollama_timeout_seconds: float = Field(description="Timeout in seconds for each Ollama request.")
+    ai_crop_timeout_seconds: float = Field(description="Timeout in seconds for AI crop targeting requests.")
     ai_preview_max_width: int = Field(description="Maximum preview width sent to AI models.")
     frontend_origin: str = Field(description="Allowed frontend origin for local CORS.")
     storage_root: str = Field(description="Backend local storage root.")
@@ -261,6 +264,8 @@ class ImageMetadataListResponse(BaseModel):
     job_id: str = Field(description="Image job identifier.")
     provider: str = Field(description="AI provider used for metadata generation.")
     model: str = Field(description="AI model used for metadata generation.")
+    vision_model: str = Field(default="", description="Vision model used to inspect image content.")
+    language_model: str = Field(default="", description="Language model used to write metadata.")
     results: list[ImageMetadataResult] = Field(default_factory=list, description="Per-image metadata results.")
 
 

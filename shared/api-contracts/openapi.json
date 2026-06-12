@@ -1,6 +1,27 @@
 {
   "components": {
     "schemas": {
+      "AiCropSuggestionRequest": {
+        "properties": {
+          "instruction": {
+            "description": "Natural-language subject-aware crop instruction.",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Instruction",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ImageCompressionSettings",
+            "description": "Current resize settings to augment with AI crop boxes."
+          }
+        },
+        "required": [
+          "instruction",
+          "settings"
+        ],
+        "title": "AiCropSuggestionRequest",
+        "type": "object"
+      },
       "Body_create_image_job_api_jobs_images_post": {
         "properties": {
           "files": {
@@ -113,6 +134,189 @@
           "max_chars"
         ],
         "title": "BrandContextResponse",
+        "type": "object"
+      },
+      "CropBox": {
+        "properties": {
+          "height": {
+            "description": "Normalized box height.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Height",
+            "type": "number"
+          },
+          "width": {
+            "description": "Normalized box width.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Width",
+            "type": "number"
+          },
+          "x": {
+            "description": "Normalized left edge of the crop or subject box.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "description": "Normalized top edge of the crop or subject box.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "CropBox",
+        "type": "object"
+      },
+      "CropReviewItem": {
+        "properties": {
+          "confidence": {
+            "description": "Suggestion confidence from 0 to 1.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "crop_box": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CropBox"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional normalized AI crop or subject box."
+          },
+          "focus_x": {
+            "description": "Suggested normalized crop focus x coordinate.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Focus X",
+            "type": "number"
+          },
+          "focus_y": {
+            "description": "Suggested normalized crop focus y coordinate.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Focus Y",
+            "type": "number"
+          },
+          "height": {
+            "description": "Original image height in pixels.",
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Uploaded image file identifier.",
+            "title": "Id",
+            "type": "string"
+          },
+          "needs_review": {
+            "description": "Whether source and target ratios differ enough to review cropping.",
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "original_filename": {
+            "description": "Original filename from upload.",
+            "title": "Original Filename",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "description": "Short explanation for the crop suggestion.",
+            "title": "Reason",
+            "type": "string"
+          },
+          "source": {
+            "description": "How the crop suggestion was produced.",
+            "enum": [
+              "center",
+              "preset",
+              "ai"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "subject": {
+            "default": "",
+            "description": "Subject the AI crop suggestion is trying to preserve.",
+            "title": "Subject",
+            "type": "string"
+          },
+          "target_height": {
+            "description": "Requested target height in pixels.",
+            "title": "Target Height",
+            "type": "integer"
+          },
+          "target_width": {
+            "description": "Requested target width in pixels.",
+            "title": "Target Width",
+            "type": "integer"
+          },
+          "width": {
+            "description": "Original image width in pixels.",
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "original_filename",
+          "width",
+          "height",
+          "target_width",
+          "target_height",
+          "needs_review",
+          "focus_x",
+          "focus_y",
+          "confidence",
+          "source"
+        ],
+        "title": "CropReviewItem",
+        "type": "object"
+      },
+      "CropReviewResponse": {
+        "properties": {
+          "items": {
+            "description": "Per-image crop review suggestions.",
+            "items": {
+              "$ref": "#/components/schemas/CropReviewItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "job_id": {
+            "description": "Image job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "target_height": {
+            "description": "Requested target height in pixels.",
+            "title": "Target Height",
+            "type": "integer"
+          },
+          "target_width": {
+            "description": "Requested target width in pixels.",
+            "title": "Target Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "target_width",
+          "target_height",
+          "items"
+        ],
+        "title": "CropReviewResponse",
         "type": "object"
       },
       "ExportPlaceholderResponse": {
@@ -300,6 +504,54 @@
       },
       "ImageCompressionSettings": {
         "properties": {
+          "crop_boxes": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CropBox"
+            },
+            "description": "Optional normalized crop boxes keyed by uploaded image file id. Used by AI-assisted exact crop workflows when a subject should stay in frame.",
+            "title": "Crop Boxes",
+            "type": "object"
+          },
+          "crop_confidences": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Optional AI crop confidence scores keyed by uploaded image file id.",
+            "title": "Crop Confidences",
+            "type": "object"
+          },
+          "crop_focus_x": {
+            "default": 0.5,
+            "description": "Normalized horizontal crop focus from 0 left to 1 right.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Crop Focus X",
+            "type": "number"
+          },
+          "crop_focus_y": {
+            "default": 0.5,
+            "description": "Normalized vertical crop focus from 0 top to 1 bottom.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Crop Focus Y",
+            "type": "number"
+          },
+          "crop_reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Optional AI crop explanations keyed by uploaded image file id.",
+            "title": "Crop Reasons",
+            "type": "object"
+          },
+          "crop_subjects": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Optional AI-detected crop subjects keyed by uploaded image file id.",
+            "title": "Crop Subjects",
+            "type": "object"
+          },
           "custom_max_width": {
             "anyOf": [
               {
@@ -344,6 +596,19 @@
             "title": "Output Format",
             "type": "string"
           },
+          "pad_color": {
+            "default": "#ffffff",
+            "description": "Canvas background color used by fit-inside resize mode.",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Pad Color",
+            "type": "string"
+          },
+          "prevent_upscaling": {
+            "default": true,
+            "description": "Whether exact and fit-inside resize modes should avoid enlarging smaller source images.",
+            "title": "Prevent Upscaling",
+            "type": "boolean"
+          },
           "quality": {
             "default": 80,
             "description": "Lossy compression quality.",
@@ -359,7 +624,9 @@
               "none",
               "max_1920",
               "max_1200",
-              "custom"
+              "custom",
+              "exact",
+              "fit_inside"
             ],
             "title": "Resize Mode",
             "type": "string"
@@ -369,6 +636,34 @@
             "description": "Whether to remove image metadata.",
             "title": "Strip Metadata",
             "type": "boolean"
+          },
+          "target_height": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Target output height used by exact crop and fit-inside resize modes.",
+            "title": "Target Height"
+          },
+          "target_width": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Target output width used by exact crop and fit-inside resize modes.",
+            "title": "Target Width"
           }
         },
         "title": "ImageCompressionSettings",
@@ -434,6 +729,12 @@
             "title": "Job Id",
             "type": "string"
           },
+          "language_model": {
+            "default": "",
+            "description": "Language model used to write metadata.",
+            "title": "Language Model",
+            "type": "string"
+          },
           "model": {
             "description": "AI model used for metadata generation.",
             "title": "Model",
@@ -451,6 +752,12 @@
             },
             "title": "Results",
             "type": "array"
+          },
+          "vision_model": {
+            "default": "",
+            "description": "Vision model used to inspect image content.",
+            "title": "Vision Model",
+            "type": "string"
           }
         },
         "required": [
@@ -699,8 +1006,64 @@
         "title": "PageListResponse",
         "type": "object"
       },
+      "ResizeInstructionRequest": {
+        "properties": {
+          "instruction": {
+            "description": "Natural-language resize instruction to convert into editable processing settings.",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Instruction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instruction"
+        ],
+        "title": "ResizeInstructionRequest",
+        "type": "object"
+      },
+      "ResizeInstructionResponse": {
+        "properties": {
+          "instruction": {
+            "description": "Original instruction provided by the user.",
+            "title": "Instruction",
+            "type": "string"
+          },
+          "notes": {
+            "description": "Human-readable notes about how the instruction was interpreted.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ImageCompressionSettings",
+            "description": "Parsed resize and conversion settings."
+          },
+          "warnings": {
+            "description": "Recoverable warnings raised while interpreting the instruction.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "instruction",
+          "settings"
+        ],
+        "title": "ResizeInstructionResponse",
+        "type": "object"
+      },
       "SettingsResponse": {
         "properties": {
+          "ai_crop_timeout_seconds": {
+            "description": "Timeout in seconds for AI crop targeting requests.",
+            "title": "Ai Crop Timeout Seconds",
+            "type": "number"
+          },
           "ai_preview_max_width": {
             "description": "Maximum preview width sent to AI models.",
             "title": "Ai Preview Max Width",
@@ -714,6 +1077,11 @@
           "frontend_origin": {
             "description": "Allowed frontend origin for local CORS.",
             "title": "Frontend Origin",
+            "type": "string"
+          },
+          "language_model": {
+            "description": "Ollama language model used for SEO metadata writing.",
+            "title": "Language Model",
             "type": "string"
           },
           "ollama_base_url": {
@@ -735,13 +1103,21 @@
             "description": "Backend local storage root.",
             "title": "Storage Root",
             "type": "string"
+          },
+          "vision_model": {
+            "description": "Ollama vision model used for image inspection and crop targeting.",
+            "title": "Vision Model",
+            "type": "string"
           }
         },
         "required": [
           "ai_provider",
           "ollama_base_url",
           "ollama_model",
+          "vision_model",
+          "language_model",
           "ollama_timeout_seconds",
+          "ai_crop_timeout_seconds",
           "ai_preview_max_width",
           "frontend_origin",
           "storage_root"
@@ -1259,6 +1635,69 @@
         ]
       }
     },
+    "/api/jobs/{job_id}/images/metadata.csv": {
+      "get": {
+        "description": "Exports one CSV row per uploaded image in a job. Optional repeated `fields` query values control which SEO and file columns are included. The export joins uploaded image records, generated AI metadata when available, and processed image filenames when the job has been optimized.",
+        "operationId": "export_image_metadata_csv_api_jobs__job_id__images_metadata_csv_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "CSV fields to include. Repeat this query value for multiple columns.",
+            "in": "query",
+            "name": "fields",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "CSV fields to include. Repeat this query value for multiple columns.",
+              "title": "Fields"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "One or more requested CSV fields are not supported."
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export AI image metadata CSV",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
     "/api/jobs/{job_id}/images/{image_id}/download": {
       "get": {
         "description": "Downloads the processed image for an uploaded image id when processed output exists. If the job has not been processed, downloads the original uploaded image instead. The attachment filename uses the provided filename query value, generated AI filename, or stored filename while preserving the actual downloaded file extension.",
@@ -1575,6 +2014,186 @@
           }
         },
         "summary": "Download processed image",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/resize-ai-crop": {
+      "post": {
+        "description": "Requests AI vision crop suggestions for an exact resize instruction. This endpoint is intentionally separate from resize instruction parsing because model calls can be slow or fail. The response returns updated processing settings with optional crop boxes, plus notes or warnings that the UI can show before crop review.",
+        "operationId": "suggest_ai_crop_api_jobs__job_id__resize_ai_crop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiCropSuggestionRequest",
+                "description": "Subject-aware crop request and current resize settings."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResizeInstructionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Exact target width and height are required."
+          },
+          "404": {
+            "description": "Job or uploaded source file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "description": "Configured AI provider request failed or returned invalid crop JSON."
+          }
+        },
+        "summary": "Suggest AI crop boxes",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/resize-instructions": {
+      "post": {
+        "description": "Converts a natural-language resize request into editable image processing settings. The POC parser recognizes common dimensions such as `600 x 400`, output formats like WebP/JPG/PNG, lossless mode, quality values, and fit-inside language. This endpoint does not call the AI model; subject-aware AI crop suggestions are requested separately through the AI crop endpoint so parsing stays responsive.",
+        "operationId": "parse_resize_instructions_api_jobs__job_id__resize_instructions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResizeInstructionRequest",
+                "description": "Natural-language resize request to interpret for the image job."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResizeInstructionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Parse image resize instructions",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/resize-review": {
+      "post": {
+        "description": "Inspects uploaded images against exact resize settings and returns per-image crop review suggestions. Images whose aspect ratio does not match the target ratio are marked for review before final processing. Suggestions include normalized crop focus coordinates and optional AI crop boxes that can be reviewed in the UI before final processing.",
+        "operationId": "review_image_crops_api_jobs__job_id__resize_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageCompressionSettings",
+                "description": "Resize settings used to determine crop review requirements."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CropReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Exact target width and height are required."
+          },
+          "404": {
+            "description": "Job or uploaded source file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review crop requirements",
         "tags": [
           "image jobs"
         ]

@@ -30,7 +30,7 @@ const phases = [
   ["Phase 4", "Filename cleanup", "Complete"],
   ["Phase 5", "AI image metadata", "Complete"],
   ["Phase 6", "Brand context documents", "Complete"],
-  ["Phase 7", "Dual-model AI metadata", "Planned"],
+  ["Phase 7", "Dual-model AI metadata", "Complete"],
   ["Phase 8", "AI focus-aware crop", "Active"],
   ["Phase 9", "Review UI", "Planned"],
   ["Phase 10", "Export system", "Planned"],

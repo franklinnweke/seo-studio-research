@@ -32,10 +32,16 @@ class FakeCropClient:
         }
         """
 
+    def generate_text(self, prompt: str) -> str:
+        raise AssertionError("crop tests should not call text generation")
+
 
 class FailingCropClient:
     def generate_image_metadata(self, image_path: Path, prompt: str) -> str:
         raise RuntimeError("vision model unavailable")
+
+    def generate_text(self, prompt: str) -> str:
+        raise AssertionError("crop tests should not call text generation")
 
 
 def make_image_bytes(format_name: str = "PNG") -> bytes:
@@ -623,6 +629,49 @@ def test_ai_crop_suggestion_failure_returns_warning() -> None:
     assert response.settings.target_height == 400
     assert file_id not in response.settings.crop_boxes
     assert any("AI crop suggestion failed" in warning for warning in response.warnings)
+
+
+def test_ai_crop_text_only_model_returns_warning_and_parses_target_size() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[("files", ("people.jpg", make_split_image_bytes(), "image/jpeg"))],
+    )
+    body = upload_response.json()
+    file_id = body["files"][0]["id"]
+    settings = get_settings().model_copy(
+        update={
+            "ollama_model": "qwen3.5",
+            "vision_model": "qwen3.5",
+            "ollama_timeout_seconds": 600,
+            "ai_crop_timeout_seconds": 1,
+        }
+    )
+    processor = ImageProcessor(settings)
+
+    try:
+        parsed = processor.parse_resize_instruction(
+            body["id"],
+            "crop a 600 x 400 image showing only the person wearing red",
+        )
+        response = processor.suggest_ai_crop(
+            body["id"],
+            "crop out the image of the lady wearing a red shirt. 600 x 600",
+            parsed.settings,
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.settings.resize_mode == "exact"
+    assert response.settings.target_width == 600
+    assert response.settings.target_height == 600
+    assert file_id not in response.settings.crop_boxes
+    assert any("not recognized as a vision model" in warning for warning in response.warnings)
+
+
+def test_qwen25vl_model_name_is_recognized_as_vision_model() -> None:
+    processor = ImageProcessor(get_settings().model_copy(update={"vision_model": "qwen2.5vl:3b"}))
+
+    assert processor._is_vision_model("qwen2.5vl:3b") is True
 
 
 def test_process_image_job_uses_ai_crop_box() -> None:

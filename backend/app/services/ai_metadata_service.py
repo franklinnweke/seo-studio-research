@@ -33,6 +33,9 @@ class ImageMetadataClient(Protocol):
     def generate_image_metadata(self, image_path: Path, prompt: str) -> str:
         ...
 
+    def generate_text(self, prompt: str) -> str:
+        ...
+
 
 class AiImageMetadataPayload(BaseModel):
     filename: str = Field(min_length=1)
@@ -67,9 +70,15 @@ class AiMetadataService:
         self.upload_service = ImageUploadService(settings)
         self.upload_root = settings.storage_root / "uploads"
         self.temp_root = settings.storage_root / "temp"
-        self.client = client or OllamaClient(
+        self.injected_client = client
+        self.vision_client = client or OllamaClient(
             settings.ollama_base_url,
-            settings.ollama_model,
+            settings.vision_model,
+            settings.ollama_timeout_seconds,
+        )
+        self.language_client = client or OllamaClient(
+            settings.ollama_base_url,
+            settings.language_model,
             settings.ollama_timeout_seconds,
         )
 
@@ -119,7 +128,9 @@ class AiMetadataService:
         response = ImageMetadataListResponse(
             job_id=job_id,
             provider=self.settings.ai_provider,
-            model=self.settings.ollama_model,
+            model=self._metadata_model_label(),
+            vision_model=self.settings.vision_model,
+            language_model=self.settings.language_model,
             results=results,
         )
         self._write_metadata_response(response)
@@ -143,7 +154,9 @@ class AiMetadataService:
             ImageMetadataListResponse(
                 job_id=job_id,
                 provider=self.settings.ai_provider,
-                model=self.settings.ollama_model,
+                model=self._metadata_model_label(),
+                vision_model=self.settings.vision_model,
+                language_model=self.settings.language_model,
                 results=next_results,
             )
         )
@@ -196,6 +209,13 @@ class AiMetadataService:
         return preview_path
 
     def _request_metadata(self, preview_path: Path, brand_context: str) -> AiImageMetadataPayload:
+        if self.injected_client is not None:
+            return self._request_metadata_single_model(preview_path, brand_context)
+
+        visual_description = self._request_visual_description(preview_path)
+        return self._request_language_metadata(visual_description, brand_context)
+
+    def _request_metadata_single_model(self, preview_path: Path, brand_context: str) -> AiImageMetadataPayload:
         errors: list[str] = []
         prompts = (
             ("main", self._metadata_prompt(IMAGE_METADATA_PROMPT, brand_context)),
@@ -207,15 +227,15 @@ class AiMetadataService:
                 logger.info(
                     "Requesting AI image metadata attempt=%s model=%s timeout_seconds=%s",
                     attempt_name,
-                    self.settings.ollama_model,
+                    self.settings.vision_model,
                     self.settings.ollama_timeout_seconds,
                 )
-                content = self.client.generate_image_metadata(preview_path, prompt)
+                content = self.vision_client.generate_image_metadata(preview_path, prompt)
                 payload = self._parse_metadata_payload(content)
                 logger.info(
                     "AI image metadata attempt succeeded attempt=%s model=%s duration_seconds=%.2f",
                     attempt_name,
-                    self.settings.ollama_model,
+                    self.settings.vision_model,
                     perf_counter() - started_at,
                 )
                 return payload
@@ -224,7 +244,7 @@ class AiMetadataService:
                 logger.warning(
                     "AI image metadata attempt returned invalid JSON attempt=%s model=%s duration_seconds=%.2f error=%s",
                     attempt_name,
-                    self.settings.ollama_model,
+                    self.settings.vision_model,
                     perf_counter() - started_at,
                     exc,
                 )
@@ -233,7 +253,7 @@ class AiMetadataService:
                 logger.warning(
                     "AI image metadata request failed attempt=%s model=%s duration_seconds=%.2f error=%s",
                     attempt_name,
-                    self.settings.ollama_model,
+                    self.settings.vision_model,
                     perf_counter() - started_at,
                     exc,
                 )
@@ -245,6 +265,93 @@ class AiMetadataService:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"AI response was not valid JSON after retry. {'; '.join(errors)}",
+        )
+
+    def _request_visual_description(self, preview_path: Path) -> str:
+        prompt = (
+            "Describe only the visible image content in 3-5 short factual phrases. "
+            "Mention people, objects, setting, colors, and readable text only if visible. "
+            "Do not write SEO metadata."
+        )
+        started_at = perf_counter()
+        try:
+            logger.info(
+                "Requesting AI visual facts model=%s timeout_seconds=%s",
+                self.settings.vision_model,
+                self.settings.ollama_timeout_seconds,
+            )
+            content = self.vision_client.generate_image_metadata(preview_path, prompt)
+            description = self._clean_description(content)
+            if not description:
+                raise ValueError("Vision model returned an empty visual description.")
+            logger.info(
+                "AI visual facts succeeded model=%s duration_seconds=%.2f",
+                self.settings.vision_model,
+                perf_counter() - started_at,
+            )
+            return description
+        except httpx.HTTPError as exc:
+            logger.warning(
+                "AI visual facts request failed model=%s duration_seconds=%.2f error=%s",
+                self.settings.vision_model,
+                perf_counter() - started_at,
+                exc,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Ollama vision request failed: {exc}",
+            ) from exc
+
+    def _request_language_metadata(self, visual_description: str, brand_context: str) -> AiImageMetadataPayload:
+        errors: list[str] = []
+        prompts = (
+            ("main", self._language_metadata_prompt(visual_description, brand_context)),
+            ("json_retry", self._language_metadata_retry_prompt(visual_description, brand_context)),
+        )
+        for attempt_name, prompt in prompts:
+            started_at = perf_counter()
+            try:
+                logger.info(
+                    "Requesting AI language metadata attempt=%s model=%s timeout_seconds=%s",
+                    attempt_name,
+                    self.settings.language_model,
+                    self.settings.ollama_timeout_seconds,
+                )
+                content = self.language_client.generate_text(prompt)
+                payload = self._parse_metadata_payload(content)
+                logger.info(
+                    "AI language metadata attempt succeeded attempt=%s model=%s duration_seconds=%.2f",
+                    attempt_name,
+                    self.settings.language_model,
+                    perf_counter() - started_at,
+                )
+                return payload
+            except (ValueError, ValidationError, json.JSONDecodeError) as exc:
+                errors.append(str(exc))
+                logger.warning(
+                    "AI language metadata returned invalid JSON attempt=%s model=%s duration_seconds=%.2f error=%s",
+                    attempt_name,
+                    self.settings.language_model,
+                    perf_counter() - started_at,
+                    exc,
+                )
+                continue
+            except httpx.HTTPError as exc:
+                logger.warning(
+                    "AI language metadata request failed attempt=%s model=%s duration_seconds=%.2f error=%s",
+                    attempt_name,
+                    self.settings.language_model,
+                    perf_counter() - started_at,
+                    exc,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Ollama language request failed: {exc}",
+                ) from exc
+
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI language response was not valid JSON after retry. {'; '.join(errors)}",
         )
 
     def _parse_metadata_payload(self, content: str) -> AiImageMetadataPayload:
@@ -298,6 +405,54 @@ class AiMetadataService:
             + IMAGE_METADATA_BRAND_CONTEXT_BLOCK.format(brand_context=brand_context)
         )
 
+    def _language_metadata_prompt(self, visual_description: str, brand_context: str) -> str:
+        prompt = f"""You are generating SEO-friendly image metadata from verified visual facts.
+
+Return only valid JSON.
+
+Verified visual facts:
+{visual_description}
+
+Rules:
+1. Use only the verified visual facts for visible image details.
+2. Generate concise accessible alt text.
+3. Generate an SEO-friendly filename.
+4. Generate a short caption.
+5. Avoid keyword stuffing.
+6. Use lowercase hyphenated filenames.
+7. Do not include the file extension in the filename.
+
+Return:
+{{
+  "filename": "",
+  "alt_text": "",
+  "caption": "",
+  "confidence": 0.0
+}}
+"""
+        return self._metadata_prompt(prompt, brand_context)
+
+    def _language_metadata_retry_prompt(self, visual_description: str, brand_context: str) -> str:
+        prompt = f"""Return only valid JSON for image metadata.
+
+Verified visual facts:
+{visual_description}
+
+Required JSON shape:
+{{
+  "filename": "lowercase-hyphenated-filename-without-extension",
+  "alt_text": "Concise accessible alt text.",
+  "caption": "Short accurate caption.",
+  "confidence": 0.0
+}}
+"""
+        return self._metadata_prompt(prompt, brand_context)
+
+    def _metadata_model_label(self) -> str:
+        if self.injected_client is not None:
+            return self.settings.ollama_model
+        return f"{self.settings.vision_model} + {self.settings.language_model}"
+
     def _write_metadata_response(self, response: ImageMetadataListResponse) -> None:
         data = self.upload_service.read_job_data(response.job_id)
         data["image_metadata"] = response.model_dump()
@@ -322,7 +477,9 @@ class AiMetadataService:
         return ImageMetadataListResponse(
             job_id=job_id,
             provider=self.settings.ai_provider,
-            model=self.settings.ollama_model,
+            model=self._metadata_model_label(),
+            vision_model=self.settings.vision_model,
+            language_model=self.settings.language_model,
             results=[],
         )
 

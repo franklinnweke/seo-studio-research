@@ -25,6 +25,11 @@ class FakeAiClient:
         self.prompts.append(prompt)
         return self.responses.pop(0)
 
+    def generate_text(self, prompt: str) -> str:
+        self.calls += 1
+        self.prompts.append(prompt)
+        return self.responses.pop(0)
+
 
 def make_image_bytes(width: int = 16, height: int = 16) -> bytes:
     buffer = BytesIO()

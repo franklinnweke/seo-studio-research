@@ -24,6 +24,16 @@ def test_openapi_has_expected_metadata() -> None:
     assert "image optimization" in schema["info"]["description"]
 
 
+def test_settings_exposes_dual_model_configuration() -> None:
+    response = client.get("/api/settings")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["vision_model"]
+    assert body["language_model"]
+    assert body["ai_crop_timeout_seconds"] > 0
+
+
 def test_current_routes_are_documented() -> None:
     schema = client.get("/openapi.json").json()
     paths = schema["paths"]

@@ -50,10 +50,11 @@ http://127.0.0.1:3000
 
 ### Optional AI Metadata
 
-Phase 5 uses Ollama with `moondream` by default:
+Phase 5+ can use Ollama with a dual-model setup:
 
 ```bash
-ollama pull moondream
+ollama pull qwen2.5vl:3b
+ollama pull qwen3.5
 ollama serve
 ```
 
@@ -62,9 +63,15 @@ The backend reads these optional environment variables:
 ```text
 SEO_STUDIO_AI_PROVIDER=ollama
 SEO_STUDIO_OLLAMA_BASE_URL=http://localhost:11434
-SEO_STUDIO_OLLAMA_MODEL=moondream
+SEO_STUDIO_OLLAMA_MODEL=qwen3.5
+SEO_STUDIO_VISION_MODEL=qwen2.5vl:3b
+SEO_STUDIO_LANGUAGE_MODEL=qwen3.5
+SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS=600
+SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS=120
 SEO_STUDIO_AI_PREVIEW_MAX_WIDTH=1024
 ```
+
+The vision model inspects image content and crop targets. The language model turns verified visual facts and optional brand context into filenames, alt text, and captions.
 
 ## Checks
 
@@ -121,7 +128,7 @@ Implemented phases:
 - PNG transparency flattening for JPG output
 - Filename cleanup with editable output filename stems
 - Processed image ZIP download
-- Ollama/moondream AI image metadata backend
+- Ollama dual-model AI image metadata backend
 - SEO Metadata page for job-based image metadata generation and review
 
-Next phase: brand document context for AI metadata, followed by dual-model AI metadata and focus-aware crop/resize.
+Next phase: continue focus-aware crop/resize hardening, then review and export flows.

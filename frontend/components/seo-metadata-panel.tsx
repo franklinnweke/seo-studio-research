@@ -142,7 +142,11 @@ export function SeoMetadataPanel() {
             ...(current ?? {
               job_id: activeJobId,
               provider: settingsQuery.data?.ai_provider ?? "ollama",
-              model: settingsQuery.data?.ollama_model ?? "moondream",
+              model: `${settingsQuery.data?.vision_model ?? "qwen2.5vl:3b"} + ${
+                settingsQuery.data?.language_model ?? "qwen3.5"
+              }`,
+              vision_model: settingsQuery.data?.vision_model ?? "qwen2.5vl:3b",
+              language_model: settingsQuery.data?.language_model ?? "qwen3.5",
             }),
             results: [...nextResults, result],
           };
@@ -234,13 +238,23 @@ export function SeoMetadataPanel() {
                 Use an existing image job from Image Optimizer to generate AI metadata.
               </p>
             </div>
-            <div className="rounded-md bg-[#f2f4f7] px-3 py-2 text-sm text-[#475467]">
+            <div className="grid gap-2 rounded-md bg-[#f2f4f7] px-3 py-2 text-sm text-[#475467] sm:grid-cols-2">
               {settingsQuery.isLoading ? (
-                "Loading AI settings"
+                <span className="sm:col-span-2">Loading AI settings</span>
               ) : (
                 <>
-                  {settingsQuery.data?.ai_provider ?? "ollama"} ·{" "}
-                  {settingsQuery.data?.ollama_model ?? "moondream"}
+                  <span>
+                    <span className="text-[#667085]">Vision</span>{" "}
+                    <span className="font-medium text-[#151923]">
+                      {settingsQuery.data?.vision_model ?? "qwen2.5vl:3b"}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="text-[#667085]">Language</span>{" "}
+                    <span className="font-medium text-[#151923]">
+                      {settingsQuery.data?.language_model ?? "qwen3.5"}
+                    </span>
+                  </span>
                 </>
               )}
             </div>

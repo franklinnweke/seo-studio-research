@@ -19,7 +19,10 @@ export type SettingsResponse = {
   ai_provider: string;
   ollama_base_url: string;
   ollama_model: string;
+  vision_model: string;
+  language_model: string;
   ollama_timeout_seconds: number;
+  ai_crop_timeout_seconds: number;
   ai_preview_max_width: number;
   frontend_origin: string;
   storage_root: string;
@@ -168,6 +171,8 @@ export type ImageMetadataListResponse = {
   job_id: string;
   provider: string;
   model: string;
+  vision_model: string;
+  language_model: string;
   results: ImageMetadataResult[];
 };
 
@@ -271,6 +276,7 @@ export async function suggestAiCrop(
   const response = await apiClient.post<ResizeInstructionResponse>(
     `/api/jobs/${jobId}/resize-ai-crop`,
     { instruction, settings },
+    { timeout: 60000 },
   );
   return response.data;
 }
@@ -355,6 +361,10 @@ export function getApiErrorMessage(error: unknown): string {
 }
 
 function getAxiosErrorMessage(error: AxiosError): string {
+  if (error.code === "ECONNABORTED") {
+    return "The AI crop request timed out. Try manual crop review, reduce preview size, or use a faster vision model.";
+  }
+
   const data = error.response?.data;
 
   if (typeof data === "object" && data !== null && "detail" in data) {
