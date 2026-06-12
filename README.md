@@ -48,6 +48,26 @@ Open:
 http://127.0.0.1:3000
 ```
 
+## Docker
+
+Run both services with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+- FastAPI backend on `http://localhost:8000`
+- Next.js frontend on `http://localhost:3000`
+
+Build a single service image directly:
+
+```bash
+docker build --target backend -t seo-studio-backend .
+docker build --target frontend -t seo-studio-frontend .
+```
+
 ### Optional AI Metadata
 
 Phase 5+ can use Ollama with a dual-model setup:
