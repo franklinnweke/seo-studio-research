@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: .
+      target: backend
+    environment:
+      SEO_STUDIO_FRONTEND_ORIGIN: http://localhost:3000
+      SEO_STUDIO_FRONTEND_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      SEO_STUDIO_OLLAMA_BASE_URL: ${SEO_STUDIO_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    ports:
+      - "11502:8000"
+    volumes:
+      - seo_studio_storage:/app/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:11502
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "11501:3000"
+
+volumes:
+  seo_studio_storage:
