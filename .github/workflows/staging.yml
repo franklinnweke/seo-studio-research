@@ -30,7 +30,7 @@ jobs:
         with:
           host: ${{ env.SERVER_HOST }}
           username: davneet
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 99
           source: "."
           target: ${{ env.DEPLOY_PATH }}
@@ -41,7 +41,7 @@ jobs:
         with:
           host: ${{ env.SERVER_HOST }}
           username: davneet
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 99
           script: |-
             cd "${{ env.DEPLOY_PATH }}"
