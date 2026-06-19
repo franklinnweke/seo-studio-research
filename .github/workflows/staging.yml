@@ -6,7 +6,7 @@ on:
 
 env:
   SERVER_HOST: ${{ secrets.SERVER_HOST }}
-  DEPLOY_PATH: ~/seo-studio
+  DEPLOY_PATH: seo-studio
 
 jobs:
   deploy_frontend_and_backend:
