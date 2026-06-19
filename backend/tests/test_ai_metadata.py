@@ -1,6 +1,7 @@
 import json
 from io import BytesIO
 from pathlib import Path
+from zipfile import ZipFile
 
 from fastapi.testclient import TestClient
 from PIL import Image
@@ -274,3 +275,133 @@ def test_image_metadata_csv_export_rejects_unknown_fields() -> None:
 
     assert response.status_code == 400
     assert "Unsupported CSV field" in response.json()["detail"]
+
+
+def test_image_metadata_zip_export_includes_selected_images_and_report() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[
+            ("files", ("First Hero.png", make_image_bytes(), "image/png")),
+            ("files", ("Second Hero.png", make_image_bytes(), "image/png")),
+        ],
+    )
+    body = upload_response.json()
+    first_id = body["files"][0]["id"]
+    second_id = body["files"][1]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": first_id,
+                "original_filename": "First Hero.png",
+                "suggested_filename": "first-blue-hero",
+                "alt_text": "First blue hero.",
+                "caption": "A first blue hero.",
+                "confidence": 0.87,
+                "status": "needs_review",
+                "error_message": "",
+            },
+            {
+                "id": second_id,
+                "original_filename": "Second Hero.png",
+                "suggested_filename": "second-blue-hero",
+                "alt_text": "Second blue hero.",
+                "caption": "A second blue hero.",
+                "confidence": 0.81,
+                "status": "needs_review",
+                "error_message": "",
+            },
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        response = client.get(
+            f"/api/jobs/{body['id']}/images/metadata.zip",
+            params=[("image_ids", first_id)],
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert f'{body["id"]}-selected-image-metadata.zip' in response.headers["content-disposition"]
+    with ZipFile(BytesIO(response.content)) as archive:
+        assert sorted(archive.namelist()) == ["images/first-blue-hero.png", "report.csv"]
+        report = archive.read("report.csv").decode("utf-8")
+
+    assert "First Hero.png,first-blue-hero,first-blue-hero.png" in report
+    assert "Second Hero.png" not in report
+
+
+def test_image_metadata_zip_export_prefers_processed_images() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": file_id,
+                "original_filename": "Hero Image!!.png",
+                "suggested_filename": "blue-hero-image",
+                "alt_text": "Blue square graphic.",
+                "caption": "A blue square graphic.",
+                "confidence": 0.87,
+                "status": "needs_review",
+                "error_message": "",
+            }
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        process_response = client.post(f"/api/jobs/{body['id']}/process", json={"output_format": "webp"})
+        response = client.get(
+            f"/api/jobs/{body['id']}/images/metadata.zip",
+            params=[("image_ids", file_id)],
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert process_response.status_code == 200
+    assert response.status_code == 200
+    with ZipFile(BytesIO(response.content)) as archive:
+        assert "images/blue-hero-image.webp" in archive.namelist()
+        report = archive.read("report.csv").decode("utf-8")
+
+    assert "Hero Image!!.png,blue-hero-image,blue-hero-image.webp" in report
+
+
+def test_image_metadata_zip_export_rejects_unknown_image_id() -> None:
+    body = create_image_job()
+
+    try:
+        response = client.get(
+            f"/api/jobs/{body['id']}/images/metadata.zip",
+            params=[("image_ids", "file_missing")],
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 404
+    assert "file_missing" in response.json()["detail"]
+
+
+def test_image_metadata_zip_export_requires_selected_image_ids() -> None:
+    body = create_image_job()
+
+    try:
+        response = client.get(f"/api/jobs/{body['id']}/images/metadata.zip")
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 400
+    assert "At least one image_id" in response.json()["detail"]

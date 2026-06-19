@@ -19,8 +19,8 @@ import {
   generateImageMetadata,
   getApiErrorMessage,
   getBrandContext,
-  getImageMetadataCsvDownloadUrl,
   getImageMetadata,
+  getImageMetadataZipDownloadUrl,
   getJobFiles,
   getMetadataImageDownloadUrl,
   getSettings,
@@ -41,16 +41,6 @@ const emptyEdit: MetadataEdit = {
   alt_text: "",
   caption: "",
 };
-
-const csvExportFields = [
-  { key: "original_filename", label: "Image" },
-  { key: "suggested_filename", label: "Filename" },
-  { key: "alt_text", label: "Alt Text" },
-  { key: "confidence", label: "Confidence" },
-  { key: "metadata_status", label: "Status" },
-] as const;
-
-const defaultCsvExportFields = csvExportFields.map((field) => field.key);
 
 function confidenceLabel(confidence: number) {
   return `${Math.round(confidence * 100)}%`;
@@ -87,8 +77,7 @@ export function SeoMetadataPanel() {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedBrandFiles, setSelectedBrandFiles] = useState<File[]>([]);
   const [brandUploadProgress, setBrandUploadProgress] = useState(0);
-  const [selectedCsvFields, setSelectedCsvFields] = useState<string[]>(defaultCsvExportFields);
-  const [isCsvFieldSelectionOpen, setIsCsvFieldSelectionOpen] = useState(false);
+  const [selectedExportImageIds, setSelectedExportImageIds] = useState<string[]>([]);
 
   const settingsQuery = useQuery({
     queryKey: ["settings"],
@@ -123,7 +112,43 @@ export function SeoMetadataPanel() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: () => generateImageMetadata(activeJobId),
+    mutationFn: async () => {
+      const availableImageIds = new Set((filesQuery.data?.files ?? []).map((file) => file.id));
+      const selectedImageIds = selectedExportImageIds.filter((imageId) =>
+        availableImageIds.has(imageId),
+      );
+
+      if (selectedImageIds.length === 0) {
+        return generateImageMetadata(activeJobId);
+      }
+
+      const generatedResults = [];
+      for (const imageId of selectedImageIds) {
+        generatedResults.push(await regenerateImageMetadata(activeJobId, imageId));
+      }
+
+      const current = queryClient.getQueryData<ImageMetadataListResponse>([
+        "image-metadata",
+        activeJobId,
+      ]);
+      const generatedIds = new Set(generatedResults.map((result) => result.id));
+
+      return {
+        ...(current ?? {
+          job_id: activeJobId,
+          provider: settingsQuery.data?.ai_provider ?? "ollama",
+          model: `${settingsQuery.data?.vision_model ?? "qwen2.5vl:3b"} + ${
+            settingsQuery.data?.language_model ?? "qwen3.5"
+          }`,
+          vision_model: settingsQuery.data?.vision_model ?? "qwen2.5vl:3b",
+          language_model: settingsQuery.data?.language_model ?? "qwen3.5",
+        }),
+        results: [
+          ...(current?.results ?? []).filter((result) => !generatedIds.has(result.id)),
+          ...generatedResults,
+        ],
+      };
+    },
     onSuccess: (metadata) => {
       queryClient.setQueryData(["image-metadata", activeJobId], metadata);
       setMetadataEdits(Object.fromEntries(metadata.results.map((result) => [result.id, resultToEdit(result)])));
@@ -186,7 +211,7 @@ export function SeoMetadataPanel() {
     brandUploadMutation.reset();
     generateMutation.reset();
     regenerateMutation.reset();
-    setIsCsvFieldSelectionOpen(false);
+    setSelectedExportImageIds([]);
   };
 
   const updateEdit = (imageId: string, update: Partial<MetadataEdit>) => {
@@ -214,17 +239,26 @@ export function SeoMetadataPanel() {
   const brandContextPreview = brandContext?.combined_text ?? "";
   const brandUploadDisabled =
     !activeJobId || selectedBrandFiles.length === 0 || brandUploadMutation.isPending;
-  const csvExportUrl =
-    activeJobId && selectedCsvFields.length > 0
-      ? getImageMetadataCsvDownloadUrl(activeJobId, selectedCsvFields)
+  const selectedExportIds = rows
+    .map(({ file }) => file.id)
+    .filter((imageId) => selectedExportImageIds.includes(imageId));
+  const allRowsSelected = rows.length > 0 && selectedExportIds.length === rows.length;
+  const someRowsSelected = selectedExportIds.length > 0;
+  const selectedZipExportUrl =
+    activeJobId && selectedExportIds.length > 0
+      ? getImageMetadataZipDownloadUrl(activeJobId, selectedExportIds)
       : "";
 
-  const toggleCsvField = (field: string) => {
-    setSelectedCsvFields((current) =>
-      current.includes(field)
-        ? current.filter((item) => item !== field)
-        : [...current, field],
+  const toggleExportImage = (imageId: string) => {
+    setSelectedExportImageIds((current) =>
+      current.includes(imageId)
+        ? current.filter((item) => item !== imageId)
+        : [...current, imageId],
     );
+  };
+
+  const toggleAllExportImages = () => {
+    setSelectedExportImageIds(allRowsSelected ? [] : rows.map(({ file }) => file.id));
   };
 
   return (
@@ -411,15 +445,15 @@ export function SeoMetadataPanel() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                {rows.length > 0 && isCsvFieldSelectionOpen && selectedCsvFields.length > 0 ? (
+                {rows.length > 0 && someRowsSelected ? (
                   <a
-                    href={csvExportUrl}
+                    href={selectedZipExportUrl}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
                   >
                     <Download aria-hidden="true" size={16} />
-                    Download selected
+                    Download selected ({selectedExportIds.length})
                   </a>
-                ) : rows.length > 0 && isCsvFieldSelectionOpen ? (
+                ) : rows.length > 0 ? (
                   <button
                     type="button"
                     disabled
@@ -428,31 +462,10 @@ export function SeoMetadataPanel() {
                     <Download aria-hidden="true" size={16} />
                     Download selected
                   </button>
-                ) : rows.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsCsvFieldSelectionOpen(true)}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
-                  >
-                    <Download aria-hidden="true" size={16} />
-                    Download CSV
-                  </button>
-                ) : null}
-                {isCsvFieldSelectionOpen ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedCsvFields(defaultCsvExportFields);
-                      setIsCsvFieldSelectionOpen(false);
-                    }}
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#f2f4f7]"
-                  >
-                    Cancel
-                  </button>
                 ) : null}
                 <button
                   type="button"
-                  disabled={files.length === 0 || generateMutation.isPending}
+                  disabled={files.length === 0 || generateMutation.isPending || regenerateMutation.isPending}
                   onClick={() => generateMutation.mutate()}
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
                 >
@@ -461,7 +474,7 @@ export function SeoMetadataPanel() {
                   ) : (
                     <Sparkles aria-hidden="true" size={16} />
                   )}
-                  Generate metadata
+                  {someRowsSelected ? `Generate selected (${selectedExportIds.length})` : "Generate metadata"}
                 </button>
               </div>
             </div>
@@ -491,87 +504,58 @@ export function SeoMetadataPanel() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[960px] table-fixed text-left text-sm">
+              <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
                 <thead className="bg-[#fafbfc] text-[#667085]">
                   <tr>
-                    <th className="w-[18%] px-4 py-3 font-medium">
-                      <label className="inline-flex items-center gap-2">
-                        {isCsvFieldSelectionOpen ? (
+                    <th className="w-[56px] px-4 py-3 font-medium">
+                      {rows.length > 0 ? (
+                        <label className="inline-flex items-center justify-center" title="Select all images">
                           <input
                             type="checkbox"
-                            checked={selectedCsvFields.includes("original_filename")}
-                            onChange={() => toggleCsvField("original_filename")}
+                            checked={allRowsSelected}
+                            ref={(input) => {
+                              if (input) input.indeterminate = someRowsSelected && !allRowsSelected;
+                            }}
+                            onChange={toggleAllExportImages}
                             className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
                           />
-                        ) : null}
-                        Image
-                      </label>
+                          <span className="sr-only">Select all images</span>
+                        </label>
+                      ) : null}
                     </th>
+                    <th className="w-[18%] px-4 py-3 font-medium">Image</th>
                     <th className="w-[30%] px-4 py-3 font-medium">
-                      <label className="inline-flex items-center gap-2">
-                        {isCsvFieldSelectionOpen ? (
-                          <input
-                            type="checkbox"
-                            checked={selectedCsvFields.includes("suggested_filename")}
-                            onChange={() => toggleCsvField("suggested_filename")}
-                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
-                          />
-                        ) : null}
-                        Filename
-                      </label>
+                      Filename
                     </th>
                     <th className="w-[28%] px-4 py-3 font-medium">
-                      <label className="inline-flex items-center gap-2">
-                        {isCsvFieldSelectionOpen ? (
-                          <input
-                            type="checkbox"
-                            checked={selectedCsvFields.includes("alt_text")}
-                            onChange={() => toggleCsvField("alt_text")}
-                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
-                          />
-                        ) : null}
-                        Alt Text
-                      </label>
+                      Alt Text
                     </th>
-                    <th className="w-[9%] px-4 py-3 font-medium">
-                      <label className="inline-flex items-center gap-2">
-                        {isCsvFieldSelectionOpen ? (
-                          <input
-                            type="checkbox"
-                            checked={selectedCsvFields.includes("confidence")}
-                            onChange={() => toggleCsvField("confidence")}
-                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
-                          />
-                        ) : null}
-                        Confidence
-                      </label>
-                    </th>
-                    <th className="w-[9%] px-4 py-3 font-medium">
-                      <label className="inline-flex items-center gap-2">
-                        {isCsvFieldSelectionOpen ? (
-                          <input
-                            type="checkbox"
-                            checked={selectedCsvFields.includes("metadata_status")}
-                            onChange={() => toggleCsvField("metadata_status")}
-                            className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
-                          />
-                        ) : null}
-                        Status
-                      </label>
-                    </th>
+                    <th className="w-[9%] px-4 py-3 font-medium">Confidence</th>
+                    <th className="w-[9%] px-4 py-3 font-medium">Status</th>
                     <th className="w-[140px] px-4 py-3 text-center font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#edf0f2]">
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-10 text-center text-[#667085]">
+                      <td colSpan={7} className="px-4 py-10 text-center text-[#667085]">
                         No images found for this job.
                       </td>
                     </tr>
                   ) : (
                     rows.map(({ file, result, edit }) => (
                       <tr key={file.id}>
+                        <td className="px-4 py-3">
+                          <label className="inline-flex items-center justify-center" title={`Select ${file.original_filename}`}>
+                            <input
+                              type="checkbox"
+                              checked={selectedExportImageIds.includes(file.id)}
+                              onChange={() => toggleExportImage(file.id)}
+                              className="h-4 w-4 rounded border-[#98a2b3] text-[#1d4ed8]"
+                            />
+                            <span className="sr-only">Select {file.original_filename}</span>
+                          </label>
+                        </td>
                         <td className="px-4 py-3">
                           <p className="truncate font-medium text-[#151923]" title={file.original_filename}>
                             {file.original_filename}
@@ -634,7 +618,7 @@ export function SeoMetadataPanel() {
                             </a>
                             <button
                               type="button"
-                              disabled={regenerateMutation.isPending}
+                              disabled={regenerateMutation.isPending || generateMutation.isPending}
                               onClick={() => regenerateMutation.mutate(file.id)}
                               title={`Regenerate metadata for ${file.original_filename}`}
                               aria-label={`Regenerate metadata for ${file.original_filename}`}
@@ -792,7 +776,7 @@ export function SeoMetadataPanel() {
                 </a>
                 <button
                   type="button"
-                  disabled={regenerateMutation.isPending}
+                  disabled={regenerateMutation.isPending || generateMutation.isPending}
                   onClick={() => regenerateMutation.mutate(selectedRow.file.id)}
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
                 >

@@ -284,6 +284,37 @@ def export_image_metadata_csv(
     )
 
 
+@router.get(
+    "/{job_id}/images/metadata.zip",
+    response_class=FileResponse,
+    summary="Export selected AI metadata images ZIP",
+    description=(
+        "Creates a ZIP archive for selected uploaded image rows. The archive includes "
+        "renamed image files under `images/` and a `report.csv` file with metadata for "
+        "only the selected rows. Repeated `image_ids` query values choose which images "
+        "are included."
+    ),
+    responses={
+        400: {"description": "No image ids were selected."},
+        404: {"description": "Job, selected image, or source image was not found."},
+    },
+)
+def export_selected_image_metadata_zip(
+    job_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+    image_ids: Annotated[
+        list[str] | None,
+        Query(description="Uploaded image file ids to include. Repeat this query value for multiple rows."),
+    ] = None,
+) -> FileResponse:
+    zip_path = service.create_image_metadata_zip(job_id, image_ids)
+    return FileResponse(
+        path=zip_path,
+        filename=f"{job_id}-selected-image-metadata.zip",
+        media_type="application/zip",
+    )
+
+
 @router.post(
     "/{job_id}/images/metadata",
     response_model=ImageMetadataListResponse,

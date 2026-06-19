@@ -325,6 +325,16 @@ export function getImageMetadataCsvDownloadUrl(jobId: string, fields: string[]):
   return url.toString();
 }
 
+export function getImageMetadataZipDownloadUrl(jobId: string, imageIds: string[]): string {
+  const url = new URL(
+    `${API_BASE_URL}/api/jobs/${encodeURIComponent(jobId)}/images/metadata.zip`,
+  );
+  for (const imageId of imageIds) {
+    url.searchParams.append("image_ids", imageId);
+  }
+  return url.toString();
+}
+
 export async function getImageMetadata(jobId: string): Promise<ImageMetadataListResponse> {
   const response = await apiClient.get<ImageMetadataListResponse>(
     `/api/jobs/${jobId}/images/metadata`,

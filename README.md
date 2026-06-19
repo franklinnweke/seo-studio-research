@@ -150,5 +150,6 @@ Implemented phases:
 - Processed image ZIP download
 - Ollama dual-model AI image metadata backend
 - SEO Metadata page for job-based image metadata generation and review
+- Selected metadata ZIP download with renamed images and `report.csv`
 
 Next phase: continue focus-aware crop/resize hardening, then review and export flows.

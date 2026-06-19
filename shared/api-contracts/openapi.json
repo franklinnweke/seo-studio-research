@@ -1704,6 +1704,69 @@
         ]
       }
     },
+    "/api/jobs/{job_id}/images/metadata.zip": {
+      "get": {
+        "description": "Creates a ZIP archive for selected uploaded image rows. The archive includes renamed image files under `images/` and a `report.csv` file with metadata for only the selected rows. Repeated `image_ids` query values choose which images are included.",
+        "operationId": "export_selected_image_metadata_zip_api_jobs__job_id__images_metadata_zip_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Uploaded image file ids to include. Repeat this query value for multiple rows.",
+            "in": "query",
+            "name": "image_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Uploaded image file ids to include. Repeat this query value for multiple rows.",
+              "title": "Image Ids"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "No image ids were selected."
+          },
+          "404": {
+            "description": "Job, selected image, or source image was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export selected AI metadata images ZIP",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
     "/api/jobs/{job_id}/images/{image_id}/download": {
       "get": {
         "description": "Downloads the processed image for an uploaded image id when processed output exists. If the job has not been processed, downloads the original uploaded image instead. The attachment filename uses the provided filename query value, generated AI filename, or stored filename while preserving the actual downloaded file extension.",

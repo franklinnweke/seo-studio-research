@@ -48,6 +48,7 @@ def test_current_routes_are_documented() -> None:
         ("/api/jobs/{job_id}/resize-ai-crop", "post"),
         ("/api/jobs/{job_id}/resize-review", "post"),
         ("/api/jobs/{job_id}/processed/{filename}", "get"),
+        ("/api/jobs/{job_id}/images/metadata.zip", "get"),
         ("/api/jobs/{job_id}/files", "get"),
         ("/api/jobs/{job_id}/pages", "get"),
         ("/api/jobs/{job_id}/links", "get"),
@@ -63,7 +64,10 @@ def test_current_routes_are_documented() -> None:
         if "content" in success_response:
             assert success_response["content"]
         else:
-            assert path == "/api/jobs/{job_id}/processed/{filename}"
+            assert path in {
+                "/api/jobs/{job_id}/processed/{filename}",
+                "/api/jobs/{job_id}/images/metadata.zip",
+            }
 
 
 def test_openapi_tags_are_grouped() -> None:

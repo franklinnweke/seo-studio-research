@@ -7,6 +7,7 @@ from time import perf_counter
 from pathlib import Path
 from typing import Any, Protocol
 from uuid import uuid4
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import httpx
 from fastapi import HTTPException, status
@@ -22,7 +23,7 @@ from app.ai.prompts import (
 from app.config import Settings
 from app.schemas.responses import ImageMetadataListResponse, ImageMetadataResult, ImageUploadFileRecord
 from app.services.image_upload_service import ImageUploadService
-from app.utils.file_utils import sanitize_filename
+from app.utils.file_utils import dedupe_filename, sanitize_filename
 from app.utils.slugify import slugify
 
 
@@ -69,6 +70,8 @@ class AiMetadataService:
         self.settings = settings
         self.upload_service = ImageUploadService(settings)
         self.upload_root = settings.storage_root / "uploads"
+        self.processed_root = settings.storage_root / "processed"
+        self.exports_root = settings.storage_root / "exports"
         self.temp_root = settings.storage_root / "temp"
         self.injected_client = client
         self.vision_client = client or OllamaClient(
@@ -113,6 +116,60 @@ class AiMetadataService:
             writer.writerow({field: row[field] for field in selected_fields})
 
         return output.getvalue()
+
+    def create_image_metadata_zip(self, job_id: str, image_ids: list[str] | None) -> Path:
+        if not image_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one image_id is required.",
+            )
+
+        job = self.upload_service.read_job(job_id)
+        requested_ids = list(dict.fromkeys(image_ids))
+        files_by_id = {file_record.id: file_record for file_record in job.files}
+        missing_ids = [image_id for image_id in requested_ids if image_id not in files_by_id]
+        if missing_ids:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Image file(s) not found: {', '.join(missing_ids)}",
+            )
+
+        job_data = self.upload_service.read_job_data(job_id)
+        metadata_by_id = {
+            result.id: result
+            for result in self._response_from_job_data(job_id, job_data).results
+        }
+        processed_by_id = self._processed_results_by_id(job_data)
+        selected_fields = self._metadata_zip_csv_fields()
+        report = StringIO()
+        writer = csv.DictWriter(
+            report,
+            fieldnames=selected_fields,
+            extrasaction="ignore",
+            lineterminator="\n",
+        )
+        writer.writeheader()
+
+        export_dir = self.exports_root / job_id
+        export_dir.mkdir(parents=True, exist_ok=True)
+        zip_path = export_dir / "selected-image-metadata.zip"
+        used_archive_names: set[str] = set()
+
+        with ZipFile(zip_path, "w", compression=ZIP_DEFLATED) as archive:
+            for image_id in requested_ids:
+                file_record = files_by_id[image_id]
+                metadata = metadata_by_id.get(image_id)
+                processed = processed_by_id.get(image_id)
+                row = self._csv_row(job_id, file_record, metadata, processed)
+                writer.writerow({field: row[field] for field in selected_fields})
+
+                image_path = self._metadata_download_source_path(job_id, file_record, processed)
+                archive_name = dedupe_filename(str(row["download_filename"]), used_archive_names)
+                archive.write(image_path, arcname=f"images/{archive_name}")
+
+            archive.writestr("report.csv", report.getvalue())
+
+        return zip_path
 
     def generate_all_image_metadata(self, job_id: str) -> ImageMetadataListResponse:
         job = self.upload_service.read_job(job_id)
@@ -529,6 +586,20 @@ Required JSON shape:
             )
         return selected
 
+    def _metadata_zip_csv_fields(self) -> list[str]:
+        return [
+            "original_filename",
+            "suggested_filename",
+            "download_filename",
+            "alt_text",
+            "caption",
+            "confidence",
+            "metadata_status",
+            "content_type",
+            "size_bytes",
+            "download_path",
+        ]
+
     def _processed_results_by_id(self, job_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
         compression = job_data.get("compression")
         if not isinstance(compression, dict):
@@ -578,6 +649,27 @@ Required JSON shape:
             "source": file_record.source,
             "source_archive": file_record.source_archive or "",
         }
+
+    def _metadata_download_source_path(
+        self,
+        job_id: str,
+        file_record: ImageUploadFileRecord,
+        processed: dict[str, Any] | None,
+    ) -> Path:
+        processed_relative_path = str(processed.get("relative_path", "")) if processed else ""
+        if processed_relative_path:
+            processed_path = self.processed_root / job_id / processed_relative_path
+            if processed_path.exists() and processed_path.is_file():
+                return processed_path
+
+        upload_path = self.upload_root / job_id / file_record.relative_path
+        if upload_path.exists() and upload_path.is_file():
+            return upload_path
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Image file is missing: {file_record.original_filename}",
+        )
 
     def _download_filename(
         self,
