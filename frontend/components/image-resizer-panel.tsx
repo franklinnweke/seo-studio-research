@@ -252,10 +252,14 @@ export function ImageResizerPanel() {
 
   const setManualCropFocus = (imageId: string, focusX: number, focusY: number) => {
     setSettings((current) => {
-      const { [imageId]: _cropBox, ...cropBoxes } = current.crop_boxes;
-      const { [imageId]: _subject, ...cropSubjects } = current.crop_subjects;
-      const { [imageId]: _reason, ...cropReasons } = current.crop_reasons;
-      const { [imageId]: _confidence, ...cropConfidences } = current.crop_confidences;
+      const cropBoxes = { ...current.crop_boxes };
+      const cropSubjects = { ...current.crop_subjects };
+      const cropReasons = { ...current.crop_reasons };
+      const cropConfidences = { ...current.crop_confidences };
+      delete cropBoxes[imageId];
+      delete cropSubjects[imageId];
+      delete cropReasons[imageId];
+      delete cropConfidences[imageId];
       return {
         ...current,
         crop_focus_x: focusX,
@@ -361,6 +365,13 @@ export function ImageResizerPanel() {
                     <CheckCircle2 aria-hidden="true" size={16} />
                     Job ready: {lastJob.id}
                   </p>
+                ) : uploadMutation.isPending ? (
+                  <div className="space-y-1">
+                    <p className="text-sm text-[#475467]">Uploading images: {uploadProgress}%</p>
+                    <div className="h-2 w-48 overflow-hidden rounded-full bg-[#edf0f2]">
+                      <div className="h-full bg-[#1d4ed8]" style={{ width: `${uploadProgress}%` }} />
+                    </div>
+                  </div>
                 ) : (
                   <p className="text-sm text-[#667085]">Upload at least one image to enable resize.</p>
                 )}

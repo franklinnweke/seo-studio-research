@@ -58,8 +58,8 @@ docker compose up --build
 
 This starts:
 
-- FastAPI backend on `http://localhost:8000`
-- Next.js frontend on `http://localhost:3000`
+- FastAPI backend on `http://localhost:11502`
+- Next.js frontend on `http://localhost:11501`
 
 Build a single service image directly:
 
