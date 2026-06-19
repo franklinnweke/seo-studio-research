@@ -5,7 +5,7 @@ on:
     branches: [ "staging" ]
 
 env:
-  SERVER_HOST: suiteonix.com
+  SERVER_HOST: ${{ secrets.SERVER_HOST }}
   DEPLOY_PATH: ~/seo-studio
 
 jobs:
