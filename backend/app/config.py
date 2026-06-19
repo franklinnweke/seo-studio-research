@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "seo-studio"
     environment: str = "local"
     frontend_origin: str = "http://localhost:3000"
-    frontend_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    frontend_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://184.146.14.24:11502,http://184.146.14.24:11502,https://184.146.14.24:11502"
     ai_provider: str = "ollama"
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "moondream"
