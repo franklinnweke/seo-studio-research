@@ -4,9 +4,17 @@ services:
       context: .
       target: backend
     environment:
-      SEO_STUDIO_FRONTEND_ORIGIN: http://localhost:3000
-      SEO_STUDIO_FRONTEND_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      SEO_STUDIO_FRONTEND_ORIGIN: ${SEO_STUDIO_FRONTEND_ORIGIN:-http://localhost:11501}
+      SEO_STUDIO_FRONTEND_ORIGINS: ${SEO_STUDIO_FRONTEND_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:11501,http://127.0.0.1:11501,https://84.46.242.149:11501,http://84.46.242.149:11501,https://184.146.14.24:11501,http://184.146.14.24:11501,https://seo-studio2.axivaq.com,http://seo-studio2.axivaq.com,https://seo-studio.axivaq.com,http://seo-studio.axivaq.com}
+
+      SEO_STUDIO_AI_PROVIDE: ${SEO_STUDIO_AI_PROVIDE:-ollama}
       SEO_STUDIO_OLLAMA_BASE_URL: ${SEO_STUDIO_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      SEO_STUDIO_OLLAMA_MODEL: ${SEO_STUDIO_OLLAMA_MODEL:-qwen3.5}
+      SEO_STUDIO_VISION_MODEL: ${SEO_STUDIO_VISION_MODEL:-qwen2.5vl:32b}
+      SEO_STUDIO_LANGUAGE_MODEL: ${SEO_STUDIO_LANGUAGE_MODEL:-qwen3.5}
+      SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS: ${SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS:-600}
+      SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS: ${SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS:-120}
+      SEO_STUDIO_AI_PREVIEW_MAX_WIDTH: ${SEO_STUDIO_AI_PREVIEW_MAX_WIDTH:-1024}
     ports:
       - "11502:8000"
     volumes:
@@ -19,7 +27,7 @@ services:
       context: .
       target: frontend
       args:
-        NEXT_PUBLIC_API_BASE_URL: http://localhost:11502
+        NEXT_PUBLIC_API_BASE_URL: https://api2.seo-studio.axivaq.com
     depends_on:
       backend:
         condition: service_healthy

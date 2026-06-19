@@ -1,0 +1,48 @@
+name: Deploy To Staging
+
+on:
+  push:
+    branches: [ "staging" ]
+
+env:
+  SERVER_HOST: ${{ secrets.SERVER_HOST }}
+  DEPLOY_PATH: seo-studio
+
+jobs:
+  deploy_frontend_and_backend:
+    name: Copy And Deploy Frontend And Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Copy repository to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: davneet
+          password: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 99
+          source: "."
+          target: ${{ env.DEPLOY_PATH }}
+          rm: true
+
+      - name: Run docker compose on server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: davneet
+          password: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 99
+          script: |-
+            cd "${{ env.DEPLOY_PATH }}"
+            docker compose up -d --build
