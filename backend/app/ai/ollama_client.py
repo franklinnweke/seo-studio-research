@@ -10,8 +10,17 @@ class OllamaClient:
         self.model = model
         self.timeout_seconds = timeout_seconds
 
-    def generate_image_metadata(self, image_path: Path, prompt: str, timeout_seconds: float | None = None) -> str:
+    def generate_image_metadata(
+        self,
+        image_path: Path,
+        prompt: str,
+        timeout_seconds: float | None = None,
+        options: dict[str, object] | None = None,
+    ) -> str:
         image_base64 = base64.b64encode(image_path.read_bytes()).decode("ascii")
+        request_options: dict[str, object] = {"temperature": 0}
+        if options:
+            request_options.update(options)
         response = httpx.post(
             f"{self.base_url}/api/generate",
             json={
@@ -19,7 +28,7 @@ class OllamaClient:
                 "prompt": prompt,
                 "images": [image_base64],
                 "stream": False,
-                "options": {"temperature": 0},
+                "options": request_options,
             },
             timeout=timeout_seconds if timeout_seconds is not None else self.timeout_seconds,
         )
@@ -30,14 +39,22 @@ class OllamaClient:
             raise ValueError("Ollama returned an empty metadata response.")
         return content
 
-    def generate_text(self, prompt: str, timeout_seconds: float | None = None) -> str:
+    def generate_text(
+        self,
+        prompt: str,
+        timeout_seconds: float | None = None,
+        options: dict[str, object] | None = None,
+    ) -> str:
+        request_options: dict[str, object] = {"temperature": 0}
+        if options:
+            request_options.update(options)
         response = httpx.post(
             f"{self.base_url}/api/generate",
             json={
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
-                "options": {"temperature": 0},
+                "options": request_options,
             },
             timeout=timeout_seconds if timeout_seconds is not None else self.timeout_seconds,
         )

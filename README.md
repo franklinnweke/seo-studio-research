@@ -74,7 +74,6 @@ Phase 5+ can use Ollama with a dual-model setup:
 
 ```bash
 ollama pull qwen2.5vl:3b
-ollama pull qwen3.5
 ollama serve
 ```
 
@@ -83,10 +82,11 @@ The backend reads these optional environment variables:
 ```text
 SEO_STUDIO_AI_PROVIDER=ollama
 SEO_STUDIO_OLLAMA_BASE_URL=http://localhost:11434
-SEO_STUDIO_OLLAMA_MODEL=qwen3.5
+SEO_STUDIO_OLLAMA_MODEL=qwen2.5vl:3b
 SEO_STUDIO_VISION_MODEL=qwen2.5vl:3b
-SEO_STUDIO_LANGUAGE_MODEL=qwen3.5
+SEO_STUDIO_LANGUAGE_MODEL=qwen2.5vl:3b
 SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS=600
+SEO_STUDIO_AI_LANGUAGE_TIMEOUT_SECONDS=120
 SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS=120
 SEO_STUDIO_AI_PREVIEW_MAX_WIDTH=1024
 ```

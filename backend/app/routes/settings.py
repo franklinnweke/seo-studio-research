@@ -25,6 +25,7 @@ def read_settings() -> SettingsResponse:
         vision_model=settings.vision_model,
         language_model=settings.language_model,
         ollama_timeout_seconds=settings.ollama_timeout_seconds,
+        ai_language_timeout_seconds=settings.ai_language_timeout_seconds,
         ai_crop_timeout_seconds=settings.ai_crop_timeout_seconds,
         ai_preview_max_width=settings.ai_preview_max_width,
         frontend_origin=", ".join(get_cors_origins(settings)),

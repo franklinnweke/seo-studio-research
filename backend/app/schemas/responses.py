@@ -18,6 +18,7 @@ class SettingsResponse(BaseModel):
     vision_model: str = Field(description="Ollama vision model used for image inspection and crop targeting.")
     language_model: str = Field(description="Ollama language model used for SEO metadata writing.")
     ollama_timeout_seconds: float = Field(description="Timeout in seconds for each Ollama request.")
+    ai_language_timeout_seconds: float = Field(description="Timeout in seconds for AI metadata language requests.")
     ai_crop_timeout_seconds: float = Field(description="Timeout in seconds for AI crop targeting requests.")
     ai_preview_max_width: int = Field(description="Maximum preview width sent to AI models.")
     frontend_origin: str = Field(description="Allowed frontend origin for local CORS.")

@@ -280,7 +280,11 @@ class AiMetadataService:
                 self.settings.vision_model,
                 self.settings.ollama_timeout_seconds,
             )
-            content = self.vision_client.generate_image_metadata(preview_path, prompt)
+            content = self.vision_client.generate_image_metadata(
+                preview_path,
+                prompt,
+                options={"num_predict": 120},
+            )
             description = self._clean_description(content)
             if not description:
                 raise ValueError("Vision model returned an empty visual description.")
@@ -304,6 +308,7 @@ class AiMetadataService:
 
     def _request_language_metadata(self, visual_description: str, brand_context: str) -> AiImageMetadataPayload:
         errors: list[str] = []
+        timeout_seconds = min(self.settings.ai_language_timeout_seconds, self.settings.ollama_timeout_seconds)
         prompts = (
             ("main", self._language_metadata_prompt(visual_description, brand_context)),
             ("json_retry", self._language_metadata_retry_prompt(visual_description, brand_context)),
@@ -315,9 +320,13 @@ class AiMetadataService:
                     "Requesting AI language metadata attempt=%s model=%s timeout_seconds=%s",
                     attempt_name,
                     self.settings.language_model,
-                    self.settings.ollama_timeout_seconds,
+                    timeout_seconds,
                 )
-                content = self.language_client.generate_text(prompt)
+                content = self.language_client.generate_text(
+                    prompt,
+                    timeout_seconds=timeout_seconds,
+                    options={"num_predict": 320},
+                )
                 payload = self._parse_metadata_payload(content)
                 logger.info(
                     "AI language metadata attempt succeeded attempt=%s model=%s duration_seconds=%.2f",
@@ -406,7 +415,8 @@ class AiMetadataService:
         )
 
     def _language_metadata_prompt(self, visual_description: str, brand_context: str) -> str:
-        prompt = f"""You are generating SEO-friendly image metadata from verified visual facts.
+        prompt = f"""/no_think
+You are generating SEO-friendly image metadata from verified visual facts.
 
 Return only valid JSON.
 
@@ -416,11 +426,12 @@ Verified visual facts:
 Rules:
 1. Use only the verified visual facts for visible image details.
 2. Generate concise accessible alt text.
-3. Generate an SEO-friendly filename.
-4. Generate a short caption.
+3. Generate an SEO-friendly filename under 50 characters.
+4. Generate a short natural caption as one sentence.
 5. Avoid keyword stuffing.
 6. Use lowercase hyphenated filenames.
 7. Do not include the file extension in the filename.
+8. Do not repeat the same object, color, or phrase.
 
 Return:
 {{
@@ -433,16 +444,17 @@ Return:
         return self._metadata_prompt(prompt, brand_context)
 
     def _language_metadata_retry_prompt(self, visual_description: str, brand_context: str) -> str:
-        prompt = f"""Return only valid JSON for image metadata.
+        prompt = f"""/no_think
+Return only valid JSON for image metadata.
 
 Verified visual facts:
 {visual_description}
 
 Required JSON shape:
 {{
-  "filename": "lowercase-hyphenated-filename-without-extension",
-  "alt_text": "Concise accessible alt text.",
-  "caption": "Short accurate caption.",
+  "filename": "concise-lowercase-filename",
+  "alt_text": "Concise accessible alt text under 125 characters.",
+  "caption": "Short natural caption without repeated phrases.",
   "confidence": 0.0
 }}
 """

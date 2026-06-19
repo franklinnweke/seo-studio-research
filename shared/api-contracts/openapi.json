@@ -1064,6 +1064,11 @@
             "title": "Ai Crop Timeout Seconds",
             "type": "number"
           },
+          "ai_language_timeout_seconds": {
+            "description": "Timeout in seconds for AI metadata language requests.",
+            "title": "Ai Language Timeout Seconds",
+            "type": "number"
+          },
           "ai_preview_max_width": {
             "description": "Maximum preview width sent to AI models.",
             "title": "Ai Preview Max Width",
@@ -1117,6 +1122,7 @@
           "vision_model",
           "language_model",
           "ollama_timeout_seconds",
+          "ai_language_timeout_seconds",
           "ai_crop_timeout_seconds",
           "ai_preview_max_width",
           "frontend_origin",

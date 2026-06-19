@@ -22,6 +22,7 @@ export type SettingsResponse = {
   vision_model: string;
   language_model: string;
   ollama_timeout_seconds: number;
+  ai_language_timeout_seconds: number;
   ai_crop_timeout_seconds: number;
   ai_preview_max_width: number;
   frontend_origin: string;

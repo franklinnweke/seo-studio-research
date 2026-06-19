@@ -31,6 +31,7 @@ def test_settings_exposes_dual_model_configuration() -> None:
     body = response.json()
     assert body["vision_model"]
     assert body["language_model"]
+    assert body["ai_language_timeout_seconds"] > 0
     assert body["ai_crop_timeout_seconds"] > 0
 
 
