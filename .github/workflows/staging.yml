@@ -5,7 +5,7 @@ on:
     branches: [ "staging" ]
 
 env:
-  SERVER_HOST: ${{ secrets.SERVER_HOST }}
+  SERVER_HOST: axivaq.com
   DEPLOY_PATH: seo-studio
 
 jobs:
