@@ -21,6 +21,7 @@ services:
       - seo_studio_storage:/app/storage
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    restart: unless-stopped
 
   frontend:
     build:
@@ -33,6 +34,7 @@ services:
         condition: service_healthy
     ports:
       - "11501:3000"
+    restart: unless-stopped
 
 volumes:
   seo_studio_storage:
