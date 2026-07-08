@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDropzone } from "react-dropzone";
 import {
   AlertCircle,
@@ -97,11 +97,38 @@ function slugifyPreview(value: string) {
   return slug || "file";
 }
 
-export function ImageUploadPanel() {
+export type ImageUploadPanelProps = {
+  /** When provided, the panel uses this job ID instead of creating a new one on upload. */
+  activeJobId?: string;
+  /** Called when upload creates a new job. Dashboard uses this to set the shared job ID. */
+  onJobCreated?: (jobId: string) => void;
+  /** Called when processing completes. Dashboard uses this to refresh shared workflow status. */
+  onProcessed?: (jobId: string) => void;
+  /** When true, the panel hides its outer section header to embed cleanly in a parent card. */
+  embedded?: boolean;
+};
+
+export function ImageUploadPanel({
+  activeJobId,
+  onJobCreated,
+  onProcessed,
+  embedded,
+}: ImageUploadPanelProps = {}) {
+  const queryClient = useQueryClient();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [clientError, setClientError] = useState("");
-  const [lastJob, setLastJob] = useState<ImageJobCreateResponse | null>(null);
+  const [lastJob, setLastJob] = useState<ImageJobCreateResponse | null>(() =>
+    activeJobId
+      ? {
+          id: activeJobId,
+          type: "image",
+          status: "pending",
+          accepted_extensions: [".jpg", ".jpeg", ".png", ".webp", ".zip"],
+          files: [],
+        }
+      : null,
+  );
   const [compressionSettings, setCompressionSettings] = useState<ImageCompressionSettings>(
     DEFAULT_COMPRESSION_SETTINGS,
   );
@@ -116,11 +143,14 @@ export function ImageUploadPanel() {
     onSuccess: (job) => {
       setLastJob(job);
       setActiveImageJobId(job.id);
+      onJobCreated?.(job.id);
       setCompressionResult(null);
       setFilenameOverrides(
         Object.fromEntries(job.files.map((file) => [file.id, filenameStem(file.stored_filename)])),
       );
       setUploadProgress(100);
+      queryClient.invalidateQueries({ queryKey: ["image-job-status", job.id] });
+      queryClient.invalidateQueries({ queryKey: ["image-job-files", job.id] });
     },
   });
 
@@ -134,6 +164,11 @@ export function ImageUploadPanel() {
     },
     onSuccess: (result) => {
       setCompressionResult(result);
+      onProcessed?.(result.job_id);
+      if (lastJob?.id) {
+        queryClient.invalidateQueries({ queryKey: ["image-job-status", lastJob.id] });
+        queryClient.invalidateQueries({ queryKey: ["image-job-files", lastJob.id] });
+      }
     },
   });
 
@@ -207,135 +242,139 @@ export function ImageUploadPanel() {
     selectedFiles.some((file) => fileExtension(file) === ".png");
 
   return (
-    <section className="rounded-lg border border-[#dfe3e8] bg-white">
-      <div className="flex flex-col gap-2 border-b border-[#dfe3e8] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold">Image Upload</h2>
-          <p className="mt-1 text-sm text-[#667085]">Images and ZIP archives for Phase 1.</p>
-        </div>
-        {lastJob ? (
-          <span className="inline-flex h-8 items-center gap-2 rounded-md bg-[#eef6f0] px-3 text-sm font-medium text-[#20744a]">
-            <CheckCircle2 aria-hidden="true" size={16} />
-            {lastJob.id}
-          </span>
-        ) : null}
-      </div>
-
-      <div className="grid gap-5 p-5 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-4">
-          <div
-            {...dropzone.getRootProps()}
-            className={`flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-5 py-8 text-center transition ${
-              dropzone.isDragActive
-                ? "border-[#1d4ed8] bg-[#edf4ff]"
-                : "border-[#b8c0cc] bg-[#fafbfc] hover:border-[#1d4ed8]"
-            }`}
-          >
-            <input {...dropzone.getInputProps()} />
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-[#1d4ed8] shadow-sm">
-              <Upload aria-hidden="true" size={21} />
-            </div>
-            <p className="mt-4 text-sm font-medium text-[#151923]">
-              Drop files here or click to browse
-            </p>
-            <p className="mt-2 max-w-sm text-sm text-[#667085]">
-              JPG, PNG, WebP, and ZIP. Direct images and ZIP entries are limited to 5MB each.
-            </p>
+    <section className={embedded ? "" : "rounded-lg border border-[#dfe3e8] bg-white"}>
+      {!embedded && (
+        <div className="flex flex-col gap-2 border-b border-[#dfe3e8] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold">Image Upload</h2>
+            <p className="mt-1 text-sm text-[#667085]">Images and ZIP archives for Phase 1.</p>
           </div>
-
-          {clientError || uploadMutation.isError ? (
-            <div className="flex items-start gap-2 rounded-md border border-[#f2b8b5] bg-[#fff5f5] p-3 text-sm text-[#b42318]">
-              <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
-              <span>{clientError || getApiErrorMessage(uploadMutation.error)}</span>
-            </div>
+          {lastJob ? (
+            <span className="inline-flex h-8 items-center gap-2 rounded-md bg-[#eef6f0] px-3 text-sm font-medium text-[#20744a]">
+              <CheckCircle2 aria-hidden="true" size={16} />
+              {lastJob.id}
+            </span>
           ) : null}
-
-          {uploadMutation.isPending ? (
-            <div>
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium">Uploading</span>
-                <span className="text-[#667085]">{uploadProgress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#edf0f2]">
-                <div
-                  className="h-full rounded-full bg-[#1d4ed8] transition-all"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          ) : null}
-
-          <button
-            type="button"
-            disabled={uploadDisabled}
-            onClick={() => uploadMutation.mutate(selectedFiles)}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
-          >
-            {uploadMutation.isPending ? (
-              <Loader2 aria-hidden="true" className="animate-spin" size={16} />
-            ) : (
-              <Upload aria-hidden="true" size={16} />
-            )}
-            Upload files
-          </button>
         </div>
+      )}
 
-        <div className="min-w-0 rounded-lg border border-[#dfe3e8]">
-          <div className="flex items-center justify-between border-b border-[#dfe3e8] px-4 py-3">
-            <div>
-              <p className="text-sm font-medium">Selected Files</p>
-              <p className="mt-0.5 text-xs text-[#667085]">
-                {selectedFiles.length} file{selectedFiles.length === 1 ? "" : "s"} ·{" "}
-                {formatBytes(totalSize)}
+      {!(embedded && activeJobId) && (
+        <div className="grid gap-5 p-5 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className="space-y-4">
+            <div
+              {...dropzone.getRootProps()}
+              className={`flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-5 py-8 text-center transition ${
+                dropzone.isDragActive
+                  ? "border-[#1d4ed8] bg-[#edf4ff]"
+                  : "border-[#b8c0cc] bg-[#fafbfc] hover:border-[#1d4ed8]"
+              }`}
+            >
+              <input {...dropzone.getInputProps()} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-[#1d4ed8] shadow-sm">
+                <Upload aria-hidden="true" size={21} />
+              </div>
+              <p className="mt-4 text-sm font-medium text-[#151923]">
+                Drop files here or click to browse
+              </p>
+              <p className="mt-2 max-w-sm text-sm text-[#667085]">
+                JPG, PNG, WebP, and ZIP. Direct images and ZIP entries are limited to 5MB each.
               </p>
             </div>
-            {selectedFiles.length > 0 ? (
-              <button
-                type="button"
-                disabled={uploadMutation.isPending}
-                onClick={clearSelectedFiles}
-                className="inline-flex h-8 items-center gap-2 rounded-md border border-[#dfe3e8] px-2.5 text-xs font-medium text-[#475467] hover:bg-[#f2f4f7] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Trash2 aria-hidden="true" size={14} />
-                Clear
-              </button>
-            ) : null}
-          </div>
-          <div className="max-h-72 overflow-auto">
-            {selectedFiles.length === 0 ? (
-              <div className="px-4 py-10 text-center text-sm text-[#667085]">
-                No files selected.
+
+            {clientError || uploadMutation.isError ? (
+              <div className="flex items-start gap-2 rounded-md border border-[#f2b8b5] bg-[#fff5f5] p-3 text-sm text-[#b42318]">
+                <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
+                <span>{clientError || getApiErrorMessage(uploadMutation.error)}</span>
               </div>
-            ) : (
-              <ul className="divide-y divide-[#edf0f2]">
-                {selectedFiles.map((file) => {
-                  const isZip = fileExtension(file) === ".zip";
-                  const Icon = isZip ? FileArchive : ImageIcon;
-                  return (
-                    <li key={`${file.name}-${file.size}`} className="flex items-center gap-3 px-4 py-3">
-                      <Icon aria-hidden="true" className="shrink-0 text-[#475467]" size={18} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-[#151923]">{file.name}</p>
-                        <p className="text-xs text-[#667085]">{formatBytes(file.size)}</p>
-                      </div>
-                      <button
-                        type="button"
-                        disabled={uploadMutation.isPending}
-                        onClick={() => removeSelectedFile(file)}
-                        aria-label={`Remove ${file.name}`}
-                        title={`Remove ${file.name}`}
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#667085] hover:bg-[#fff1f0] hover:text-[#b42318] disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Trash2 aria-hidden="true" size={16} />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            ) : null}
+
+            {uploadMutation.isPending ? (
+              <div>
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium">Uploading</span>
+                  <span className="text-[#667085]">{uploadProgress}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#edf0f2]">
+                  <div
+                    className="h-full rounded-full bg-[#1d4ed8] transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              disabled={uploadDisabled}
+              onClick={() => uploadMutation.mutate(selectedFiles)}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
+            >
+              {uploadMutation.isPending ? (
+                <Loader2 aria-hidden="true" className="animate-spin" size={16} />
+              ) : (
+                <Upload aria-hidden="true" size={16} />
+              )}
+              Upload files
+            </button>
+          </div>
+
+          <div className="min-w-0 rounded-lg border border-[#dfe3e8]">
+            <div className="flex items-center justify-between border-b border-[#dfe3e8] px-4 py-3">
+              <div>
+                <p className="text-sm font-medium">Selected Files</p>
+                <p className="mt-0.5 text-xs text-[#667085]">
+                  {selectedFiles.length} file{selectedFiles.length === 1 ? "" : "s"} ·{" "}
+                  {formatBytes(totalSize)}
+                </p>
+              </div>
+              {selectedFiles.length > 0 ? (
+                <button
+                  type="button"
+                  disabled={uploadMutation.isPending}
+                  onClick={clearSelectedFiles}
+                  className="inline-flex h-8 items-center gap-2 rounded-md border border-[#dfe3e8] px-2.5 text-xs font-medium text-[#475467] hover:bg-[#f2f4f7] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 aria-hidden="true" size={14} />
+                  Clear
+                </button>
+              ) : null}
+            </div>
+            <div className="max-h-72 overflow-auto">
+              {selectedFiles.length === 0 ? (
+                <div className="px-4 py-10 text-center text-sm text-[#667085]">
+                  No files selected.
+                </div>
+              ) : (
+                <ul className="divide-y divide-[#edf0f2]">
+                  {selectedFiles.map((file) => {
+                    const isZip = fileExtension(file) === ".zip";
+                    const Icon = isZip ? FileArchive : ImageIcon;
+                    return (
+                      <li key={`${file.name}-${file.size}`} className="flex items-center gap-3 px-4 py-3">
+                        <Icon aria-hidden="true" className="shrink-0 text-[#475467]" size={18} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-[#151923]">{file.name}</p>
+                          <p className="text-xs text-[#667085]">{formatBytes(file.size)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={uploadMutation.isPending}
+                          onClick={() => removeSelectedFile(file)}
+                          aria-label={`Remove ${file.name}`}
+                          title={`Remove ${file.name}`}
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#667085] hover:bg-[#fff1f0] hover:text-[#b42318] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Trash2 aria-hidden="true" size={16} />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {lastJob ? (
         <div className="border-t border-[#dfe3e8] px-5 py-4">
@@ -458,66 +497,65 @@ export function ImageUploadPanel() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-4">
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-[#151923]">Mode</span>
+              <select
+                value={compressionSettings.mode}
+                onChange={(event) =>
+                  setCompressionSettings((settings) => ({
+                    ...settings,
+                    mode: event.target.value as ImageCompressionSettings["mode"],
+                  }))
+                }
+                className="h-10 w-full rounded-md border border-[#dfe3e8] bg-white px-3 text-sm"
+              >
+                <option value="lossy">Lossy</option>
+                <option value="lossless">Lossless</option>
+              </select>
+            </label>
 
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-[#151923]">Mode</span>
-            <select
-              value={compressionSettings.mode}
-              onChange={(event) =>
-                setCompressionSettings((settings) => ({
-                  ...settings,
-                  mode: event.target.value as ImageCompressionSettings["mode"],
-                }))
-              }
-              className="h-10 w-full rounded-md border border-[#dfe3e8] bg-white px-3 text-sm"
-            >
-              <option value="lossy">Lossy</option>
-              <option value="lossless">Lossless</option>
-            </select>
-          </label>
+            <label className="space-y-2 lg:col-span-2">
+              <span className="flex items-center justify-between text-sm font-medium text-[#151923]">
+                Quality
+                <span className="text-[#667085]">{compressionSettings.quality}</span>
+              </span>
+              <input
+                type="range"
+                min="60"
+                max="90"
+                step="10"
+                value={compressionSettings.quality}
+                onChange={(event) =>
+                  setCompressionSettings((settings) => ({
+                    ...settings,
+                    quality: Number(event.target.value),
+                  }))
+                }
+                className="w-full accent-[#1d4ed8]"
+              />
+              <div className="flex justify-between text-xs text-[#667085]">
+                <span>More compression</span>
+                <span>Higher quality</span>
+              </div>
+            </label>
 
-          <label className="space-y-2 lg:col-span-2">
-            <span className="flex items-center justify-between text-sm font-medium text-[#151923]">
-              Quality
-              <span className="text-[#667085]">{compressionSettings.quality}</span>
-            </span>
-            <input
-              type="range"
-              min="60"
-              max="90"
-              step="10"
-              value={compressionSettings.quality}
-              onChange={(event) =>
-                setCompressionSettings((settings) => ({
-                  ...settings,
-                  quality: Number(event.target.value),
-                }))
-              }
-              className="w-full accent-[#1d4ed8]"
-            />
-            <div className="flex justify-between text-xs text-[#667085]">
-              <span>More compression</span>
-              <span>Higher quality</span>
-            </div>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-[#151923]">Resize</span>
-            <select
-              value={compressionSettings.resize_mode}
-              onChange={(event) =>
-                setCompressionSettings((settings) => ({
-                  ...settings,
-                  resize_mode: event.target.value as ImageCompressionSettings["resize_mode"],
-                  custom_max_width: event.target.value === "custom" ? settings.custom_max_width ?? 1600 : null,
-                }))
-              }
-              className="h-10 w-full rounded-md border border-[#dfe3e8] bg-white px-3 text-sm"
-            >
-              <option value="none">None</option>
-              <option value="max_1920">Max width 1920px</option>
-              <option value="max_1200">Max width 1200px</option>
-              <option value="custom">Custom max width</option>
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-[#151923]">Resize</span>
+              <select
+                value={compressionSettings.resize_mode}
+                onChange={(event) =>
+                  setCompressionSettings((settings) => ({
+                    ...settings,
+                    resize_mode: event.target.value as ImageCompressionSettings["resize_mode"],
+                    custom_max_width: event.target.value === "custom" ? settings.custom_max_width ?? 1600 : null,
+                  }))
+                }
+                className="h-10 w-full rounded-md border border-[#dfe3e8] bg-white px-3 text-sm"
+              >
+                <option value="none">None</option>
+                <option value="max_1920">Max width 1920px</option>
+                <option value="max_1200">Max width 1200px</option>
+                <option value="custom">Custom max width</option>
               </select>
             </label>
           </div>

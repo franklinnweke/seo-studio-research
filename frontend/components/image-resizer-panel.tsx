@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDropzone } from "react-dropzone";
 import {
   AlertCircle,
@@ -98,9 +98,21 @@ function isImageFile(file: File) {
   );
 }
 
-export function ImageResizerPanel() {
+export type ImageResizerPanelProps = {
+  /** When provided, auto-loads this job instead of requiring a new upload. */
+  activeJobId?: string;
+  /** When true, hides the upload dropzone section since files are already uploaded via the dashboard. */
+  embedded?: boolean;
+};
+
+export function ImageResizerPanel({ activeJobId: externalJobId, embedded }: ImageResizerPanelProps = {}) {
+  const queryClient = useQueryClient();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [lastJob, setLastJob] = useState<ImageJobCreateResponse | null>(null);
+  const [lastJob, setLastJob] = useState<ImageJobCreateResponse | null>(() =>
+    externalJobId
+      ? { id: externalJobId, type: 'image', status: 'pending', accepted_extensions: ['.jpg', '.jpeg', '.png', '.webp', '.zip'], files: [] }
+      : null,
+  );
   const [uploadProgress, setUploadProgress] = useState(0);
   const [clientError, setClientError] = useState("");
   const [settings, setSettings] = useState<ImageCompressionSettings>(DEFAULT_SETTINGS);
@@ -130,6 +142,8 @@ export function ImageResizerPanel() {
       setSelectedResult(null);
       setCropReview(null);
       setUploadProgress(100);
+      queryClient.invalidateQueries({ queryKey: ["image-job-status", job.id] });
+      queryClient.invalidateQueries({ queryKey: ["image-job-files", job.id] });
     },
   });
 
@@ -193,6 +207,10 @@ export function ImageResizerPanel() {
     onSuccess: (response) => {
       setResult(response);
       setCropModalOpen(false);
+      if (lastJob?.id) {
+        queryClient.invalidateQueries({ queryKey: ["image-job-status", lastJob.id] });
+        queryClient.invalidateQueries({ queryKey: ["image-job-files", lastJob.id] });
+      }
     },
   });
 
@@ -303,6 +321,14 @@ export function ImageResizerPanel() {
   return (
     <>
       <section className="space-y-6">
+          {embedded && lastJob && (
+            <div className="flex items-center gap-2 rounded-lg border border-[#dfe3e8] bg-white px-5 py-3 text-sm">
+              <CheckCircle2 aria-hidden="true" size={16} className="text-[#20744a]" />
+              <span className="text-[#475467]">Working with job</span>
+              <code className="rounded bg-[#eef6f0] px-2 py-0.5 text-xs font-medium text-[#20744a]">{lastJob.id}</code>
+            </div>
+          )}
+          {!embedded && (
           <div className="rounded-lg border border-[#dfe3e8] bg-white">
             <div className="border-b border-[#dfe3e8] px-5 py-4">
               <h2 className="text-base font-semibold">1. Upload Images</h2>
@@ -387,6 +413,7 @@ export function ImageResizerPanel() {
               </button>
             </div>
           </div>
+          )}
 
           <div className="rounded-lg border border-[#dfe3e8] bg-white p-5">
             <div className="mb-4">

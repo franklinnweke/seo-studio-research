@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
@@ -41,15 +41,18 @@ def export_processed_images_zip(
 
 
 @router.get(
-    "/{job_id}/export.{export_format}",
+    "/{job_id}/export.{export_format:regex(csv|json|xlsx)}",
     response_model=ExportPlaceholderResponse,
     summary="Export job results",
     description=(
-        "Placeholder export endpoint for CSV, JSON, XLSX, and ZIP downloads. "
+        "Placeholder export endpoint for CSV, JSON, and XLSX downloads. "
         "Phase 7 will return generated files with the correct media type."
     ),
 )
-def export_job(job_id: str, export_format: str) -> ExportPlaceholderResponse:
+def export_job(
+    job_id: str,
+    export_format: Literal["csv", "json", "xlsx"],
+) -> ExportPlaceholderResponse:
     return ExportPlaceholderResponse(
         job_id=job_id,
         format=export_format,

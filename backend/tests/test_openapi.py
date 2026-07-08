@@ -53,7 +53,7 @@ def test_current_routes_are_documented() -> None:
         ("/api/jobs/{job_id}/pages", "get"),
         ("/api/jobs/{job_id}/links", "get"),
         ("/api/jobs/{job_id}/broken-links", "get"),
-        ("/api/jobs/{job_id}/export.{export_format}", "get"),
+        ("/api/jobs/{job_id}/export.{export_format:regex(csv|json|xlsx)}", "get"),
     ]
 
     for path, method in expected_routes:

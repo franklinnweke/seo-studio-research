@@ -59,25 +59,25 @@ export function AppShell({
   const activeImageJobId = useActiveImageJobId();
 
   const jobStatusQuery = useQuery({
-    queryKey: ["workspace-job-status", activeImageJobId],
+    queryKey: ["image-job-status", activeImageJobId],
     queryFn: () => getJobStatus(activeImageJobId),
     enabled: Boolean(activeImageJobId),
   });
 
   const filesQuery = useQuery({
-    queryKey: ["workspace-job-files", activeImageJobId],
+    queryKey: ["image-job-files", activeImageJobId],
     queryFn: () => getJobFiles(activeImageJobId),
     enabled: Boolean(activeImageJobId),
   });
 
   const metadataQuery = useQuery({
-    queryKey: ["workspace-image-metadata", activeImageJobId],
+    queryKey: ["image-metadata", activeImageJobId],
     queryFn: () => getImageMetadata(activeImageJobId),
     enabled: Boolean(activeImageJobId),
   });
 
   const brandContextQuery = useQuery({
-    queryKey: ["workspace-brand-context", activeImageJobId],
+    queryKey: ["brand-context", activeImageJobId],
     queryFn: () => getBrandContext(activeImageJobId),
     enabled: Boolean(activeImageJobId),
   });

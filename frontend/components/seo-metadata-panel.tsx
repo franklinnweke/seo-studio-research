@@ -68,11 +68,19 @@ function resultToEdit(result: {
   };
 }
 
-export function SeoMetadataPanel() {
+export type SeoMetadataPanelProps = {
+  /** When provided, auto-loads this job instead of requiring manual ID input. */
+  activeJobId?: string;
+  /** When true, hides the job ID input form since the dashboard provides the job. */
+  embedded?: boolean;
+};
+
+export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMetadataPanelProps = {}) {
   const queryClient = useQueryClient();
   const workspaceJobId = useActiveImageJobId();
-  const [jobIdInput, setJobIdInput] = useState(workspaceJobId);
-  const [activeJobId, setActiveJobId] = useState(workspaceJobId);
+  const initialJobId = externalJobId || workspaceJobId;
+  const [jobIdInput, setJobIdInput] = useState(initialJobId);
+  const [activeJobId, setActiveJobId] = useState(initialJobId);
   const [metadataEdits, setMetadataEdits] = useState<Record<string, MetadataEdit>>({});
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedBrandFiles, setSelectedBrandFiles] = useState<File[]>([]);
@@ -268,9 +276,11 @@ export function SeoMetadataPanel() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-base font-semibold">Image Metadata Job</h2>
-              <p className="mt-1 text-sm text-[#667085]">
-                Use an existing image job from Image Optimizer to generate AI metadata.
-              </p>
+              {!embedded && (
+                <p className="mt-1 text-sm text-[#667085]">
+                  Use an existing image job from Image Optimizer to generate AI metadata.
+                </p>
+              )}
             </div>
             <div className="grid gap-2 rounded-md bg-[#f2f4f7] px-3 py-2 text-sm text-[#475467] sm:grid-cols-2">
               {settingsQuery.isLoading ? (
@@ -295,26 +305,28 @@ export function SeoMetadataPanel() {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="flex flex-col gap-3 p-5 sm:flex-row">
-          <label className="min-w-0 flex-1 space-y-2">
-            <span className="text-sm font-medium text-[#151923]">Image job ID</span>
-            <input
-              type="text"
-              value={jobIdInput}
-              onChange={(event) => setJobIdInput(event.target.value)}
-              placeholder="job_..."
-              className="h-10 w-full rounded-md border border-[#dfe3e8] bg-white px-3 text-sm"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={!jobIdInput.trim()}
-            className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
-          >
-            <Search aria-hidden="true" size={16} />
-            Load job
-          </button>
-        </form>
+        {!embedded && (
+          <form onSubmit={onSubmit} className="flex flex-col gap-3 p-5 sm:flex-row">
+            <label className="min-w-0 flex-1 space-y-2">
+              <span className="text-sm font-medium text-[#151923]">Image job ID</span>
+              <input
+                type="text"
+                value={jobIdInput}
+                onChange={(event) => setJobIdInput(event.target.value)}
+                placeholder="job_..."
+                className="h-10 w-full rounded-md border border-[#dfe3e8] bg-white px-3 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={!jobIdInput.trim()}
+              className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
+            >
+              <Search aria-hidden="true" size={16} />
+              Load job
+            </button>
+          </form>
+        )}
       </div>
 
       {activeJobId ? (
