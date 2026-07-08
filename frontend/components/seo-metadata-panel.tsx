@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import {
+  downloadApiFile,
   generateImageMetadata,
   getApiErrorMessage,
   getBrandContext,
@@ -28,6 +29,7 @@ import {
   uploadBrandContext,
   type ImageMetadataListResponse,
 } from "@/lib/api";
+import { useAuthenticatedObjectUrl } from "@/hooks/use-authenticated-object-url";
 import { setActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
 
 type MetadataEdit = {
@@ -240,8 +242,9 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
           activeJobId,
           selectedRow.file.id,
           selectedRow.edit.suggested_filename,
-        )
+      )
       : "";
+  const selectedPreviewObjectUrl = useAuthenticatedObjectUrl(selectedPreviewUrl);
   const brandContext = brandContextQuery.data;
   const brandDocuments = brandContext?.documents ?? [];
   const brandContextPreview = brandContext?.combined_text ?? "";
@@ -458,13 +461,14 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 {rows.length > 0 && someRowsSelected ? (
-                  <a
-                    href={selectedZipExportUrl}
+                  <button
+                    type="button"
+                    onClick={() => downloadApiFile(selectedZipExportUrl, `${activeJobId}-seo-metadata.zip`)}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
                   >
                     <Download aria-hidden="true" size={16} />
                     Download selected ({selectedExportIds.length})
-                  </a>
+                  </button>
                 ) : rows.length > 0 ? (
                   <button
                     type="button"
@@ -616,18 +620,22 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                             >
                               <Eye aria-hidden="true" size={16} />
                             </button>
-                            <a
-                              href={getMetadataImageDownloadUrl(
-                                activeJobId,
-                                file.id,
-                                edit.suggested_filename,
+                            <button
+                              type="button"
+                              onClick={() => downloadApiFile(
+                                getMetadataImageDownloadUrl(
+                                  activeJobId,
+                                  file.id,
+                                  edit.suggested_filename,
+                                ),
+                                `${displayText(edit.suggested_filename, file.original_filename)}`,
                               )}
                               title={`Download ${file.original_filename} with SEO filename`}
                               aria-label={`Download ${file.original_filename} with SEO filename`}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
                             >
                               <Download aria-hidden="true" size={16} />
-                            </a>
+                            </button>
                             <button
                               type="button"
                               disabled={regenerateMutation.isPending || generateMutation.isPending}
@@ -683,7 +691,7 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 <div className="flex aspect-[16/10] items-center justify-center bg-[#eef2f6]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={selectedPreviewUrl}
+                    src={selectedPreviewObjectUrl}
                     alt={
                       selectedRow.edit.alt_text.trim()
                         ? selectedRow.edit.alt_text
@@ -775,17 +783,21 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
 
             <div className="flex items-center justify-between gap-3 border-t border-[#dfe3e8] px-5 py-4">
               <div className="flex items-center gap-2">
-                <a
-                  href={getMetadataImageDownloadUrl(
-                    activeJobId,
-                    selectedRow.file.id,
-                    selectedRow.edit.suggested_filename,
+                <button
+                  type="button"
+                  onClick={() => downloadApiFile(
+                    getMetadataImageDownloadUrl(
+                      activeJobId,
+                      selectedRow.file.id,
+                      selectedRow.edit.suggested_filename,
+                    ),
+                    `${displayText(selectedRow.edit.suggested_filename, selectedRow.file.original_filename)}`,
                   )}
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
                 >
                   <Download aria-hidden="true" size={16} />
                   Download
-                </a>
+                </button>
                 <button
                   type="button"
                   disabled={regenerateMutation.isPending || generateMutation.isPending}

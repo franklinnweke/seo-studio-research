@@ -11,6 +11,7 @@ import {
   FileSearch,
   Gauge,
   ImageIcon,
+  LogOut,
   Maximize2,
   Settings,
   Sparkles,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { HealthStatus } from "@/components/health-status";
+import { useAuth } from "@/lib/auth";
 import { getBrandContext, getImageMetadata, getJobFiles, getJobStatus } from "@/lib/api";
 import { clearActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
 
@@ -34,10 +36,10 @@ const navigation = [
   { key: "dashboard", label: "Dashboard", icon: Gauge, href: "/" },
   { key: "image-optimizer", label: "Image Optimizer", icon: ImageIcon, href: "/image-optimizer" },
   { key: "image-resizer", label: "Image Resizer", icon: Maximize2, href: "/image-resizer" },
-  { key: "website-checker", label: "Website Checker", icon: FileSearch, href: "#" },
+  { key: "website-checker", label: "Website Checker", icon: FileSearch, href: "/website-checker" },
   { key: "seo-metadata", label: "SEO Metadata", icon: Sparkles, href: "/seo-metadata" },
-  { key: "exports", label: "Exports", icon: Archive, href: "#" },
-  { key: "settings", label: "Settings", icon: Settings, href: "#" },
+  { key: "exports", label: "Exports", icon: Archive, href: "/exports" },
+  { key: "settings", label: "Settings", icon: Settings, href: "/settings" },
 ] satisfies Array<{ key: NavKey; label: string; icon: typeof Gauge; href: string }>;
 
 export function AppShell({
@@ -57,6 +59,7 @@ export function AppShell({
 }) {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const activeImageJobId = useActiveImageJobId();
+  const { signOut, user } = useAuth();
 
   const jobStatusQuery = useQuery({
     queryKey: ["image-job-status", activeImageJobId],
@@ -165,6 +168,15 @@ export function AppShell({
                   ) : null}
                 </button>
                 <HealthStatus />
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-[#dfe3e8] bg-white px-3 text-sm font-medium text-[#475467] hover:bg-[#fff5f5] hover:text-[#b42318]"
+                  title={user?.email ? `Signed in as ${user.email}` : "Sign out"}
+                >
+                  <LogOut aria-hidden="true" size={16} />
+                  Sign out
+                </button>
               </div>
             </div>
           </header>

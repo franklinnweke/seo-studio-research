@@ -1,5 +1,7 @@
 import axios, { AxiosError, type AxiosProgressEvent } from "axios";
 
+import { supabase } from "@/lib/supabase";
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -8,6 +10,20 @@ export const apiClient = axios.create({
   headers: {
     Accept: "application/json",
   },
+});
+
+apiClient.interceptors.request.use(async (config) => {
+  if (!supabase) return config;
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
+  }
+
+  return config;
 });
 
 export type HealthResponse = {
@@ -333,6 +349,25 @@ export function getImageMetadataZipDownloadUrl(jobId: string, imageIds: string[]
     url.searchParams.append("image_ids", imageId);
   }
   return url.toString();
+}
+
+export async function downloadApiFile(url: string, filename: string): Promise<void> {
+  const requestUrl = url.startsWith(API_BASE_URL) ? url.slice(API_BASE_URL.length) : url;
+  const response = await apiClient.get<Blob>(requestUrl, { responseType: "blob" });
+  const blobUrl = window.URL.createObjectURL(response.data);
+  const anchor = document.createElement("a");
+  anchor.href = blobUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(blobUrl);
+}
+
+export async function getApiFileObjectUrl(url: string): Promise<string> {
+  const requestUrl = url.startsWith(API_BASE_URL) ? url.slice(API_BASE_URL.length) : url;
+  const response = await apiClient.get<Blob>(requestUrl, { responseType: "blob" });
+  return window.URL.createObjectURL(response.data);
 }
 
 export async function getImageMetadata(jobId: string): Promise<ImageMetadataListResponse> {

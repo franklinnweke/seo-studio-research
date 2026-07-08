@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     max_files_per_image_job: int = 50
     max_brand_context_file_size_bytes: int = 5 * 1024 * 1024
     max_brand_context_chars: int = 8000
+    supabase_url: str = ""
+    supabase_jwt_issuer: str = ""
+    supabase_jwks_url: str = ""
+    supabase_jwt_audience: str = "authenticated"
 
     model_config = SettingsConfigDict(env_prefix="SEO_STUDIO_", env_file=".env", extra="ignore")
 

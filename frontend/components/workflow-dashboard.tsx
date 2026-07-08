@@ -21,6 +21,7 @@ import { ImageUploadPanel } from "@/components/image-upload-panel";
 import { SeoMetadataPanel } from "@/components/seo-metadata-panel";
 import { ImageResizerPanel } from "@/components/image-resizer-panel";
 import {
+  downloadApiFile,
   getImageMetadata,
   getJobFiles,
   getJobStatus,
@@ -492,9 +493,14 @@ function ExportStep({
               </p>
             </div>
           </div>
-          <a
-            href={isProcessed ? optimizedZipUrl : undefined}
-            download={isProcessed ? `${jobId}-optimized.zip` : undefined}
+          <button
+            type="button"
+            disabled={!isProcessed}
+            onClick={() => {
+              if (isProcessed) {
+                downloadApiFile(optimizedZipUrl, `${jobId}-optimized.zip`);
+              }
+            }}
             className={`mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md text-sm font-medium ${
               isProcessed
                 ? "bg-[#1d4ed8] text-white hover:bg-[#1e40af]"
@@ -504,7 +510,7 @@ function ExportStep({
           >
             <Download aria-hidden="true" size={16} />
             Download Optimized ZIP
-          </a>
+          </button>
         </div>
 
         {/* SEO metadata export */}
@@ -524,13 +530,14 @@ function ExportStep({
               </p>
             </div>
           </div>
-          <a
-            href={metadataCount > 0 ? metadataZipUrl : undefined}
-            download={
-              metadataCount > 0
-                ? `${jobId}-seo-metadata.zip`
-                : undefined
-            }
+          <button
+            type="button"
+            disabled={metadataCount <= 0}
+            onClick={() => {
+              if (metadataCount > 0) {
+                downloadApiFile(metadataZipUrl, `${jobId}-seo-metadata.zip`);
+              }
+            }}
             className={`mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md text-sm font-medium ${
               metadataCount > 0
                 ? "bg-[#1d4ed8] text-white hover:bg-[#1e40af]"
@@ -540,7 +547,7 @@ function ExportStep({
           >
             <Download aria-hidden="true" size={16} />
             Download Metadata ZIP
-          </a>
+          </button>
         </div>
       </div>
 

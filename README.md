@@ -93,6 +93,28 @@ SEO_STUDIO_AI_PREVIEW_MAX_WIDTH=1024
 
 The vision model inspects image content and crop targets. The language model turns verified visual facts and optional brand context into filenames, alt text, and captions.
 
+### Supabase Auth
+
+The dashboard uses Supabase email/password login in the Next.js frontend. FastAPI validates Supabase access tokens on `/api/*` routes when the Supabase JWT settings are present.
+
+Frontend env:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
+```
+
+Backend env:
+
+```text
+SEO_STUDIO_SUPABASE_URL=https://your-project-ref.supabase.co
+SEO_STUDIO_SUPABASE_JWT_ISSUER=https://your-project-ref.supabase.co/auth/v1
+SEO_STUDIO_SUPABASE_JWKS_URL=https://your-project-ref.supabase.co/auth/v1/.well-known/jwks.json
+SEO_STUDIO_SUPABASE_JWT_AUDIENCE=authenticated
+```
+
+Create users manually in Supabase Authentication for the POC. `/health`, `/docs`, `/redoc`, and `/openapi.json` remain public for local development.
+
 ## Checks
 
 Backend:

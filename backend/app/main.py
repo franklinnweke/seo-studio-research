@@ -1,11 +1,12 @@
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth import require_authenticated_user
 from app.config import get_cors_origins, get_settings
-from app.routes import exports, image_jobs, settings, website_jobs
+from app.routes import auth, exports, image_jobs, settings, website_jobs
 from app.schemas.responses import HealthResponse
 
 
@@ -17,6 +18,10 @@ OPENAPI_TAGS = [
     {
         "name": "settings",
         "description": "Runtime configuration exposed to the frontend.",
+    },
+    {
+        "name": "auth",
+        "description": "Supabase JWT-backed authentication checks for dashboard sessions.",
     },
     {
         "name": "image jobs",
@@ -36,9 +41,9 @@ API_DESCRIPTION = """
 The seo-studio API powers the local proof-of-concept workflow for image optimization,
 website crawling, AI metadata generation, and exports.
 
-The POC uses local file storage and a separate local Ollama runtime. Long-running
-worker queues, authentication, and persistent databases are intentionally deferred
-until beta readiness.
+The POC uses local file storage, a separate local Ollama runtime, and Supabase
+Auth for dashboard access. Long-running worker queues and persistent job
+databases are intentionally deferred until beta readiness.
 """
 
 
@@ -88,10 +93,12 @@ def create_app() -> FastAPI:
     def health() -> HealthResponse:
         return HealthResponse(status="ok", app=app_settings.app_name)
 
-    app.include_router(image_jobs.router, prefix="/api/jobs", tags=["image jobs"])
-    app.include_router(website_jobs.router, prefix="/api/jobs", tags=["website jobs"])
-    app.include_router(exports.router, prefix="/api/jobs", tags=["exports"])
-    app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
+    auth_dependency = [Depends(require_authenticated_user)]
+    app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+    app.include_router(image_jobs.router, prefix="/api/jobs", tags=["image jobs"], dependencies=auth_dependency)
+    app.include_router(website_jobs.router, prefix="/api/jobs", tags=["website jobs"], dependencies=auth_dependency)
+    app.include_router(exports.router, prefix="/api/jobs", tags=["exports"], dependencies=auth_dependency)
+    app.include_router(settings.router, prefix="/api/settings", tags=["settings"], dependencies=auth_dependency)
 
     return app
 

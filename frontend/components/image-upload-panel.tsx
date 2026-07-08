@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import {
+  downloadApiFile,
   getApiErrorMessage,
   getJobFiles,
   getProcessedImageDownloadUrl,
@@ -635,14 +636,19 @@ export function ImageUploadPanel({
               <span className="rounded-md bg-[#eef6f0] px-2 py-1 text-xs font-medium text-[#20744a]">
                 {compressionResult.results.length} processed
               </span>
-              <a
-                href={getProcessedImagesZipDownloadUrl(compressionResult.job_id)}
-                download={`${compressionResult.job_id}-processed-images.zip`}
+              <button
+                type="button"
+                onClick={() =>
+                  downloadApiFile(
+                    getProcessedImagesZipDownloadUrl(compressionResult.job_id),
+                    `${compressionResult.job_id}-processed-images.zip`,
+                  )
+                }
                 className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-3 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
               >
                 <FileArchive aria-hidden="true" size={16} />
                 Download ZIP
-              </a>
+              </button>
             </div>
           </div>
           <div className="overflow-x-auto rounded-lg border border-[#dfe3e8]">
@@ -678,18 +684,23 @@ export function ImageUploadPanel({
                       {result.width} x {result.height}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <a
-                        href={getProcessedImageDownloadUrl(
-                          compressionResult.job_id,
-                          result.processed_filename,
-                        )}
-                        download={result.processed_filename}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          downloadApiFile(
+                            getProcessedImageDownloadUrl(
+                              compressionResult.job_id,
+                              result.processed_filename,
+                            ),
+                            result.processed_filename,
+                          )
+                        }
                         title={`Download ${result.processed_filename}`}
                         aria-label={`Download ${result.processed_filename}`}
                         className="mx-auto inline-flex h-8 w-8 items-center justify-center rounded-md text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
                       >
                         <Download aria-hidden="true" size={16} />
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 ))}

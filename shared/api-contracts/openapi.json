@@ -22,6 +22,32 @@
         "title": "AiCropSuggestionRequest",
         "type": "object"
       },
+      "AuthUserResponse": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Authenticated user's email address.",
+            "title": "Email"
+          },
+          "id": {
+            "description": "Supabase authenticated user identifier.",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "AuthUserResponse",
+        "type": "object"
+      },
       "Body_create_image_job_api_jobs_images_post": {
         "properties": {
           "files": {
@@ -1164,19 +1190,52 @@
         "title": "ValidationError",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
     }
   },
   "info": {
     "contact": {
       "name": "seo-studio maintainers"
     },
-    "description": "\nThe seo-studio API powers the local proof-of-concept workflow for image optimization,\nwebsite crawling, AI metadata generation, and exports.\n\nThe POC uses local file storage and a separate local Ollama runtime. Long-running\nworker queues, authentication, and persistent databases are intentionally deferred\nuntil beta readiness.\n",
+    "description": "\nThe seo-studio API powers the local proof-of-concept workflow for image optimization,\nwebsite crawling, AI metadata generation, and exports.\n\nThe POC uses local file storage, a separate local Ollama runtime, and Supabase\nAuth for dashboard access. Long-running worker queues and persistent job\ndatabases are intentionally deferred until beta readiness.\n",
     "summary": "Local API for the seo-studio optimization POC.",
     "title": "seo-studio API",
     "version": "0.1.0"
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/auth/me": {
+      "get": {
+        "description": "Returns the Supabase user represented by the provided bearer token.",
+        "operationId": "read_authenticated_user_api_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read authenticated user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/jobs/images": {
       "post": {
         "description": "Creates an image job from one or more uploaded files. Accepts direct `.jpg`, `.jpeg`, `.png`, and `.webp` images plus `.zip` archives that contain supported images. Direct image files and ZIP entries are limited to 5MB each. ZIP archives are safely inspected to prevent path traversal.",
@@ -1216,6 +1275,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Create image upload job",
         "tags": [
           "image jobs"
@@ -1262,6 +1326,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get job status",
         "tags": [
           "image jobs"
@@ -1308,6 +1377,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Read brand context documents",
         "tags": [
           "image jobs"
@@ -1365,6 +1439,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Upload brand context documents",
         "tags": [
           "image jobs"
@@ -1408,6 +1487,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "List broken links",
         "tags": [
           "website jobs"
@@ -1447,16 +1531,21 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Download processed images ZIP",
         "tags": [
           "exports"
         ]
       }
     },
-    "/api/jobs/{job_id}/export.{export_format}": {
+    "/api/jobs/{job_id}/export.{export_format:regex(csv|json|xlsx)}": {
       "get": {
-        "description": "Placeholder export endpoint for CSV, JSON, XLSX, and ZIP downloads. Phase 7 will return generated files with the correct media type.",
-        "operationId": "export_job_api_jobs__job_id__export__export_format__get",
+        "description": "Placeholder export endpoint for CSV, JSON, and XLSX downloads. Phase 7 will return generated files with the correct media type.",
+        "operationId": "export_job_api_jobs__job_id__export__export_format_regex_csv_json_xlsx___get",
         "parameters": [
           {
             "in": "path",
@@ -1468,10 +1557,15 @@
             }
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "export_format",
             "required": true,
             "schema": {
+              "enum": [
+                "csv",
+                "json",
+                "xlsx"
+              ],
               "title": "Export Format",
               "type": "string"
             }
@@ -1499,6 +1593,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Export job results",
         "tags": [
           "exports"
@@ -1545,6 +1644,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "List uploaded image job files",
         "tags": [
           "image jobs"
@@ -1591,6 +1695,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "List AI image metadata",
         "tags": [
           "image jobs"
@@ -1635,6 +1744,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Generate AI metadata for all image files",
         "tags": [
           "image jobs"
@@ -1698,6 +1812,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Export AI image metadata CSV",
         "tags": [
           "image jobs"
@@ -1761,6 +1880,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Export selected AI metadata images ZIP",
         "tags": [
           "image jobs"
@@ -1827,6 +1951,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Download image with SEO filename",
         "tags": [
           "image jobs"
@@ -1885,6 +2014,11 @@
             "description": "Configured AI provider request failed."
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Regenerate AI metadata for one image",
         "tags": [
           "image jobs"
@@ -1928,6 +2062,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "List checked links",
         "tags": [
           "website jobs"
@@ -1971,6 +2110,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "List crawled pages",
         "tags": [
           "website jobs"
@@ -2031,6 +2175,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Process uploaded image files",
         "tags": [
           "image jobs"
@@ -2082,6 +2231,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Download processed image",
         "tags": [
           "image jobs"
@@ -2145,6 +2299,11 @@
             "description": "Configured AI provider request failed or returned invalid crop JSON."
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Suggest AI crop boxes",
         "tags": [
           "image jobs"
@@ -2202,6 +2361,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Parse image resize instructions",
         "tags": [
           "image jobs"
@@ -2262,6 +2426,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Review crop requirements",
         "tags": [
           "image jobs"
@@ -2284,6 +2453,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Read runtime settings",
         "tags": [
           "settings"
@@ -2321,6 +2495,10 @@
     {
       "description": "Runtime configuration exposed to the frontend.",
       "name": "settings"
+    },
+    {
+      "description": "Supabase JWT-backed authentication checks for dashboard sessions.",
+      "name": "auth"
     },
     {
       "description": "Image upload, processing, metadata review, and image result endpoints.",

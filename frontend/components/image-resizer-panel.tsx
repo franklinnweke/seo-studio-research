@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  downloadApiFile,
   getApiErrorMessage,
   getMetadataImageDownloadUrl,
   getProcessedImageDownloadUrl,
@@ -43,6 +44,7 @@ import {
   type ImageJobCreateResponse,
   uploadImageJob,
 } from "@/lib/api";
+import { useAuthenticatedObjectUrl } from "@/hooks/use-authenticated-object-url";
 import { setActiveImageJobId } from "@/lib/workspace";
 
 type ResizeTab = "preset" | "custom" | "instructions" | "convert";
@@ -692,14 +694,19 @@ export function ImageResizerPanel({ activeJobId: externalJobId, embedded }: Imag
         <section className="rounded-lg border border-[#dfe3e8] bg-white">
           <div className="flex items-center justify-between gap-4 border-b border-[#dfe3e8] px-5 py-4">
             <h2 className="text-base font-semibold">Resize Results</h2>
-            <a
-              href={getProcessedImagesZipDownloadUrl(result.job_id)}
-              download={`${result.job_id}-resized-images.zip`}
+            <button
+              type="button"
+              onClick={() =>
+                downloadApiFile(
+                  getProcessedImagesZipDownloadUrl(result.job_id),
+                  `${result.job_id}-resized-images.zip`,
+                )
+              }
               className="inline-flex h-9 items-center gap-2 rounded-md border border-[#dfe3e8] px-3 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
             >
               <FileArchive aria-hidden="true" size={16} />
               Download ZIP
-            </a>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left text-sm">
@@ -734,15 +741,20 @@ export function ImageResizerPanel({ activeJobId: externalJobId, embedded }: Imag
                         >
                           <Eye aria-hidden="true" size={16} />
                         </button>
-                        <a
-                          href={getProcessedImageDownloadUrl(result.job_id, item.processed_filename)}
-                          download={item.processed_filename}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            downloadApiFile(
+                              getProcessedImageDownloadUrl(result.job_id, item.processed_filename),
+                              item.processed_filename,
+                            )
+                          }
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
                           aria-label={`Download ${item.processed_filename}`}
                           title={`Download ${item.processed_filename}`}
                         >
                           <Download aria-hidden="true" size={16} />
-                        </a>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -787,6 +799,7 @@ function ResizeResultDrawer({
   onClose: () => void;
 }) {
   const previewUrl = getProcessedImageDownloadUrl(jobId, result.processed_filename);
+  const previewObjectUrl = useAuthenticatedObjectUrl(previewUrl);
 
   return (
     <div className="fixed inset-0 z-50">
@@ -820,7 +833,7 @@ function ResizeResultDrawer({
             <div className="flex aspect-[16/10] items-center justify-center bg-[#eef2f6]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={previewUrl}
+                src={previewObjectUrl}
                 alt={`Preview of ${result.processed_filename}`}
                 className="h-full w-full object-contain"
               />
@@ -876,14 +889,14 @@ function ResizeResultDrawer({
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-[#dfe3e8] px-5 py-4">
-          <a
-            href={previewUrl}
-            download={result.processed_filename}
+          <button
+            type="button"
+            onClick={() => downloadApiFile(previewUrl, result.processed_filename)}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8]"
           >
             <Download aria-hidden="true" size={16} />
             Download
-          </a>
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -918,6 +931,7 @@ function CropReviewModal({
 }) {
   const item = cropReview.items.find((reviewItem) => reviewItem.needs_review) ?? cropReview.items[0];
   const previewUrl = getMetadataImageDownloadUrl(jobId, item.id);
+  const previewObjectUrl = useAuthenticatedObjectUrl(previewUrl);
   const activeFocusX = item.focus_x ?? focusX;
   const activeFocusY = item.focus_y ?? focusY;
   const objectPosition = `${Math.round(activeFocusX * 100)}% ${Math.round(activeFocusY * 100)}%`;
@@ -945,7 +959,7 @@ function CropReviewModal({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={previewUrl}
+                    src={previewObjectUrl}
               alt=""
               className="h-full w-full object-cover"
               style={{ objectPosition }}

@@ -11,6 +11,11 @@ class HealthResponse(BaseModel):
     app: str = Field(description="Application identifier.")
 
 
+class AuthUserResponse(BaseModel):
+    id: str = Field(description="Supabase authenticated user identifier.")
+    email: str | None = Field(default=None, description="Authenticated user's email address.")
+
+
 class SettingsResponse(BaseModel):
     ai_provider: str = Field(description="Configured AI provider for metadata workflows.")
     ollama_base_url: str = Field(description="Base URL for the local Ollama runtime.")
