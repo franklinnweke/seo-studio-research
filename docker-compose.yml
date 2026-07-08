@@ -15,6 +15,10 @@ services:
       SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS: ${SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS:-600}
       SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS: ${SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS:-120}
       SEO_STUDIO_AI_PREVIEW_MAX_WIDTH: ${SEO_STUDIO_AI_PREVIEW_MAX_WIDTH:-1024}
+      SEO_STUDIO_SUPABASE_URL: https://dzpyxhpmvqxhwwvztsgh.supabase.co
+      SEO_STUDIO_SUPABASE_JWT_ISSUER: https://dzpyxhpmvqxhwwvztsgh.supabase.co/auth/v1
+      SEO_STUDIO_SUPABASE_JWKS_URL: https://dzpyxhpmvqxhwwvztsgh.supabase.co/auth/v1/.well-known/jwks.json
+      SEO_STUDIO_SUPABASE_JWT_AUDIENCE: authenticated
     ports:
       - "11502:8000"
     volumes:
