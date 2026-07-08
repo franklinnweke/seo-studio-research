@@ -45,4 +45,8 @@ jobs:
           port: 99
           script: |-
             cd "${{ env.DEPLOY_PATH }}"
+            cat > frontend/.env.local <<'EOF'
+            NEXT_PUBLIC_SUPABASE_URL=https://dzpyxhpmvqxhwwvztsgh.supabase.co
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+            EOF
             docker compose up -d --build
