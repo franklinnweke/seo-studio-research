@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
+  Check,
   Download,
   Eye,
   FileText,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 
 import {
+  acceptAllImageMetadata,
+  acceptImageMetadata,
   downloadApiFile,
   generateImageMetadata,
   getApiErrorMessage,
@@ -26,8 +29,10 @@ import {
   getMetadataImageDownloadUrl,
   getSettings,
   regenerateImageMetadata,
+  updateImageMetadata,
   uploadBrandContext,
   type ImageMetadataListResponse,
+  type ImageMetadataResult,
 } from "@/lib/api";
 import { useAuthenticatedObjectUrl } from "@/hooks/use-authenticated-object-url";
 import { setActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
@@ -68,6 +73,13 @@ function resultToEdit(result: {
     alt_text: result.alt_text,
     caption: result.caption,
   };
+}
+
+function resultStatusTone(status?: ImageMetadataResult["status"]) {
+  if (status === "failed") return "bg-[#fff1f0] text-[#b42318]";
+  if (status === "accepted") return "bg-[#eef6f0] text-[#20744a]";
+  if (status === "needs_review") return "bg-[#fff6ed] text-[#b54708]";
+  return "bg-[#f2f4f7] text-[#475467]";
 }
 
 export type SeoMetadataPanelProps = {
@@ -194,8 +206,102 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
     },
   });
 
+  const saveMutation = useMutation({
+    mutationFn: ({ imageId, status }: { imageId: string; status?: "needs_review" | "accepted" }) => {
+      const edit = metadataEdits[imageId];
+      if (!edit) {
+        throw new Error("Nothing to save for this row.");
+      }
+      return updateImageMetadata(activeJobId, imageId, { ...edit, status });
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData(
+        ["image-metadata", activeJobId],
+        (current: ImageMetadataListResponse | undefined) => {
+          const results = current?.results ?? [];
+          const nextResults = results.filter((item) => item.id !== result.id);
+          return {
+            ...(current ?? {
+              job_id: activeJobId,
+              provider: settingsQuery.data?.ai_provider ?? "ollama",
+              model: `${settingsQuery.data?.vision_model ?? "qwen2.5vl:3b"} + ${
+                settingsQuery.data?.language_model ?? "qwen3.5"
+              }`,
+              vision_model: settingsQuery.data?.vision_model ?? "qwen2.5vl:3b",
+              language_model: settingsQuery.data?.language_model ?? "qwen3.5",
+            }),
+            results: [...nextResults, result],
+          };
+        },
+      );
+      setMetadataEdits((current) => ({
+        ...current,
+        [result.id]: resultToEdit(result),
+      }));
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ imageId, saveFirst }: { imageId: string; saveFirst: boolean }) => {
+      if (saveFirst) {
+        await saveMutation.mutateAsync({ imageId });
+      }
+      return acceptImageMetadata(activeJobId, imageId);
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData(
+        ["image-metadata", activeJobId],
+        (current: ImageMetadataListResponse | undefined) => {
+          const results = current?.results ?? [];
+          const nextResults = results.filter((item) => item.id !== result.id);
+          return {
+            ...(current ?? {
+              job_id: activeJobId,
+              provider: settingsQuery.data?.ai_provider ?? "ollama",
+              model: `${settingsQuery.data?.vision_model ?? "qwen2.5vl:3b"} + ${
+                settingsQuery.data?.language_model ?? "qwen3.5"
+              }`,
+              vision_model: settingsQuery.data?.vision_model ?? "qwen2.5vl:3b",
+              language_model: settingsQuery.data?.language_model ?? "qwen3.5",
+            }),
+            results: [...nextResults, result],
+          };
+        },
+      );
+      setMetadataEdits((current) => ({
+        ...current,
+        [result.id]: resultToEdit(result),
+      }));
+    },
+  });
+
+  const approveSelectedMutation = useMutation({
+    mutationFn: (imageIds: string[]) => acceptAllImageMetadata(activeJobId, imageIds),
+    onSuccess: (response) => {
+      queryClient.setQueryData(["image-metadata", activeJobId], response);
+      setMetadataEdits((current) => ({
+        ...current,
+        ...Object.fromEntries(response.results.map((result) => [result.id, resultToEdit(result)])),
+      }));
+    },
+  });
+
   const metadataById = useMemo(() => {
     return new Map((metadataQuery.data?.results ?? []).map((result) => [result.id, result]));
+  }, [metadataQuery.data]);
+
+  useEffect(() => {
+    const results = metadataQuery.data?.results ?? [];
+    if (results.length === 0) return;
+    setMetadataEdits((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        results.map((result) => [
+          result.id,
+          current[result.id] ?? resultToEdit(result),
+        ]),
+      ),
+    }));
   }, [metadataQuery.data]);
 
   const files = filesQuery.data?.files ?? [];
@@ -259,6 +365,17 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
     activeJobId && selectedExportIds.length > 0
       ? getImageMetadataZipDownloadUrl(activeJobId, selectedExportIds)
       : "";
+  const selectedApprovableIds = selectedExportIds.filter((imageId) => {
+    const result = metadataById.get(imageId);
+    return Boolean(result) && result?.status !== "failed";
+  });
+
+  const hasPendingMutation =
+    generateMutation.isPending ||
+    regenerateMutation.isPending ||
+    saveMutation.isPending ||
+    approveMutation.isPending ||
+    approveSelectedMutation.isPending;
 
   const toggleExportImage = (imageId: string) => {
     setSelectedExportImageIds((current) =>
@@ -270,6 +387,17 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
 
   const toggleAllExportImages = () => {
     setSelectedExportImageIds(allRowsSelected ? [] : rows.map(({ file }) => file.id));
+  };
+
+  const isRowDirty = (imageId: string) => {
+    const result = metadataById.get(imageId);
+    const edit = metadataEdits[imageId];
+    if (!result || !edit) return false;
+    return (
+      edit.suggested_filename !== result.suggested_filename ||
+      edit.alt_text !== result.alt_text ||
+      edit.caption !== result.caption
+    );
   };
 
   return (
@@ -492,6 +620,25 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                   )}
                   {someRowsSelected ? `Generate selected (${selectedExportIds.length})` : "Generate metadata"}
                 </button>
+                {rows.length > 0 ? (
+                  <button
+                    type="button"
+                    disabled={
+                      !someRowsSelected ||
+                      selectedApprovableIds.length !== selectedExportIds.length ||
+                      hasPendingMutation
+                    }
+                    onClick={() => approveSelectedMutation.mutate(selectedApprovableIds)}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:text-[#98a2b3]"
+                  >
+                    {approveSelectedMutation.isPending ? (
+                      <Loader2 aria-hidden="true" className="animate-spin" size={16} />
+                    ) : (
+                      <Check aria-hidden="true" size={16} />
+                    )}
+                    Approve selected
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -499,7 +646,10 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
           {filesQuery.isError ||
           metadataQuery.isError ||
           generateMutation.isError ||
-          regenerateMutation.isError ? (
+          regenerateMutation.isError ||
+          saveMutation.isError ||
+          approveMutation.isError ||
+          approveSelectedMutation.isError ? (
             <div className="m-5 flex items-start gap-2 rounded-md border border-[#f2b8b5] bg-[#fff5f5] p-3 text-sm text-[#b42318]">
               <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
               <span>
@@ -507,7 +657,10 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                   filesQuery.error ??
                     metadataQuery.error ??
                     generateMutation.error ??
-                    regenerateMutation.error,
+                    regenerateMutation.error ??
+                    saveMutation.error ??
+                    approveMutation.error ??
+                    approveSelectedMutation.error,
                 )}
               </span>
             </div>
@@ -595,13 +748,7 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`rounded-md px-2 py-1 text-xs font-medium ${
-                              result?.status === "failed"
-                                ? "bg-[#fff1f0] text-[#b42318]"
-                                : result
-                                  ? "bg-[#eef6f0] text-[#20744a]"
-                                  : "bg-[#f2f4f7] text-[#475467]"
-                            }`}
+                            className={`rounded-md px-2 py-1 text-xs font-medium ${resultStatusTone(result?.status)}`}
                           >
                             {result?.status ?? "pending"}
                           </span>
@@ -645,6 +792,21 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <RefreshCw aria-hidden="true" size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={!result || result.status === "failed" || hasPendingMutation}
+                              onClick={() =>
+                                approveMutation.mutate({
+                                  imageId: file.id,
+                                  saveFirst: isRowDirty(file.id),
+                                })
+                              }
+                              title={`Approve metadata for ${file.original_filename}`}
+                              aria-label={`Approve metadata for ${file.original_filename}`}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Check aria-hidden="true" size={16} />
                             </button>
                           </div>
                         </td>
@@ -797,6 +959,37 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 >
                   <Download aria-hidden="true" size={16} />
                   Download
+                </button>
+                <button
+                  type="button"
+                  disabled={hasPendingMutation || !selectedRow.result}
+                  onClick={() => saveMutation.mutate({ imageId: selectedRow.file.id })}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {saveMutation.isPending ? (
+                    <Loader2 aria-hidden="true" className="animate-spin" size={16} />
+                  ) : (
+                    <FileText aria-hidden="true" size={16} />
+                  )}
+                  Save
+                </button>
+                <button
+                  type="button"
+                  disabled={hasPendingMutation || !selectedRow.result || selectedRow.result.status === "failed"}
+                  onClick={() =>
+                    approveMutation.mutate({
+                      imageId: selectedRow.file.id,
+                      saveFirst: isRowDirty(selectedRow.file.id),
+                    })
+                  }
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {approveMutation.isPending ? (
+                    <Loader2 aria-hidden="true" className="animate-spin" size={16} />
+                  ) : (
+                    <Check aria-hidden="true" size={16} />
+                  )}
+                  Approve
                 </button>
                 <button
                   type="button"

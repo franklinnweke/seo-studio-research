@@ -262,7 +262,9 @@ class ImageMetadataResult(BaseModel):
     alt_text: str = Field(description="AI-generated image alt text.")
     caption: str = Field(description="AI-generated image caption.")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Model confidence from 0 to 1.")
-    status: Literal["needs_review", "failed"] = Field(description="Metadata generation status for this image.")
+    status: Literal["needs_review", "accepted", "failed"] = Field(
+        description="Metadata generation or review status for this image."
+    )
     error_message: str = Field(default="", description="Failure detail when status is failed.")
 
 
@@ -273,6 +275,35 @@ class ImageMetadataListResponse(BaseModel):
     vision_model: str = Field(default="", description="Vision model used to inspect image content.")
     language_model: str = Field(default="", description="Language model used to write metadata.")
     results: list[ImageMetadataResult] = Field(default_factory=list, description="Per-image metadata results.")
+
+
+class ImageMetadataUpdateRequest(BaseModel):
+    suggested_filename: str = Field(
+        min_length=1,
+        max_length=120,
+        description="Reviewed extension-free filename to persist for this image.",
+    )
+    alt_text: str = Field(
+        min_length=1,
+        max_length=500,
+        description="Reviewed alt text to persist for this image.",
+    )
+    caption: str = Field(
+        min_length=1,
+        max_length=500,
+        description="Reviewed caption to persist for this image.",
+    )
+    status: Literal["needs_review", "accepted"] | None = Field(
+        default=None,
+        description="Optional explicit review status to apply with the metadata update.",
+    )
+
+
+class ImageMetadataBulkAcceptRequest(BaseModel):
+    image_ids: list[str] = Field(
+        min_length=1,
+        description="One or more uploaded image file ids to mark as accepted.",
+    )
 
 
 class PageListResponse(BaseModel):

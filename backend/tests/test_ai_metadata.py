@@ -8,6 +8,7 @@ from PIL import Image
 
 from app.config import get_settings
 from app.main import app
+from app.schemas.responses import ImageMetadataBulkAcceptRequest, ImageMetadataUpdateRequest
 from app.services.ai_metadata_service import AiMetadataService
 
 
@@ -187,6 +188,128 @@ def test_generate_single_image_metadata_persists_failed_result() -> None:
     assert stored.results[0].status == "failed"
 
 
+def test_update_image_metadata_persists_reviewed_fields() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    service = AiMetadataService(
+        get_settings(),
+        client=FakeAiClient(
+            [
+                '{"filename":"Blue Hero Image","alt_text":"Blue square graphic.","caption":"A blue square graphic.","confidence":0.87}'
+            ]
+        ),
+    )
+
+    try:
+        service.generate_single_image_metadata(body["id"], file_id)
+        updated = service.update_image_metadata(
+            body["id"],
+            file_id,
+            request=ImageMetadataUpdateRequest(
+                suggested_filename="Reviewed Hero",
+                alt_text="Reviewed alt text.",
+                caption="Reviewed caption.",
+            ),
+        )
+        stored = service.list_image_metadata(body["id"])
+    finally:
+        cleanup_job(body["id"])
+
+    assert updated.suggested_filename == "reviewed-hero"
+    assert updated.alt_text == "Reviewed alt text."
+    assert updated.caption == "Reviewed caption."
+    assert stored.results[0].suggested_filename == "reviewed-hero"
+
+
+def test_updating_accepted_image_metadata_returns_row_to_review() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    service = AiMetadataService(
+        get_settings(),
+        client=FakeAiClient(
+            [
+                '{"filename":"Blue Hero Image","alt_text":"Blue square graphic.","caption":"A blue square graphic.","confidence":0.87}'
+            ]
+        ),
+    )
+
+    try:
+        service.generate_single_image_metadata(body["id"], file_id)
+        accepted = service.accept_image_metadata(body["id"], file_id)
+        updated = service.update_image_metadata(
+            body["id"],
+            file_id,
+            request=ImageMetadataUpdateRequest(
+                suggested_filename=accepted.suggested_filename,
+                alt_text="Updated alt text after approval.",
+                caption=accepted.caption,
+            ),
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert accepted.status == "accepted"
+    assert updated.status == "needs_review"
+
+
+def test_accept_image_metadata_persists_accepted_status() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    service = AiMetadataService(
+        get_settings(),
+        client=FakeAiClient(
+            [
+                '{"filename":"Blue Hero Image","alt_text":"Blue square graphic.","caption":"A blue square graphic.","confidence":0.87}'
+            ]
+        ),
+    )
+
+    try:
+        service.generate_single_image_metadata(body["id"], file_id)
+        accepted = service.accept_image_metadata(body["id"], file_id)
+        stored = service.list_image_metadata(body["id"])
+    finally:
+        cleanup_job(body["id"])
+
+    assert accepted.status == "accepted"
+    assert stored.results[0].status == "accepted"
+
+
+def test_accept_all_image_metadata_updates_only_requested_rows() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[
+            ("files", ("First Hero.png", make_image_bytes(), "image/png")),
+            ("files", ("Second Hero.png", make_image_bytes(), "image/png")),
+        ],
+    )
+    body = upload_response.json()
+    first_id = body["files"][0]["id"]
+    second_id = body["files"][1]["id"]
+    service = AiMetadataService(
+        get_settings(),
+        client=FakeAiClient(
+            [
+                '{"filename":"first-hero","alt_text":"First hero.","caption":"First caption.","confidence":0.8}',
+                '{"filename":"second-hero","alt_text":"Second hero.","caption":"Second caption.","confidence":0.8}',
+            ]
+        ),
+    )
+
+    try:
+        service.generate_all_image_metadata(body["id"])
+        response = service.accept_all_image_metadata(
+            body["id"],
+            request=ImageMetadataBulkAcceptRequest(image_ids=[first_id]),
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    results = {item.id: item for item in response.results}
+    assert results[first_id].status == "accepted"
+    assert results[second_id].status == "needs_review"
+
+
 def test_preview_image_respects_max_width() -> None:
     body = client.post(
         "/api/jobs/images",
@@ -215,6 +338,137 @@ def test_image_metadata_endpoint_returns_missing_image_404() -> None:
         cleanup_job(body["id"])
 
     assert response.status_code == 404
+
+
+def test_update_image_metadata_endpoint_persists_changes() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": file_id,
+                "original_filename": "Hero Image!!.png",
+                "suggested_filename": "hero-image",
+                "alt_text": "Original alt text.",
+                "caption": "Original caption.",
+                "confidence": 0.87,
+                "status": "needs_review",
+                "error_message": "",
+            }
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        response = client.patch(
+            f"/api/jobs/{body['id']}/images/{file_id}",
+            json={
+                "suggested_filename": "Reviewed Hero",
+                "alt_text": "Reviewed alt text.",
+                "caption": "Reviewed caption.",
+            },
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["suggested_filename"] == "reviewed-hero"
+    assert payload["status"] == "needs_review"
+
+
+def test_accept_image_metadata_endpoint_marks_row_accepted() -> None:
+    body = create_image_job()
+    file_id = body["files"][0]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": file_id,
+                "original_filename": "Hero Image!!.png",
+                "suggested_filename": "hero-image",
+                "alt_text": "Original alt text.",
+                "caption": "Original caption.",
+                "confidence": 0.87,
+                "status": "needs_review",
+                "error_message": "",
+            }
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        response = client.post(f"/api/jobs/{body['id']}/images/{file_id}/accept")
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "accepted"
+
+
+def test_accept_all_image_metadata_endpoint_marks_selected_rows_accepted() -> None:
+    upload_response = client.post(
+        "/api/jobs/images",
+        files=[
+            ("files", ("First Hero.png", make_image_bytes(), "image/png")),
+            ("files", ("Second Hero.png", make_image_bytes(), "image/png")),
+        ],
+    )
+    body = upload_response.json()
+    first_id = body["files"][0]["id"]
+    second_id = body["files"][1]["id"]
+    job_file = get_settings().storage_root / "uploads" / body["id"] / "job.json"
+    data = json.loads(job_file.read_text())
+    data["image_metadata"] = {
+        "job_id": body["id"],
+        "provider": "ollama",
+        "model": "moondream",
+        "results": [
+            {
+                "id": first_id,
+                "original_filename": "First Hero.png",
+                "suggested_filename": "first-hero",
+                "alt_text": "First alt text.",
+                "caption": "First caption.",
+                "confidence": 0.87,
+                "status": "needs_review",
+                "error_message": "",
+            },
+            {
+                "id": second_id,
+                "original_filename": "Second Hero.png",
+                "suggested_filename": "second-hero",
+                "alt_text": "Second alt text.",
+                "caption": "Second caption.",
+                "confidence": 0.77,
+                "status": "needs_review",
+                "error_message": "",
+            },
+        ],
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+    try:
+        response = client.post(
+            f"/api/jobs/{body['id']}/images/accept-all",
+            json={"image_ids": [first_id]},
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.status_code == 200
+    results = {item["id"]: item for item in response.json()["results"]}
+    assert results[first_id]["status"] == "accepted"
+    assert results[second_id]["status"] == "needs_review"
 
 
 def test_image_metadata_csv_export_includes_selected_seo_fields() -> None:

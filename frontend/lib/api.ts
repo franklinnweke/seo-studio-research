@@ -180,7 +180,7 @@ export type ImageMetadataResult = {
   alt_text: string;
   caption: string;
   confidence: number;
-  status: "needs_review" | "failed";
+  status: "needs_review" | "accepted" | "failed";
   error_message: string;
 };
 
@@ -191,6 +191,13 @@ export type ImageMetadataListResponse = {
   vision_model: string;
   language_model: string;
   results: ImageMetadataResult[];
+};
+
+export type ImageMetadataUpdateRequest = {
+  suggested_filename: string;
+  alt_text: string;
+  caption: string;
+  status?: "needs_review" | "accepted";
 };
 
 export async function getHealth(): Promise<HealthResponse> {
@@ -390,6 +397,39 @@ export async function regenerateImageMetadata(
 ): Promise<ImageMetadataResult> {
   const response = await apiClient.post<ImageMetadataResult>(
     `/api/jobs/${jobId}/images/${imageId}/metadata`,
+  );
+  return response.data;
+}
+
+export async function updateImageMetadata(
+  jobId: string,
+  imageId: string,
+  payload: ImageMetadataUpdateRequest,
+): Promise<ImageMetadataResult> {
+  const response = await apiClient.patch<ImageMetadataResult>(
+    `/api/jobs/${jobId}/images/${imageId}`,
+    payload,
+  );
+  return response.data;
+}
+
+export async function acceptImageMetadata(
+  jobId: string,
+  imageId: string,
+): Promise<ImageMetadataResult> {
+  const response = await apiClient.post<ImageMetadataResult>(
+    `/api/jobs/${jobId}/images/${imageId}/accept`,
+  );
+  return response.data;
+}
+
+export async function acceptAllImageMetadata(
+  jobId: string,
+  imageIds: string[],
+): Promise<ImageMetadataListResponse> {
+  const response = await apiClient.post<ImageMetadataListResponse>(
+    `/api/jobs/${jobId}/images/accept-all`,
+    { image_ids: imageIds },
   );
   return response.data;
 }

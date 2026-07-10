@@ -21,7 +21,13 @@ from app.ai.prompts import (
     IMAGE_METADATA_RETRY_PROMPT,
 )
 from app.config import Settings
-from app.schemas.responses import ImageMetadataListResponse, ImageMetadataResult, ImageUploadFileRecord
+from app.schemas.responses import (
+    ImageMetadataBulkAcceptRequest,
+    ImageMetadataListResponse,
+    ImageMetadataResult,
+    ImageMetadataUpdateRequest,
+    ImageUploadFileRecord,
+)
 from app.services.image_upload_service import ImageUploadService
 from app.utils.file_utils import dedupe_filename, sanitize_filename
 from app.utils.slugify import slugify
@@ -218,6 +224,60 @@ class AiMetadataService:
             )
         )
         return result
+
+    def update_image_metadata(
+        self,
+        job_id: str,
+        image_id: str,
+        request: ImageMetadataUpdateRequest,
+    ) -> ImageMetadataResult:
+        self.upload_service.read_job(job_id)
+        current = self.list_image_metadata(job_id)
+        current_result = self._result_by_id(current, image_id)
+        next_result = self._merge_review_update(current_result, request)
+        self._replace_metadata_result(job_id, current, next_result)
+        return next_result
+
+    def accept_image_metadata(self, job_id: str, image_id: str) -> ImageMetadataResult:
+        self.upload_service.read_job(job_id)
+        current = self.list_image_metadata(job_id)
+        current_result = self._result_by_id(current, image_id)
+        next_result = self._accepted_result(current_result)
+        self._replace_metadata_result(job_id, current, next_result)
+        return next_result
+
+    def accept_all_image_metadata(
+        self,
+        job_id: str,
+        request: ImageMetadataBulkAcceptRequest,
+    ) -> ImageMetadataListResponse:
+        self.upload_service.read_job(job_id)
+        current = self.list_image_metadata(job_id)
+        requested_ids = list(dict.fromkeys(request.image_ids))
+        missing_ids = [
+            image_id for image_id in requested_ids if not any(result.id == image_id for result in current.results)
+        ]
+        if missing_ids:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Metadata result(s) not found: {', '.join(missing_ids)}",
+            )
+
+        accepted_ids = set(requested_ids)
+        next_results = [
+            self._accepted_result(result) if result.id in accepted_ids else result
+            for result in current.results
+        ]
+        response = ImageMetadataListResponse(
+            job_id=current.job_id,
+            provider=current.provider,
+            model=current.model,
+            vision_model=current.vision_model,
+            language_model=current.language_model,
+            results=next_results,
+        )
+        self._write_metadata_response(response)
+        return response
 
     def _generate_for_file(
         self,
@@ -537,6 +597,111 @@ Required JSON shape:
             confidence=0.0,
             status="failed",
             error_message=self._public_error_message(exc),
+        )
+
+    def _result_by_id(self, response: ImageMetadataListResponse, image_id: str) -> ImageMetadataResult:
+        for result in response.results:
+            if result.id == image_id:
+                return result
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Metadata result not found for this image.",
+        )
+
+    def _replace_metadata_result(
+        self,
+        job_id: str,
+        current: ImageMetadataListResponse,
+        next_result: ImageMetadataResult,
+    ) -> None:
+        replaced = False
+        next_results: list[ImageMetadataResult] = []
+        for result in current.results:
+            if result.id == next_result.id:
+                next_results.append(next_result)
+                replaced = True
+            else:
+                next_results.append(result)
+        if not replaced:
+            next_results.append(next_result)
+        self._write_metadata_response(
+            ImageMetadataListResponse(
+                job_id=job_id,
+                provider=current.provider,
+                model=current.model,
+                vision_model=current.vision_model,
+                language_model=current.language_model,
+                results=next_results,
+            )
+        )
+
+    def _merge_review_update(
+        self,
+        current_result: ImageMetadataResult,
+        request: ImageMetadataUpdateRequest,
+    ) -> ImageMetadataResult:
+        suggested_filename = slugify(request.suggested_filename)
+        alt_text = request.alt_text.strip()
+        caption = request.caption.strip()
+        if not suggested_filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Suggested filename must contain letters or numbers after sanitization.",
+            )
+        if not alt_text:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Alt text cannot be empty.",
+            )
+        if not caption:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Caption cannot be empty.",
+            )
+
+        changed = any(
+            [
+                suggested_filename != current_result.suggested_filename,
+                alt_text != current_result.alt_text,
+                caption != current_result.caption,
+            ]
+        )
+        next_status = request.status or current_result.status
+        if request.status is None and changed and current_result.status in {"accepted", "failed"}:
+            next_status = "needs_review"
+
+        return ImageMetadataResult(
+            id=current_result.id,
+            original_filename=current_result.original_filename,
+            suggested_filename=suggested_filename,
+            alt_text=alt_text,
+            caption=caption,
+            confidence=current_result.confidence,
+            status=next_status,
+            error_message="" if next_status != "failed" else current_result.error_message,
+        )
+
+    def _accepted_result(self, current_result: ImageMetadataResult) -> ImageMetadataResult:
+        if current_result.status == "failed":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed metadata rows must be regenerated or edited before approval.",
+            )
+        if not current_result.suggested_filename.strip() or not current_result.alt_text.strip() or not current_result.caption.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Filename, alt text, and caption are required before approval.",
+            )
+
+        return ImageMetadataResult(
+            id=current_result.id,
+            original_filename=current_result.original_filename,
+            suggested_filename=current_result.suggested_filename,
+            alt_text=current_result.alt_text,
+            caption=current_result.caption,
+            confidence=current_result.confidence,
+            status="accepted",
+            error_message="",
         )
 
     def _response_from_job_data(self, job_id: str, data: dict[str, Any]) -> ImageMetadataListResponse:

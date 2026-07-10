@@ -11,8 +11,10 @@ from app.schemas.responses import (
     ImageCompressionResponse,
     ImageCompressionSettings,
     ImageJobCreateResponse,
+    ImageMetadataBulkAcceptRequest,
     ImageMetadataListResponse,
     ImageMetadataResult,
+    ImageMetadataUpdateRequest,
     JobFileListResponse,
     JobStatusResponse,
     ResizeInstructionRequest,
@@ -353,6 +355,77 @@ def generate_single_image_metadata(
     service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
 ) -> ImageMetadataResult:
     return service.generate_single_image_metadata(job_id, image_id)
+
+
+@router.patch(
+    "/{job_id}/images/{image_id}",
+    response_model=ImageMetadataResult,
+    summary="Persist reviewed AI metadata for one image",
+    description=(
+        "Saves reviewed filename, alt text, and caption values for a single metadata row. "
+        "When an already accepted row is edited without explicitly re-approving it, the row "
+        "returns to `needs_review` so final exports reflect reviewed state."
+    ),
+    responses={
+        400: {"description": "Reviewed metadata is invalid after sanitization."},
+        404: {"description": "Job, image file, or metadata row not found."},
+    },
+)
+def update_single_image_metadata(
+    job_id: str,
+    image_id: str,
+    request: Annotated[
+        ImageMetadataUpdateRequest,
+        Body(description="Reviewed metadata values to persist for the selected image row."),
+    ],
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageMetadataResult:
+    return service.update_image_metadata(job_id, image_id, request)
+
+
+@router.post(
+    "/{job_id}/images/{image_id}/accept",
+    response_model=ImageMetadataResult,
+    summary="Approve one metadata row",
+    description=(
+        "Marks one persisted metadata row as accepted. Approval requires a non-empty filename, "
+        "alt text, and caption."
+    ),
+    responses={
+        400: {"description": "The row cannot be approved in its current state."},
+        404: {"description": "Job, image file, or metadata row not found."},
+    },
+)
+def accept_single_image_metadata(
+    job_id: str,
+    image_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageMetadataResult:
+    return service.accept_image_metadata(job_id, image_id)
+
+
+@router.post(
+    "/{job_id}/images/accept-all",
+    response_model=ImageMetadataListResponse,
+    summary="Approve multiple metadata rows",
+    description=(
+        "Marks multiple persisted metadata rows as accepted. The request body contains the uploaded "
+        "image ids to approve."
+    ),
+    responses={
+        400: {"description": "One or more rows cannot be approved in their current state."},
+        404: {"description": "Job or one or more metadata rows were not found."},
+    },
+)
+def accept_all_image_metadata(
+    job_id: str,
+    request: Annotated[
+        ImageMetadataBulkAcceptRequest,
+        Body(description="Uploaded image file ids whose metadata rows should be marked accepted."),
+    ],
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageMetadataListResponse:
+    return service.accept_all_image_metadata(job_id, request)
 
 
 @router.get(
