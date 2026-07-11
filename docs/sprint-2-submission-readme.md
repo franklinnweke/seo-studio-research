@@ -123,6 +123,6 @@ docs/sprint-milestone-plan.md
 
 - Frontend dev server should be run with Node LTS; Node 26 caused a Turbopack compile hang locally.
 - AI metadata quality depends on the local Ollama model setup.
-- Metadata edits in the UI are local until persisted approval/update endpoints are implemented.
+- Metadata edits and approvals are persisted through the Sprint 2 review workflow.
 - Website crawler and broken-link tools are still Sprint 3+ work.
 - The dashboard workflow refinement is included in the final `main` branch state packaged for submission.
