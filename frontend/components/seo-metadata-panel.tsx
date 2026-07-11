@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -288,20 +288,6 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
 
   const metadataById = useMemo(() => {
     return new Map((metadataQuery.data?.results ?? []).map((result) => [result.id, result]));
-  }, [metadataQuery.data]);
-
-  useEffect(() => {
-    const results = metadataQuery.data?.results ?? [];
-    if (results.length === 0) return;
-    setMetadataEdits((current) => ({
-      ...current,
-      ...Object.fromEntries(
-        results.map((result) => [
-          result.id,
-          current[result.id] ?? resultToEdit(result),
-        ]),
-      ),
-    }));
   }, [metadataQuery.data]);
 
   const files = filesQuery.data?.files ?? [];

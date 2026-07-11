@@ -12,7 +12,7 @@ Sprint 2 focused on improving the image workflow after the Sprint 1 optimizer fo
 - Brand context upload for TXT, DOCX, and PDF files.
 - SEO metadata review UI with regenerate, preview, download, and export workflows.
 - CSV/ZIP metadata export support.
-- Dashboard workflow refinement on the `dashboard-flow` branch.
+- Dashboard workflow refinement now present on `main` after the latest remote update.
 - Documentation and sprint task/status tracking for rubric evidence.
 
 ## How To Run Locally
@@ -103,7 +103,7 @@ Without Ollama, image upload, compression, conversion, resizing, API docs, and b
 
 ```text
 Backend tests: cd backend && .venv/bin/pytest
-Result: 53 passed
+Result: 62 passed
 
 Frontend lint: cd frontend && npm run lint
 Result: passed
@@ -125,4 +125,4 @@ docs/sprint-milestone-plan.md
 - AI metadata quality depends on the local Ollama model setup.
 - Metadata edits in the UI are local until persisted approval/update endpoints are implemented.
 - Website crawler and broken-link tools are still Sprint 3+ work.
-- The dashboard workflow refinement is on branch `dashboard-flow` at commit `8964313`; merge it before the final live demo if that dashboard should be part of the runnable main branch.
+- The dashboard workflow refinement is included in the final `main` branch state packaged for submission.

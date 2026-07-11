@@ -9,7 +9,6 @@ export function useAuthenticatedObjectUrl(url: string) {
 
   useEffect(() => {
     if (!url) {
-      setObjectUrl("");
       return;
     }
 
@@ -35,5 +34,5 @@ export function useAuthenticatedObjectUrl(url: string) {
     };
   }, [url]);
 
-  return objectUrl;
+  return url ? objectUrl : "";
 }
