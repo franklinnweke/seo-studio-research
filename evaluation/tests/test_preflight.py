@@ -44,7 +44,7 @@ def test_offline_preflight_validates_hashes_and_reports_unfrozen_models(tmp_path
 
 def test_offline_preflight_fails_after_dataset_tampering(tmp_path: Path) -> None:
     config_path = copy_evaluation_fixture(tmp_path, "contract.toml")
-    (tmp_path / "dataset" / "fixtures" / "solid-blue.ppm").write_text("tampered")
+    (tmp_path / "dataset" / "fixtures" / "solid-blue.png").write_text("tampered")
 
     summary, _ = run_preflight(config_path)
 
