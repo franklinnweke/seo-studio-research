@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from app.config import Settings, get_settings
 from app.schemas.responses import (
     AiCropSuggestionRequest,
+    ApiErrorResponse,
     BrandContextResponse,
     CropReviewResponse,
     ImageCompressionResponse,
@@ -198,7 +199,10 @@ def read_image_context(
         "complex-image description state, and optional AI suggestion evidence."
     ),
     responses={
-        400: {"description": "Purpose confirmation or suggestion evidence is inconsistent."},
+        400: {
+            "model": ApiErrorResponse,
+            "description": "Purpose confirmation or suggestion evidence is inconsistent.",
+        },
         404: {"description": "Job or image file not found."},
     },
 )
@@ -456,7 +460,10 @@ def generate_single_image_metadata(
         "returns to `needs_review` so final exports reflect reviewed state."
     ),
     responses={
-        400: {"description": "Reviewed metadata is invalid after sanitization."},
+        400: {
+            "model": ApiErrorResponse,
+            "description": "Reviewed metadata or its confirmed purpose is invalid.",
+        },
         404: {"description": "Job, image file, or metadata row not found."},
     },
 )
@@ -481,7 +488,10 @@ def update_single_image_metadata(
         "alt text, and caption."
     ),
     responses={
-        400: {"description": "The row cannot be approved in its current state."},
+        400: {
+            "model": ApiErrorResponse,
+            "description": "The row cannot be approved in its current purpose-aware state.",
+        },
         404: {"description": "Job, image file, or metadata row not found."},
     },
 )

@@ -1,0 +1,1 @@
+Suggest an image-purpose category from informative, decorative, functional, text, complex, redundant, or unknown. The suggestion must be human-confirmed before approval.

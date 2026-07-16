@@ -1,0 +1,54 @@
+{
+  "properties": {
+    "blinded_condition_id": {
+      "title": "Blinded Condition Id",
+      "type": "string"
+    },
+    "completeness_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Completeness Score",
+      "type": "integer"
+    },
+    "contextual_usefulness_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Contextual Usefulness Score",
+      "type": "integer"
+    },
+    "item_id": {
+      "title": "Item Id",
+      "type": "string"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    },
+    "reviewer_alias": {
+      "title": "Reviewer Alias",
+      "type": "string"
+    },
+    "supported_claims": {
+      "minimum": 0,
+      "title": "Supported Claims",
+      "type": "integer"
+    },
+    "unsupported_claims": {
+      "minimum": 0,
+      "title": "Unsupported Claims",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "item_id",
+    "blinded_condition_id",
+    "reviewer_alias",
+    "supported_claims",
+    "unsupported_claims",
+    "completeness_score",
+    "contextual_usefulness_score"
+  ],
+  "title": "AnnotationRecord",
+  "type": "object"
+}

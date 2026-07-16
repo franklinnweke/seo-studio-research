@@ -174,9 +174,14 @@ def test_image_context_rejects_inconsistent_confirmation_evidence() -> None:
         cleanup_job(body["id"])
 
     assert unknown_response.status_code == 400
-    assert "Unknown image purpose" in unknown_response.json()["detail"]
+    assert unknown_response.json()["code"] == "CONTEXT_VALIDATION_FAILED"
+    assert "Unknown image purpose" in unknown_response.json()["message"]
+    assert unknown_response.json()["field"] == "purpose_confirmed"
+    assert unknown_response.json()["retryable"] is False
+    assert unknown_response.json()["request_id"] == unknown_response.headers["x-request-id"]
     assert confidence_response.status_code == 400
-    assert "suggested purpose" in confidence_response.json()["detail"]
+    assert "suggested purpose" in confidence_response.json()["message"]
+    assert confidence_response.json()["field"] == "purpose_confidence"
 
 
 @pytest.mark.parametrize(

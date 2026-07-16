@@ -1,0 +1,53 @@
+{
+  "properties": {
+    "forbidden_inferences_observed": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden Inferences Observed",
+      "type": "array"
+    },
+    "objects": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Objects",
+      "type": "array"
+    },
+    "people": {
+      "items": {
+        "type": "string"
+      },
+      "title": "People",
+      "type": "array"
+    },
+    "setting": {
+      "default": "",
+      "title": "Setting",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "uncertain_facts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Uncertain Facts",
+      "type": "array"
+    },
+    "visible_text": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Visible Text",
+      "type": "array"
+    }
+  },
+  "required": [
+    "summary"
+  ],
+  "title": "VisualFactsPayload",
+  "type": "object"
+}

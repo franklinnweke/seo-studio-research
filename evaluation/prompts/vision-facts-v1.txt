@@ -1,0 +1,1 @@
+Report only visible image evidence using the visual-facts schema. Do not infer identity, diagnosis, intent, brand claims, or facts supplied only by page or brand context.

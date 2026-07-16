@@ -1,0 +1,392 @@
+{
+  "$defs": {
+    "ErrorEvidence": {
+      "properties": {
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "category",
+        "message"
+      ],
+      "title": "ErrorEvidence",
+      "type": "object"
+    },
+    "InputEvidence": {
+      "properties": {
+        "brand_profile_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Brand Profile Sha256",
+          "type": "string"
+        },
+        "dataset_stratum": {
+          "title": "Dataset Stratum",
+          "type": "string"
+        },
+        "image_id": {
+          "title": "Image Id",
+          "type": "string"
+        },
+        "image_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Image Sha256",
+          "type": "string"
+        },
+        "page_context_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Page Context Sha256",
+          "type": "string"
+        },
+        "purpose": {
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_id",
+        "image_sha256",
+        "dataset_stratum",
+        "purpose",
+        "page_context_sha256",
+        "brand_profile_sha256"
+      ],
+      "title": "InputEvidence",
+      "type": "object"
+    },
+    "ModelIdentity": {
+      "properties": {
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "family": {
+          "title": "Family",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "license": {
+          "title": "License",
+          "type": "string"
+        },
+        "ollama_name": {
+          "title": "Ollama Name",
+          "type": "string"
+        },
+        "parameters": {
+          "title": "Parameters",
+          "type": "string"
+        },
+        "quantization": {
+          "title": "Quantization",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "ollama_name",
+        "digest",
+        "family",
+        "parameters",
+        "quantization",
+        "license"
+      ],
+      "title": "ModelIdentity",
+      "type": "object"
+    },
+    "PromptEvidence": {
+      "properties": {
+        "prompt_id": {
+          "title": "Prompt Id",
+          "type": "string"
+        },
+        "prompt_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Prompt Sha256",
+          "type": "string"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "system_prompt_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "System Prompt Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt_id",
+        "prompt_sha256",
+        "schema_sha256",
+        "system_prompt_sha256"
+      ],
+      "title": "PromptEvidence",
+      "type": "object"
+    },
+    "TelemetryEvidence": {
+      "properties": {
+        "eval_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Eval Count",
+          "type": "integer"
+        },
+        "eval_duration_ns": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Eval Duration Ns",
+          "type": "integer"
+        },
+        "load_duration_ns": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Load Duration Ns",
+          "type": "integer"
+        },
+        "prompt_eval_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Prompt Eval Count",
+          "type": "integer"
+        },
+        "prompt_eval_duration_ns": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Prompt Eval Duration Ns",
+          "type": "integer"
+        },
+        "total_duration_ns": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Duration Ns",
+          "type": "integer"
+        },
+        "wall_duration_ms": {
+          "minimum": 0,
+          "title": "Wall Duration Ms",
+          "type": "number"
+        }
+      },
+      "required": [
+        "wall_duration_ms"
+      ],
+      "title": "TelemetryEvidence",
+      "type": "object"
+    },
+    "ValidationEvidence": {
+      "properties": {
+        "errors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "valid"
+      ],
+      "title": "ValidationEvidence",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "attempt_id": {
+      "title": "Attempt Id",
+      "type": "string"
+    },
+    "dirty_worktree": {
+      "title": "Dirty Worktree",
+      "type": "boolean"
+    },
+    "done_reason": {
+      "default": "",
+      "title": "Done Reason",
+      "type": "string"
+    },
+    "ended_at": {
+      "format": "date-time",
+      "title": "Ended At",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ErrorEvidence"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "experiment_id": {
+      "title": "Experiment Id",
+      "type": "string"
+    },
+    "generation_options": {
+      "additionalProperties": true,
+      "title": "Generation Options",
+      "type": "object"
+    },
+    "git_commit": {
+      "title": "Git Commit",
+      "type": "string"
+    },
+    "http_status": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Http Status"
+    },
+    "input": {
+      "$ref": "#/$defs/InputEvidence"
+    },
+    "model": {
+      "$ref": "#/$defs/ModelIdentity"
+    },
+    "normalization_version": {
+      "title": "Normalization Version",
+      "type": "string"
+    },
+    "ollama_version": {
+      "title": "Ollama Version",
+      "type": "string"
+    },
+    "parsed_payload": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parsed Payload"
+    },
+    "parser_version": {
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "prompt": {
+      "$ref": "#/$defs/PromptEvidence"
+    },
+    "protocol_version": {
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "randomization_block": {
+      "title": "Randomization Block",
+      "type": "string"
+    },
+    "raw_response": {
+      "additionalProperties": true,
+      "title": "Raw Response",
+      "type": "object"
+    },
+    "record_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Record Version",
+      "type": "integer"
+    },
+    "repeat": {
+      "minimum": 1,
+      "title": "Repeat",
+      "type": "integer"
+    },
+    "retry_count": {
+      "const": 0,
+      "default": 0,
+      "title": "Retry Count",
+      "type": "integer"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "sanitized_request": {
+      "additionalProperties": true,
+      "title": "Sanitized Request",
+      "type": "object"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "system_snapshot_ref": {
+      "title": "System Snapshot Ref",
+      "type": "string"
+    },
+    "telemetry": {
+      "$ref": "#/$defs/TelemetryEvidence"
+    },
+    "thinking_mode": {
+      "enum": [
+        "disabled",
+        "enabled"
+      ],
+      "title": "Thinking Mode",
+      "type": "string"
+    },
+    "validation": {
+      "$ref": "#/$defs/ValidationEvidence"
+    }
+  },
+  "required": [
+    "experiment_id",
+    "protocol_version",
+    "run_id",
+    "attempt_id",
+    "repeat",
+    "randomization_block",
+    "started_at",
+    "ended_at",
+    "git_commit",
+    "dirty_worktree",
+    "ollama_version",
+    "system_snapshot_ref",
+    "model",
+    "input",
+    "prompt",
+    "generation_options",
+    "thinking_mode",
+    "sanitized_request",
+    "raw_response",
+    "validation",
+    "telemetry",
+    "parser_version",
+    "normalization_version"
+  ],
+  "title": "RunRecord",
+  "type": "object"
+}

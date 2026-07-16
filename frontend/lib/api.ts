@@ -31,6 +31,14 @@ export type HealthResponse = {
   app: string;
 };
 
+export type ApiErrorResponse = {
+  code: string;
+  message: string;
+  field: string | null;
+  retryable: boolean;
+  request_id: string;
+};
+
 export type AiModelReadiness = {
   role: "vision" | "language";
   model: string;
@@ -568,6 +576,11 @@ function getAxiosErrorMessage(error: AxiosError): string {
   }
 
   const data = error.response?.data;
+
+  if (typeof data === "object" && data !== null && "message" in data) {
+    const message = (data as { message: unknown }).message;
+    if (typeof message === "string") return message;
+  }
 
   if (typeof data === "object" && data !== null && "detail" in data) {
     const detail = (data as { detail: unknown }).detail;

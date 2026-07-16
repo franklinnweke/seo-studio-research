@@ -43,6 +43,9 @@ backend/.coverage
 backend/htmlcov/
 backend/**/__pycache__/
 backend/**/*.py[cod]
+evaluation/**/__pycache__/
+evaluation/**/*.py[cod]
+evaluation/.pytest_cache/
 
 # Backend local runtime storage
 backend/app/storage/uploads/*

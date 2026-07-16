@@ -14,6 +14,14 @@ class HealthResponse(BaseModel):
     app: str = Field(description="Application identifier.")
 
 
+class ApiErrorResponse(BaseModel):
+    code: str = Field(description="Stable machine-readable error category.")
+    message: str = Field(description="Safe human-readable error message.")
+    field: str | None = Field(default=None, description="Related request or persisted field when applicable.")
+    retryable: bool = Field(description="Whether repeating the same operation may succeed without changing input.")
+    request_id: str = Field(description="Correlation identifier returned in the response header and body.")
+
+
 AiHealthStatus = Literal["ready", "degraded", "unavailable"]
 
 

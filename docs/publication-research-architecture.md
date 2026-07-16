@@ -198,7 +198,8 @@ flowchart LR
 
 Verified July 16, 2026 on the research branch:
 
-- backend test suite: 87 passing after the first A2 context-contract slice;
+- backend test suite: 89 passing after the A2 error-contract slice;
+- offline evaluation harness: 7 passing tests plus a successful canonical synthetic pilot preflight with five declared candidates and explicit non-frozen/license/digest warnings;
 - frontend lint: passing;
 - frontend production build: passing with Next.js 16.2.6;
 - `git diff --check`: passing for the A0 changes;
@@ -211,7 +212,8 @@ Verified July 16, 2026 on the research branch:
 - the listener was reported on all interfaces, but firewall rules and external reachability were not verified. Gate 1 therefore remains open and the deployment must not yet be described as securely private;
 - ordinary `nvidia-smi` did not communicate with the NVIDIA driver in this session. This does not by itself establish a driver fault on a unified-memory DGX Spark; the supported DGX telemetry path still needs confirmation.
 - first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
-- first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested. The frontend context-review UI, stable top-level API error contract, purpose suggestion, and evaluation harness remain pending.
+- first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested. The frontend context-review UI and purpose suggestion remain pending.
+- second A2 slice: sanitized request-ID middleware, top-level context/purpose error responses, offline study/model configuration validation, path containment, dataset/license/hash preflight, append-only run records, no-hidden-retry fake transport, machine-readable CLI summaries, exported JSON schemas, and synthetic fixtures are implemented. Live Ollama/DGX preflight, the 20-image pilot set, blinding, normalization, and reporting commands remain pending.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
 
@@ -1959,11 +1961,11 @@ Not permitted during the deferral:
 
 ### P1: research harness minimum
 
-- [ ] Create evaluation package and CLI.
-- [ ] Implement system/model preflight and digest locking.
-- [ ] Implement immutable raw run records.
-- [ ] Implement prompt/image/context hashing.
-- [ ] Implement pilot configuration and 20-image pilot set.
+- [x] Create the offline evaluation package and initial `preflight`/`validate` CLI commands.
+- [ ] Extend offline preflight into live system/model preflight and digest locking through `$davneet-dgx-access`.
+- [x] Implement append-only immutable attempt records and schema validation.
+- [x] Implement canonical prompt/image/context/config hashing utilities and dataset hash verification.
+- [ ] Expand the validated synthetic pilot configuration from one contract fixture to the licensed 20-image pilot set.
 - [ ] Implement blinded reviewer package.
 - [ ] Implement normalized run-accounting report.
 
@@ -2040,9 +2042,9 @@ The three most important research controls are protocol freeze, immutable raw re
 
 ### 31.1 Current implementation assignment
 
-Work package A0 and the safe A1 code slice are implemented on `codex/research-context-aware-metadata`. The first A2 context-contract slice is also implemented: schema versioning, legacy defaults, page/image context endpoints, seven-state purpose confirmation, purpose-aware empty-alt approval, frontend API types, and regenerated OpenAPI. Network verification remains explicitly deferred and Gate 1 remains open.
+Work package A0, the safe A1 code slice, and the A2 backend/harness foundation are implemented on `codex/research-context-aware-metadata`. A2 now includes schema versioning, context endpoints, purpose-aware approval, stable research-facing errors, frontend contracts, offline preflight, hashing, append-only records, fake-transport execution, exported schemas, and regenerated OpenAPI. Network verification remains explicitly deferred and Gate 1 remains open.
 
-The next agent finishes the remaining safe A2 implementation—stable error contracts and the evaluation harness skeleton—without treating the network deferral as a passed security gate:
+The next agent begins A3 structured visual facts and provenance while extending the harness incrementally, without treating the network deferral as a passed security gate:
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.

@@ -1,0 +1,1 @@
+Write metadata from separately labelled visual facts, page context, brand terminology, and human-confirmed image purpose. Never convert contextual claims into visible facts.

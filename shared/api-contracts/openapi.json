@@ -126,6 +126,50 @@
         "title": "AiModelReadiness",
         "type": "object"
       },
+      "ApiErrorResponse": {
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable error category.",
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Related request or persisted field when applicable.",
+            "title": "Field"
+          },
+          "message": {
+            "description": "Safe human-readable error message.",
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Correlation identifier returned in the response header and body.",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "retryable": {
+            "description": "Whether repeating the same operation may succeed without changing input.",
+            "title": "Retryable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable",
+          "request_id"
+        ],
+        "title": "ApiErrorResponse",
+        "type": "object"
+      },
       "AuthUserResponse": {
         "properties": {
           "email": {
@@ -2603,7 +2647,14 @@
             "description": "Successful Response"
           },
           "400": {
-            "description": "Reviewed metadata is invalid after sanitization."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Reviewed metadata or its confirmed purpose is invalid."
           },
           "404": {
             "description": "Job, image file, or metadata row not found."
@@ -2666,7 +2717,14 @@
             "description": "Successful Response"
           },
           "400": {
-            "description": "The row cannot be approved in its current state."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "The row cannot be approved in its current purpose-aware state."
           },
           "404": {
             "description": "Job, image file, or metadata row not found."
@@ -2798,6 +2856,13 @@
             "description": "Successful Response"
           },
           "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
             "description": "Purpose confirmation or suggestion evidence is inconsistent."
           },
           "404": {

@@ -1,11 +1,16 @@
+from collections.abc import Awaitable, Callable
 import logging
 from pathlib import Path
+import re
+from uuid import uuid4
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 
 from app.auth import require_authenticated_user
 from app.config import get_cors_origins, get_settings
+from app.errors import ApiError
 from app.routes import ai_health, auth, exports, image_jobs, settings, website_jobs
 from app.schemas.responses import HealthResponse
 
@@ -50,6 +55,8 @@ Auth for dashboard access. Long-running worker queues and persistent job
 databases are intentionally deferred until beta readiness.
 """
 
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
 
 def configure_logging() -> None:
     logging.basicConfig(
@@ -83,9 +90,31 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=get_cors_origins(app_settings),
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization", "Accept"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Request-ID"],
+        expose_headers=["X-Request-ID"],
     )
+
+    @app.middleware("http")
+    async def add_request_id(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        supplied_request_id = request.headers.get("X-Request-ID", "")
+        request_id = (
+            supplied_request_id
+            if REQUEST_ID_PATTERN.fullmatch(supplied_request_id)
+            else f"req_{uuid4().hex}"
+        )
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+    @app.exception_handler(ApiError)
+    async def api_error_handler(request: Request, exc: ApiError) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", f"req_{uuid4().hex}")
+        return JSONResponse(status_code=exc.status_code, content=exc.response_body(request_id))
 
     @app.get(
         "/health",

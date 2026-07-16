@@ -21,6 +21,7 @@ from app.ai.prompts import (
     IMAGE_METADATA_RETRY_PROMPT,
 )
 from app.config import Settings
+from app.errors import ApiError
 from app.schemas.responses import (
     ImageContext,
     ImageMetadataBulkAcceptRequest,
@@ -730,38 +731,48 @@ Required JSON shape:
 
     def _validate_purpose_approval(self, result: ImageMetadataResult, image_context: ImageContext) -> None:
         if not image_context.purpose_confirmed or image_context.purpose == "unknown":
-            raise HTTPException(
+            raise ApiError(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Image purpose must be human-confirmed before approval.",
+                code="PURPOSE_VALIDATION_FAILED",
+                message="Image purpose must be human-confirmed before approval.",
+                field="purpose",
             )
 
         alt_text = result.alt_text.strip()
         if image_context.purpose in {"decorative", "redundant"}:
             if alt_text:
-                raise HTTPException(
+                raise ApiError(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"{image_context.purpose.capitalize()} images must use empty alt text.",
+                    code="PURPOSE_VALIDATION_FAILED",
+                    message=f"{image_context.purpose.capitalize()} images must use empty alt text.",
+                    field="alt_text",
                 )
         elif not alt_text:
-            raise HTTPException(
+            raise ApiError(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{image_context.purpose.capitalize()} images require non-empty alt text.",
+                code="PURPOSE_VALIDATION_FAILED",
+                message=f"{image_context.purpose.capitalize()} images require non-empty alt text.",
+                field="alt_text",
             )
 
         if image_context.purpose == "functional" and not (
             image_context.functional_action.strip() or image_context.link_destination.strip()
         ):
-            raise HTTPException(
+            raise ApiError(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Functional images require an action or link destination before approval.",
+                code="PURPOSE_VALIDATION_FAILED",
+                message="Functional images require an action or link destination before approval.",
+                field="functional_action",
             )
 
         if image_context.purpose == "complex" and not (
             image_context.long_description_available or image_context.complex_description_acknowledged
         ):
-            raise HTTPException(
+            raise ApiError(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Complex images require a long description or explicit reviewer acknowledgement.",
+                code="PURPOSE_VALIDATION_FAILED",
+                message="Complex images require a long description or explicit reviewer acknowledgement.",
+                field="long_description_available",
             )
 
     def _image_context(self, job_id: str, image_id: str) -> ImageContext:

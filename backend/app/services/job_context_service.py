@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import HTTPException, status
 
 from app.config import Settings
+from app.errors import ApiError
 from app.schemas.responses import (
     ImageContext,
     ImageContextResponse,
@@ -57,14 +58,18 @@ class JobContextService:
     ) -> ImageContextResponse:
         self._require_image(job_id, image_id)
         if request.purpose_confirmed and request.purpose == "unknown":
-            raise HTTPException(
+            raise ApiError(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Unknown image purpose cannot be marked as human-confirmed.",
+                code="CONTEXT_VALIDATION_FAILED",
+                message="Unknown image purpose cannot be marked as human-confirmed.",
+                field="purpose_confirmed",
             )
         if request.purpose_confidence is not None and request.suggested_purpose is None:
-            raise HTTPException(
+            raise ApiError(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Purpose confidence requires a suggested purpose.",
+                code="CONTEXT_VALIDATION_FAILED",
+                message="Purpose confidence requires a suggested purpose.",
+                field="purpose_confidence",
             )
 
         data = self._normalized_job_data(job_id)

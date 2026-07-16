@@ -1,0 +1,35 @@
+{
+  "properties": {
+    "alt_text": {
+      "title": "Alt Text",
+      "type": "string"
+    },
+    "caption": {
+      "title": "Caption",
+      "type": "string"
+    },
+    "filename": {
+      "title": "Filename",
+      "type": "string"
+    },
+    "purpose_rationale": {
+      "title": "Purpose Rationale",
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "filename",
+    "alt_text",
+    "caption",
+    "purpose_rationale"
+  ],
+  "title": "ContextualMetadataPayload",
+  "type": "object"
+}

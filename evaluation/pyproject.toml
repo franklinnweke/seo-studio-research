@@ -1,0 +1,13 @@
+[project]
+name = "seo-studio-eval"
+version = "0.1.0"
+description = "Offline-first evaluation harness for SEO Studio image metadata research"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.11,<3"]
+
+[project.scripts]
+seo-studio-eval = "seo_studio_eval.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

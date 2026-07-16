@@ -1,0 +1,6 @@
+{
+  "id": "synthetic-clinic",
+  "name": "Synthetic Clinic",
+  "approved_terms": ["clinician", "patient"],
+  "prohibited_visible_claims": ["diagnosis", "treatment outcome"]
+}
