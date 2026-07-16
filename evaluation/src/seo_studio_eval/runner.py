@@ -4,6 +4,7 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ValidationError
 
+from .ollama import OllamaHTTPError
 from .schemas import (
     ErrorEvidence,
     InputEvidence,
@@ -80,6 +81,10 @@ def execute_attempt(
             )
         done_reason = raw_response.get("done_reason", "") if isinstance(raw_response.get("done_reason"), str) else ""
         native = raw_response
+    except OllamaHTTPError as exc:
+        http_status = exc.status_code
+        error = ErrorEvidence(category="ollama_http_error", message=str(exc) or exc.__class__.__name__)
+        validation = ValidationEvidence(valid=False, errors=["Ollama rejected the inference request"])
     except Exception as exc:
         error = ErrorEvidence(category="transport_error", message=str(exc) or exc.__class__.__name__)
         validation = ValidationEvidence(valid=False, errors=["transport failed"])

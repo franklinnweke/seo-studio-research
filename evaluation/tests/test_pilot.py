@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from seo_studio_eval.config import load_study
+from seo_studio_eval.ollama import OllamaHTTPError
 from seo_studio_eval.pilot import run_compatibility_pilot
 
 
@@ -50,6 +51,14 @@ class InterruptingPilotTransport(FakePilotTransport):
         if len(self.requests) + 1 == self.fail_on_call:
             self.requests.append(request)
             raise ConnectionError("synthetic tunnel reset")
+        return super().generate(request)
+
+
+class WarmupRejectingPilotTransport(FakePilotTransport):
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        if not self.requests:
+            self.requests.append(request)
+            raise OllamaHTTPError(500, "image: unknown format")
         return super().generate(request)
 
 
@@ -206,3 +215,27 @@ def test_pilot_pauses_and_resumes_at_new_attempt_limit(tmp_path: Path) -> None:
     assert second.new_attempts_this_session == 5
     assert second.warmup_records == 2
     assert len(second_transport.requests) == 6
+
+
+def test_pilot_records_http_rejected_warmup_without_transport_abort(tmp_path: Path) -> None:
+    evaluation_root = Path(__file__).resolve().parents[1]
+    config_path = evaluation_root / "configs" / "pilot.toml"
+    transport = WarmupRejectingPilotTransport(_live_tags(config_path))
+
+    summary, _ = run_compatibility_pilot(
+        config_path,
+        evaluation_root / "configs" / "compatibility-criteria.toml",
+        "http://127.0.0.1:11435",
+        tmp_path,
+        "pilot-warmup-rejected-run",
+        "private-test-snapshot",
+        transport=transport,
+        max_new_attempts=5,
+    )
+
+    assert summary.status == "paused"
+    assert summary.aborted_on_transport_error is False
+    assert summary.observed_attempts == 5
+    assert summary.valid_attempts == 5
+    assert summary.warmup_records == 1
+    assert len(transport.requests) == 6

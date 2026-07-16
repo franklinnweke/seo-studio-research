@@ -199,7 +199,7 @@ flowchart LR
 Verified July 16, 2026 on the research branch:
 
 - backend test suite: 96 passing after the A4 context-workflow slice;
-- offline evaluation harness: 17 passing tests plus successful contract and licensed 20-item pilot preflight;
+- offline evaluation harness: 19 passing tests plus successful contract and licensed 20-item pilot preflight;
 - frontend lint: passing;
 - frontend production build: passing with Next.js 16.2.6;
 - `git diff --check`: passing for the A0 changes;
@@ -217,6 +217,7 @@ Verified July 16, 2026 on the research branch:
 - A5 evidence explicitly forbids quality ranking from the one-image smoke. The five-condition 20-image compatibility pilot and writer-compatibility pass still remain before Gate 3 can close.
 - The first full-matrix collection attempt on July 16, 2026 is classified as infrastructure-aborted and excluded from compatibility estimates. A localhost-only SSH tunnel reset during the ninth Mistral measured request while the host and Ollama service remained continuously active; the original runner then incorrectly recorded all remaining planned calls as immediate connection failures. All raw records are preserved, none are attributed to model incompatibility, and the corrected runner now aborts after the first recorded transport failure. Recollection must use a new run ID, a keepalive-protected tunnel, and the committed corrected criteria hash.
 - Because the first forwarding session reset after approximately 50 minutes, clean recollection may use predeclared operational segments via `--max-new-attempts`. Each segment preserves the same model/image order and generation contract, checkpoints measured attempts append-only, records a separate session warm-up, unloads the active model at the boundary, and resumes the same run ID without duplicating completed keys. Operational segmentation is not an experimental condition and must be reported when interpreting latency.
+- Warm-up diagnostics distinguish Ollama HTTP inference rejection from transport loss. The synthetic PPM contract image is retained as an input-format diagnostic, but an HTTP rejection of that warm-up does not abort the licensed JPEG block or count toward its 20-item denominator; only a true connection/transport failure triggers immediate run abort.
 - A4 slice: the feature-flagged frontend now collects page context, requires explicit per-image purpose confirmation, exposes optional AI purpose suggestions without conflating them with human decisions, gates generation/approval on contextual readiness, supports direct and dual-stage selection, and presents purpose, warnings, structured facts, and sanitized provenance during review. The workflow is keyboard operable, has responsive no-overflow behavior at 390 px, and preserves legacy metadata mode when the feature flag is disabled.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.

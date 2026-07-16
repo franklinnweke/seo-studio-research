@@ -1,7 +1,18 @@
 import json
+from http.client import RemoteDisconnected
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+
+
+class OllamaHTTPError(RuntimeError):
+    def __init__(self, status_code: int, detail: str) -> None:
+        super().__init__(f"Ollama HTTP {status_code}: {detail}")
+        self.status_code = status_code
+
+
+class OllamaConnectionError(RuntimeError):
+    pass
 
 
 class OllamaTransport:
@@ -40,9 +51,11 @@ class OllamaTransport:
                 decoded = json.loads(response.read())
         except HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:500]
-            raise RuntimeError(f"Ollama HTTP {exc.code}: {detail}") from exc
+            raise OllamaHTTPError(exc.code, detail) from exc
         except URLError as exc:
-            raise RuntimeError(f"Ollama connection failed: {exc.reason}") from exc
+            raise OllamaConnectionError(f"Ollama connection failed: {exc.reason}") from exc
+        except (ConnectionError, RemoteDisconnected, TimeoutError) as exc:
+            raise OllamaConnectionError(f"Ollama connection failed: {exc}") from exc
         if not isinstance(decoded, dict):
             raise ValueError("Ollama response must be a JSON object")
         return decoded

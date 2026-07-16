@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 
+from seo_studio_eval.ollama import OllamaHTTPError
 from seo_studio_eval.records import read_attempt_record, write_attempt_record
 from seo_studio_eval.runner import AttemptSpec, execute_attempt
 from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence, VisualFactsPayload
@@ -32,6 +33,11 @@ class FailingOllamaTransport:
     def generate(self, request: dict[str, Any]) -> dict[str, Any]:
         self.calls += 1
         raise TimeoutError("synthetic timeout")
+
+
+class RejectingOllamaTransport:
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        raise OllamaHTTPError(500, "image: unknown format")
 
 
 class RawStructuredTransport:
@@ -114,6 +120,16 @@ def test_failed_attempt_is_recorded_without_hidden_retry(tmp_path: Path) -> None
     summary, _ = validate_run_directory(tmp_path)
     assert summary.status == "valid"
     assert summary.records_checked == 1
+
+
+def test_ollama_http_failure_is_not_mislabeled_as_transport_loss() -> None:
+    record = execute_attempt(make_spec("attempt-http-error"), RejectingOllamaTransport())
+
+    assert record.validation.valid is False
+    assert record.http_status == 500
+    assert record.error is not None
+    assert record.error.category == "ollama_http_error"
+    assert record.retry_count == 0
 
 
 def test_run_validation_fails_when_no_attempt_records_exist(tmp_path: Path) -> None:
