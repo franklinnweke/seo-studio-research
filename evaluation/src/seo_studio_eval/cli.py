@@ -60,6 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     pilot.add_argument("--output-dir", type=Path, required=True)
     pilot.add_argument("--run-id", required=True)
     pilot.add_argument("--system-snapshot-ref", required=True)
+    pilot.add_argument("--max-new-attempts", type=int)
 
     report = commands.add_parser("compatibility-report", help="Render a non-ranking compatibility evidence report")
     report.add_argument("--evidence", type=Path, required=True)
@@ -130,6 +131,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.run_id,
                 args.system_snapshot_ref,
                 progress=lambda payload: print(json.dumps(payload, sort_keys=True), flush=True),
+                max_new_attempts=args.max_new_attempts,
             )
             print(
                 json.dumps(
@@ -137,6 +139,8 @@ def main(argv: list[str] | None = None) -> int:
                     sort_keys=True,
                 )
             )
+            if summary.status == "paused":
+                return 0
             return 0 if summary.status == "complete" and summary.all_models_meet_threshold else 1
         if args.command == "compatibility-report":
             output_path = build_compatibility_report(args.evidence, args.output)

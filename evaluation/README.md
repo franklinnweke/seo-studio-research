@@ -8,7 +8,7 @@ Implemented commands:
 python -m seo_studio_eval preflight --config configs/pilot.toml
 python -m seo_studio_eval validate --run-dir runs/<experiment-id>
 python -m seo_studio_eval compatibility-smoke --config configs/pilot.toml --model-id qwen35-9b --image-id healthcare-doctor-consultation-001 --base-url http://127.0.0.1:11435 --output-dir runs/<experiment-id> --timeout-seconds 240
-python -m seo_studio_eval compatibility-pilot --config configs/pilot.toml --criteria configs/compatibility-criteria.toml --base-url http://127.0.0.1:<local-tunnel-port> --output-dir runs/<pilot-block> --run-id <pilot-run-id> --system-snapshot-ref <private-snapshot-reference>
+python -m seo_studio_eval compatibility-pilot --config configs/pilot.toml --criteria configs/compatibility-criteria.toml --base-url http://127.0.0.1:<local-tunnel-port> --output-dir runs/<pilot-block> --run-id <pilot-run-id> --system-snapshot-ref <private-snapshot-reference> --max-new-attempts 10
 python -m seo_studio_eval normalize --run-dir runs/<block-a> --run-dir runs/<block-b> --output-dir results/normalized/<experiment-id>
 python -m seo_studio_eval blind --normalized-records results/normalized/<experiment-id>/records.normalization-v1.jsonl --review-dir annotations/released/<experiment-id> --mapping-dir annotations/private/<experiment-id> --seed 20260716
 python -m seo_studio_eval account --config configs/pilot.toml --run-dir runs/<block-a> --run-dir runs/<block-b> --output results/tables/<experiment-id>-run-accounting.json
@@ -28,5 +28,7 @@ The preflight validates configuration structure, model declarations, dataset bal
 Live inventory, SSH tunnels, model pulls, and DGX experiments are governed by `$davneet-dgx-access`; repository commands never contain the live connection profile. Research execution has no hidden retry. `configs/compatibility-criteria.toml` freezes the compatibility and fallback rules, while compatibility reports explicitly prohibit quality ranking from the one-image smoke data.
 
 The compatibility pilot aborts after preserving the first transport-failure record. Resume the same append-only block only when its earlier records remain valid and incomplete; if the transport failure exposed a harness defect or invalidated the block, preserve it as an infrastructure incident and recollect under a new run ID. Never convert connection failures into model-compatibility failures.
+
+`--max-new-attempts` creates an intentional operational pause after the requested number of newly recorded measured attempts. Reinvoke the identical command and run ID to continue; completed attempt keys are verified and skipped, a new session warm-up is recorded, and the active model is unloaded at the end of the segment. The limit does not change randomized order or the expected 100-attempt matrix.
 
 Raw `runs/`, dataset cache files, and private reviewer mappings are ignored by Git.

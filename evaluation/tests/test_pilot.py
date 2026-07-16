@@ -164,3 +164,45 @@ def test_pilot_aborts_after_first_recorded_transport_failure(tmp_path: Path) -> 
     assert summary.abort_attempt_id
     assert len(transport.requests) == 3
     assert len(list(tmp_path.glob("*.json"))) == 3
+
+
+def test_pilot_pauses_and_resumes_at_new_attempt_limit(tmp_path: Path) -> None:
+    evaluation_root = Path(__file__).resolve().parents[1]
+    config_path = evaluation_root / "configs" / "pilot.toml"
+    criteria_path = evaluation_root / "configs" / "compatibility-criteria.toml"
+    first_transport = FakePilotTransport(_live_tags(config_path))
+
+    first, _ = run_compatibility_pilot(
+        config_path,
+        criteria_path,
+        "http://127.0.0.1:11435",
+        tmp_path,
+        "pilot-paused-run",
+        "private-test-snapshot",
+        transport=first_transport,
+        max_new_attempts=5,
+    )
+
+    assert first.status == "paused"
+    assert first.observed_attempts == 5
+    assert first.new_attempts_this_session == 5
+    assert first.max_new_attempts == 5
+    assert len(first_transport.requests) == 6
+
+    second_transport = FakePilotTransport(_live_tags(config_path))
+    second, _ = run_compatibility_pilot(
+        config_path,
+        criteria_path,
+        "http://127.0.0.1:11435",
+        tmp_path,
+        "pilot-paused-run",
+        "private-test-snapshot",
+        transport=second_transport,
+        max_new_attempts=5,
+    )
+
+    assert second.status == "paused"
+    assert second.observed_attempts == 10
+    assert second.new_attempts_this_session == 5
+    assert second.warmup_records == 2
+    assert len(second_transport.requests) == 6

@@ -63,7 +63,7 @@ class ModelPilotResult(BaseModel):
 
 
 class PilotRunSummary(BaseModel):
-    status: Literal["running", "complete", "incomplete"]
+    status: Literal["running", "paused", "complete", "incomplete"]
     experiment_id: str
     protocol_version: str
     criteria_id: str
@@ -90,6 +90,8 @@ class PilotRunSummary(BaseModel):
     all_models_meet_threshold: bool
     aborted_on_transport_error: bool
     abort_attempt_id: str = ""
+    max_new_attempts: int | None = None
+    new_attempts_this_session: int = Field(ge=0)
     by_model: dict[str, ModelPilotResult]
 
 
@@ -110,9 +112,12 @@ def run_compatibility_pilot(
     *,
     transport: PilotTransport | None = None,
     progress: ProgressCallback | None = None,
+    max_new_attempts: int | None = None,
 ) -> tuple[PilotRunSummary, Path]:
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", run_id):
         raise ValueError("run id must contain only lowercase letters, digits, and hyphens")
+    if max_new_attempts is not None and max_new_attempts < 1:
+        raise ValueError("max new attempts must be at least one")
     study = load_study(config_path)
     criteria = load_compatibility_criteria(criteria_path)
     if study.config.repeats != 1:
@@ -199,10 +204,14 @@ def run_compatibility_pilot(
         warmup_dir,
         status="running",
         abort_attempt_id="",
+        max_new_attempts=max_new_attempts,
+        new_attempts_this_session=0,
     )
     _write_summary(summary_path, summary)
 
     abort_attempt_id = ""
+    new_attempts_this_session = 0
+    paused = False
     for block_index, model_id in enumerate(model_order, start=1):
         model = configured[model_id]
         pending = [
@@ -287,6 +296,7 @@ def run_compatibility_pilot(
             )
             record_path = write_attempt_record(output_dir, record)
             existing[_attempt_key(model_id, image_id, repeat)] = record
+            new_attempts_this_session += 1
             summary = _build_summary(
                 study.config.experiment_id,
                 study.config.protocol_version,
@@ -310,6 +320,8 @@ def run_compatibility_pilot(
                     if record.error is not None and record.error.category == "transport_error"
                     else ""
                 ),
+                max_new_attempts=max_new_attempts,
+                new_attempts_this_session=new_attempts_this_session,
             )
             _write_summary(summary_path, summary)
             _emit(
@@ -329,12 +341,23 @@ def run_compatibility_pilot(
             if record.error is not None and record.error.category == "transport_error":
                 abort_attempt_id = record.attempt_id
                 break
-        if abort_attempt_id:
+            if (
+                max_new_attempts is not None
+                and new_attempts_this_session >= max_new_attempts
+                and len(existing) < len(expected_keys)
+            ):
+                paused = True
+                break
+        if abort_attempt_id or paused:
             break
 
-    final_status: Literal["complete", "incomplete"] = (
-        "complete" if len(existing) == len(expected_keys) and not abort_attempt_id else "incomplete"
-    )
+    final_status: Literal["paused", "complete", "incomplete"]
+    if len(existing) == len(expected_keys) and not abort_attempt_id:
+        final_status = "complete"
+    elif paused and not abort_attempt_id:
+        final_status = "paused"
+    else:
+        final_status = "incomplete"
     summary = _build_summary(
         study.config.experiment_id,
         study.config.protocol_version,
@@ -354,6 +377,8 @@ def run_compatibility_pilot(
         warmup_dir,
         status=final_status,
         abort_attempt_id=abort_attempt_id,
+        max_new_attempts=max_new_attempts,
+        new_attempts_this_session=new_attempts_this_session,
     )
     _write_summary(summary_path, summary)
     return summary, summary_path
@@ -510,8 +535,10 @@ def _build_summary(
     image_order_by_model: dict[str, list[str]],
     records: dict[str, RunRecord],
     warmup_dir: Path,
-    status: Literal["running", "complete", "incomplete"],
+    status: Literal["running", "paused", "complete", "incomplete"],
     abort_attempt_id: str,
+    max_new_attempts: int | None,
+    new_attempts_this_session: int,
 ) -> PilotRunSummary:
     by_model: dict[str, ModelPilotResult] = {}
     for model_id in model_order:
@@ -558,6 +585,8 @@ def _build_summary(
         all_models_meet_threshold=all(result.threshold_met for result in by_model.values()),
         aborted_on_transport_error=bool(abort_attempt_id),
         abort_attempt_id=abort_attempt_id,
+        max_new_attempts=max_new_attempts,
+        new_attempts_this_session=new_attempts_this_session,
         by_model=by_model,
     )
 
