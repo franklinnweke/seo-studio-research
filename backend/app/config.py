@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     vision_model: str = "qwen2.5vl:3b"
     language_model: str = "qwen3.5"
     ollama_timeout_seconds: float = 90.0
+    ai_health_timeout_seconds: float = 3.0
     ai_language_timeout_seconds: float = 120.0
     ai_crop_timeout_seconds: float = 45.0
     ai_preview_max_width: int = 1024

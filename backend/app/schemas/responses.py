@@ -11,6 +11,31 @@ class HealthResponse(BaseModel):
     app: str = Field(description="Application identifier.")
 
 
+AiHealthStatus = Literal["ready", "degraded", "unavailable"]
+
+
+class AiModelReadiness(BaseModel):
+    role: Literal["vision", "language"] = Field(description="Model role in the metadata pipeline.")
+    model: str = Field(description="Configured model label; no inference host details are exposed.")
+    ready: bool = Field(description="Whether the configured model is present in the Ollama inventory.")
+
+
+class AiHealthResponse(BaseModel):
+    status: AiHealthStatus = Field(description="Sanitized AI subsystem readiness state.")
+    provider: str = Field(description="Configured AI provider.")
+    inference_reachable: bool = Field(description="Whether the backend can reach the inference API.")
+    models_ready: bool = Field(description="Whether every required configured model is installed.")
+    version: str | None = Field(default=None, description="Inference runtime version when reachable.")
+    models: list[AiModelReadiness] = Field(
+        default_factory=list,
+        description="Readiness of configured model roles without host, path, or credential details.",
+    )
+    issue_code: Literal["unsupported_provider", "inference_unreachable", "required_models_missing"] | None = Field(
+        default=None,
+        description="Stable sanitized reason when the subsystem is not ready.",
+    )
+
+
 class AuthUserResponse(BaseModel):
     id: str = Field(description="Supabase authenticated user identifier.")
     email: str | None = Field(default=None, description="Authenticated user's email address.")
@@ -18,7 +43,6 @@ class AuthUserResponse(BaseModel):
 
 class SettingsResponse(BaseModel):
     ai_provider: str = Field(description="Configured AI provider for metadata workflows.")
-    ollama_base_url: str = Field(description="Base URL for the local Ollama runtime.")
     ollama_model: str = Field(description="Default Ollama model used by AI workflows.")
     vision_model: str = Field(description="Ollama vision model used for image inspection and crop targeting.")
     language_model: str = Field(description="Ollama language model used for SEO metadata writing.")
@@ -27,7 +51,6 @@ class SettingsResponse(BaseModel):
     ai_crop_timeout_seconds: float = Field(description="Timeout in seconds for AI crop targeting requests.")
     ai_preview_max_width: int = Field(description="Maximum preview width sent to AI models.")
     frontend_origin: str = Field(description="Allowed frontend origin for local CORS.")
-    storage_root: str = Field(description="Backend local storage root.")
 
 
 class JobStatusResponse(BaseModel):

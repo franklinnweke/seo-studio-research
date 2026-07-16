@@ -33,7 +33,6 @@ export type HealthResponse = {
 
 export type SettingsResponse = {
   ai_provider: string;
-  ollama_base_url: string;
   ollama_model: string;
   vision_model: string;
   language_model: string;
@@ -42,7 +41,6 @@ export type SettingsResponse = {
   ai_crop_timeout_seconds: number;
   ai_preview_max_width: number;
   frontend_origin: string;
-  storage_root: string;
 };
 
 export type ImageUploadFileRecord = {

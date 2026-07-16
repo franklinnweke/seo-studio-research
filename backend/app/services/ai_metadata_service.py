@@ -91,6 +91,14 @@ class AiMetadataService:
             settings.ollama_timeout_seconds,
         )
 
+    def close(self) -> None:
+        if self.injected_client is not None:
+            return
+        if isinstance(self.vision_client, OllamaClient):
+            self.vision_client.close()
+        if isinstance(self.language_client, OllamaClient):
+            self.language_client.close()
+
     def list_image_metadata(self, job_id: str) -> ImageMetadataListResponse:
         self.upload_service.read_job(job_id)
         data = self.upload_service.read_job_data(job_id)

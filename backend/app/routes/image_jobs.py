@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, File, Query, Response, UploadFile, status
@@ -33,12 +34,22 @@ def get_image_upload_service(settings: Annotated[Settings, Depends(get_settings)
     return ImageUploadService(settings)
 
 
-def get_image_processor(settings: Annotated[Settings, Depends(get_settings)]) -> ImageProcessor:
-    return ImageProcessor(settings)
+def get_image_processor(settings: Annotated[Settings, Depends(get_settings)]) -> Generator[ImageProcessor, None, None]:
+    processor = ImageProcessor(settings)
+    try:
+        yield processor
+    finally:
+        processor.close()
 
 
-def get_ai_metadata_service(settings: Annotated[Settings, Depends(get_settings)]) -> AiMetadataService:
-    return AiMetadataService(settings)
+def get_ai_metadata_service(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> Generator[AiMetadataService, None, None]:
+    service = AiMetadataService(settings)
+    try:
+        yield service
+    finally:
+        service.close()
 
 
 def get_brand_context_service(settings: Annotated[Settings, Depends(get_settings)]) -> BrandContextService:

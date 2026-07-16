@@ -196,11 +196,11 @@ flowchart LR
 
 ### 5.3 Current quality status
 
-Verified July 16, 2026 on the clean research baseline:
+Verified July 16, 2026 on the research branch:
 
-- backend test suite: 62 passing;
+- backend test suite: 70 passing after the first A1 code slice;
 - frontend lint: passing;
-- frontend production build: passing after a clean dependency installation; the sandboxed build required an unsandboxed rerun because Turbopack internally binds a local port;
+- frontend production build: passing with Next.js 16.2.6;
 - `git diff --check`: passing for the A0 changes;
 - research branch: `codex/research-context-aware-metadata` at baseline commit `aabeae3` before A0 edits;
 - upload/deletion work: isolated on `agent/automatic-upload-flow` at `5f6d137` with draft PR #33;
@@ -210,6 +210,7 @@ Verified July 16, 2026 on the clean research baseline:
 - the provisional MiniCPM-V 4.5, Gemma 3 12B, and Mistral Small 3.1 candidates are not currently installed; no model pull was performed;
 - the listener was reported on all interfaces, but firewall rules and external reachability were not verified. Gate 1 therefore remains open and the deployment must not yet be described as securely private;
 - ordinary `nvidia-smi` did not communicate with the NVIDIA driver in this session. This does not by itself establish a driver fault on a unified-memory DGX Spark; the supported DGX telemetry path still needs confirmation.
+- first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
 
@@ -1910,6 +1911,23 @@ Create ADRs under `docs/adr/` for:
 
 Every deviation from this specification records date, decision makers, evidence, consequences, and migration work.
 
+### 26.1 Temporary network-verification deferral — July 16, 2026
+
+The team authorized implementation to continue while DGX firewall/external-exposure verification remains open. This is a sequencing decision, not acceptance of the current network posture and not a Gate 1 waiver.
+
+Permitted during the deferral:
+
+- local product, API-contract, evaluation-harness, schema, prompt, test, and CI implementation;
+- fake-transport tests and synthetic or public non-sensitive fixtures;
+- read-only DGX inspection through `$davneet-dgx-access` and approved project-scoped execution through the skill when separately requested.
+
+Not permitted during the deferral:
+
+- representing Gate 1 as complete or the current Ollama listener as securely private;
+- sending private client, participant, credential-bearing, or otherwise restricted data through the unverified path;
+- firewall, binding, gateway, service, model-storage, or destructive changes without explicit authorization;
+- publication pilot/full-study execution until the protocol's security and data-boundary requirements are satisfied.
+
 ## 27. Immediate implementation backlog
 
 ### P0: unblock architecture and safety
@@ -1923,8 +1941,9 @@ Every deviation from this specification records date, decision makers, evidence,
 - [x] Add root `.env` and private DGX notes to `.gitignore` and create safe root `.env.example`.
 - [x] Standardize and document local/Compose/staging/research environment sources.
 - [ ] Decide same-host versus separate-DGX topology.
-- [ ] Add authenticated AI health endpoint and remove private inference URL from frontend settings.
-- [ ] Repair clean frontend dependency install/build and add CI.
+- [x] Add authenticated sanitized AI health, structured Ollama telemetry, and remove private inference URL/storage path from frontend settings.
+- [x] Verify the clean frontend lint and production build after the A1 contract change.
+- [ ] Add CI gates for backend tests, frontend lint/build, and OpenAPI drift.
 
 ### P1: publication-capable product minimum
 
@@ -2020,9 +2039,9 @@ The three most important research controls are protocol freeze, immutable raw re
 
 ### 31.1 Current implementation assignment
 
-Work package A0 is implemented on `codex/research-context-aware-metadata`: prior product work is isolated, local secrets and private infrastructure notes are ignored, the root Compose example is safe, execution-mode environment sources are documented, and the master plan is updated to version 2.1.
+Work package A0 is implemented on `codex/research-context-aware-metadata`. The first non-network A1 slice is also implemented: sanitized AI health, structured Ollama telemetry, private settings removal, updated frontend types, and regenerated OpenAPI. Network verification remains explicitly deferred and Gate 1 remains open.
 
-The next agent executes **Work package A1 only** unless the user explicitly expands scope:
+The next agent finishes the remaining safe A1/A2 implementation without treating the network deferral as a passed security gate:
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.

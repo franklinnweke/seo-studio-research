@@ -33,6 +33,8 @@ def test_settings_exposes_dual_model_configuration() -> None:
     assert body["language_model"]
     assert body["ai_language_timeout_seconds"] > 0
     assert body["ai_crop_timeout_seconds"] > 0
+    assert "ollama_base_url" not in body
+    assert "storage_root" not in body
 
 
 def test_current_routes_are_documented() -> None:
@@ -41,6 +43,7 @@ def test_current_routes_are_documented() -> None:
 
     expected_routes = [
         ("/health", "get"),
+        ("/api/ai/health", "get"),
         ("/api/settings", "get"),
         ("/api/jobs/{job_id}", "get"),
         ("/api/jobs/{job_id}/process", "post"),
@@ -75,6 +78,7 @@ def test_openapi_tags_are_grouped() -> None:
     tags = {tag["name"]: tag["description"] for tag in schema["tags"]}
 
     assert "health" in tags
+    assert "AI health" in tags
     assert "settings" in tags
     assert "image jobs" in tags
     assert "website jobs" in tags

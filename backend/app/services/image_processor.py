@@ -72,6 +72,10 @@ class ImageProcessor:
             settings.ollama_timeout_seconds,
         )
 
+    def close(self) -> None:
+        if isinstance(self.client, OllamaClient):
+            self.client.close()
+
     def compress_job(
         self,
         job_id: str,

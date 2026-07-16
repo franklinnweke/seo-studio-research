@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth import require_authenticated_user
 from app.config import get_cors_origins, get_settings
-from app.routes import auth, exports, image_jobs, settings, website_jobs
+from app.routes import ai_health, auth, exports, image_jobs, settings, website_jobs
 from app.schemas.responses import HealthResponse
 
 
@@ -14,6 +14,10 @@ OPENAPI_TAGS = [
     {
         "name": "health",
         "description": "Operational checks for local development and smoke testing.",
+    },
+    {
+        "name": "AI health",
+        "description": "Sanitized inference and required-model readiness checks.",
     },
     {
         "name": "settings",
@@ -99,6 +103,7 @@ def create_app() -> FastAPI:
     app.include_router(website_jobs.router, prefix="/api/jobs", tags=["website jobs"], dependencies=auth_dependency)
     app.include_router(exports.router, prefix="/api/jobs", tags=["exports"], dependencies=auth_dependency)
     app.include_router(settings.router, prefix="/api/settings", tags=["settings"], dependencies=auth_dependency)
+    app.include_router(ai_health.router, prefix="/api/ai", tags=["AI health"], dependencies=auth_dependency)
 
     return app
 
