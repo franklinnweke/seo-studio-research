@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class VisualFactsPayload(BaseModel):
@@ -109,15 +109,44 @@ class RunRecord(BaseModel):
     normalization_version: str
 
 
+class ClaimAnnotation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    claim_id: str = Field(min_length=1)
+    claim_text: str = Field(min_length=1)
+    label: Literal["supported", "unsupported", "contradicted", "not_verifiable_from_permitted_evidence"]
+    evidence_note: str = ""
+
+
 class AnnotationRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    rubric_version: Literal["rubric-v1"] = "rubric-v1"
+    record_type: Literal["individual", "adjudicated"] = "individual"
     item_id: str
+    review_item_id: str
     blinded_condition_id: str
     reviewer_alias: str
-    supported_claims: int = Field(ge=0)
-    unsupported_claims: int = Field(ge=0)
-    completeness_score: int = Field(ge=1, le=5)
+    repeat: Literal[1] = 1
+    calibration_item: bool = False
+    claims: list[ClaimAnnotation] = Field(default_factory=list)
+    factual_grounding_score: int = Field(ge=1, le=5)
+    salient_coverage_score: int = Field(ge=1, le=5)
     contextual_usefulness_score: int = Field(ge=1, le=5)
+    redundancy_control_score: int | None = Field(default=None, ge=1, le=5)
+    purpose_appropriateness_score: int = Field(ge=1, le=5)
+    brand_alignment_score: int | None = Field(default=None, ge=1, le=5)
+    safety_score: int = Field(ge=1, le=5)
+    concision_fluency_score: int = Field(ge=1, le=5)
+    disposition: Literal["accept_unchanged", "minor_edit", "major_edit", "reject"]
     notes: str = ""
+
+    @model_validator(mode="after")
+    def validate_claim_ids(self) -> "AnnotationRecord":
+        claim_ids = [claim.claim_id for claim in self.claims]
+        if len(claim_ids) != len(set(claim_ids)):
+            raise ValueError("claim ids must be unique within an annotation record")
+        return self
 
 
 SCHEMA_MODELS: dict[str, type[BaseModel]] = {

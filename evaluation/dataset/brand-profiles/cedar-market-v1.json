@@ -1,0 +1,7 @@
+{
+  "id": "cedar-market-v1",
+  "name": "Cedar Neighbourhood Market",
+  "voice": ["welcoming", "specific", "unpretentious"],
+  "approved_terms": ["market", "vendor", "produce", "shop"],
+  "prohibited_visible_claims": ["organic certification", "price", "product origin", "customer identity"]
+}

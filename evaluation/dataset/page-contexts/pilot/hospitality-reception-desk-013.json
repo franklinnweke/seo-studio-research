@@ -1,0 +1,9 @@
+{
+  "audience": "Arriving hotel guests",
+  "id": "hospitality-reception-desk-013-context",
+  "language": "en-CA",
+  "nearby_text": "Check in and ask the reception team for local information.",
+  "page_title": "Guest Arrival",
+  "page_url": "https://example.invalid/harbour/reception",
+  "section_heading": "Reception"
+}

@@ -5,7 +5,7 @@ import pytest
 
 from seo_studio_eval.records import read_attempt_record, write_attempt_record
 from seo_studio_eval.runner import AttemptSpec, execute_attempt
-from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence
+from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence, VisualFactsPayload
 from seo_studio_eval.validation import validate_run_directory
 
 
@@ -32,6 +32,16 @@ class FailingOllamaTransport:
     def generate(self, request: dict[str, Any]) -> dict[str, Any]:
         self.calls += 1
         raise TimeoutError("synthetic timeout")
+
+
+class RawStructuredTransport:
+    def __init__(self, response: str) -> None:
+        self.response = response
+        self.request: dict[str, Any] | None = None
+
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        self.request = request
+        return {"response": self.response, "done_reason": "stop"}
 
 
 def make_spec(attempt_id: str = "attempt-001") -> AttemptSpec:
@@ -112,3 +122,39 @@ def test_run_validation_fails_when_no_attempt_records_exist(tmp_path: Path) -> N
     assert summary.status == "invalid"
     assert summary.errors == ["No attempt records found"]
     assert output_path.is_file()
+
+
+def test_schema_constrained_attempt_uses_actual_request_without_recording_image_bytes() -> None:
+    transport = RawStructuredTransport(
+        '{"summary":"A blue square","people":[],"objects":[],"setting":"",'
+        '"visible_text":[],"uncertain_facts":[],"forbidden_inferences_observed":[]}'
+    )
+    actual_request = {"model": "qwen3.5:latest", "images": ["base64-secret"]}
+
+    record = execute_attempt(
+        make_spec("schema-valid"),
+        transport,
+        request_payload=actual_request,
+        response_model=VisualFactsPayload,
+    )
+
+    assert transport.request == actual_request
+    assert record.validation.valid is True
+    assert record.parsed_payload is not None
+    assert record.parsed_payload["summary"] == "A blue square"
+    assert "images" not in record.sanitized_request
+
+
+def test_schema_constrained_attempt_records_validation_failure_without_retry() -> None:
+    transport = RawStructuredTransport('{"summary":7,"unexpected":true}')
+
+    record = execute_attempt(
+        make_spec("schema-invalid"),
+        transport,
+        response_model=VisualFactsPayload,
+    )
+
+    assert record.validation.valid is False
+    assert record.retry_count == 0
+    assert record.error is None
+    assert record.parsed_payload is None

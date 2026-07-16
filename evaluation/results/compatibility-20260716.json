@@ -1,0 +1,100 @@
+{
+  "evidence_version": 1,
+  "stage": "single-image compatibility smoke",
+  "quality_ranking_permitted": false,
+  "observed_at": "2026-07-16T16:35:00Z",
+  "runtime": {
+    "os": "Ubuntu 24.04.4 LTS",
+    "architecture": "aarch64",
+    "ollama_version": "0.24.0",
+    "hardware_identity_status": "exact marketed identity not yet institutionally confirmed",
+    "access_authority": "$davneet-dgx-access",
+    "model_loaded_after_run": false,
+    "remaining_root_storage_gib": 294
+  },
+  "request_contract": {
+    "image_id": "healthcare-doctor-consultation-001",
+    "prompt_id": "vision-facts-v1",
+    "temperature": 0,
+    "seed": 20260716,
+    "thinking": false,
+    "output_limit": 384,
+    "keep_alive": 0,
+    "hidden_retries": 0,
+    "structured_schema": "visual-facts.schema.json"
+  },
+  "results": [
+    {
+      "model_id": "qwen25vl-3b-baseline",
+      "digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "schema_valid": true,
+      "wall_duration_ms": 46999.563,
+      "total_duration_ns": 46903511896,
+      "load_duration_ns": 1587125613,
+      "prompt_tokens": 1435,
+      "output_tokens": 139
+    },
+    {
+      "model_id": "qwen25vl-32b-compatibility-fallback",
+      "digest": "3edc3a52fe988de3e8ba4f99ac1f21a1bbc35e1af32a74983fe4e1667d6b6188",
+      "schema_valid": true,
+      "wall_duration_ms": 175935.749,
+      "total_duration_ns": 175788126544,
+      "load_duration_ns": 4170139405,
+      "prompt_tokens": 1435,
+      "output_tokens": 118
+    },
+    {
+      "model_id": "qwen35-9b",
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "schema_valid": true,
+      "wall_duration_ms": 59499.846,
+      "total_duration_ns": 59385277130,
+      "load_duration_ns": 1770499842,
+      "prompt_tokens": 1128,
+      "output_tokens": 132
+    },
+    {
+      "model_id": "gemma3-12b",
+      "digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
+      "schema_valid": true,
+      "wall_duration_ms": 37777.918,
+      "total_duration_ns": 37670807371,
+      "load_duration_ns": 2497196297,
+      "prompt_tokens": 303,
+      "output_tokens": 64
+    },
+    {
+      "model_id": "mistral-small31-24b",
+      "digest": "b9aaf0c2586a8ed8105feab808c0f034bd4d346203822f048e2366165a13f4ea",
+      "schema_valid": true,
+      "wall_duration_ms": 173871.080,
+      "total_duration_ns": 173731723367,
+      "load_duration_ns": 1996150818,
+      "prompt_tokens": 1802,
+      "output_tokens": 238
+    }
+  ],
+  "accounting": {
+    "expected_attempts": 5,
+    "observed_attempts": 5,
+    "valid_attempts": 5,
+    "failed_attempts": 0,
+    "missing_attempts": 0,
+    "duplicate_attempts": 0,
+    "unexpected_attempts": 0
+  },
+  "blinding": {
+    "status": "ready",
+    "items": 5,
+    "conditions": 5,
+    "identity_leakage_errors": 0,
+    "package_path": "annotations/released/compatibility-five-20260716/review-items.blind-v1.jsonl",
+    "package_sha256": "9412db3770af8e84f25f604fd5a082a0c8f344b9009aaf74b7fc899e92a7ec09"
+  },
+  "limitations": [
+    "These are cold single-image compatibility observations, not quality or throughput estimates.",
+    "The five-condition 20-image compatibility pilot remains to be executed.",
+    "The MiniCPM preferred candidate could not be installed on the current shared Ollama runtime and was replaced under the predeclared compatibility rule."
+  ]
+}

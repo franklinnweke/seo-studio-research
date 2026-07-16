@@ -1,0 +1,7 @@
+{
+  "id": "horizon-learning-v1",
+  "name": "Horizon Learning and Advisory",
+  "voice": ["direct", "encouraging", "professional"],
+  "approved_terms": ["learner", "instructor", "workshop", "workspace"],
+  "prohibited_visible_claims": ["academic result", "employment outcome", "participant identity", "accreditation"]
+}

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from .schemas import (
     ErrorEvidence,
@@ -40,7 +40,12 @@ class AttemptSpec(BaseModel):
     normalization_version: str = "normalization-v1"
 
 
-def execute_attempt(spec: AttemptSpec, transport: GenerationTransport) -> RunRecord:
+def execute_attempt(
+    spec: AttemptSpec,
+    transport: GenerationTransport,
+    request_payload: dict[str, Any] | None = None,
+    response_model: type[BaseModel] | None = None,
+) -> RunRecord:
     started_at = datetime.now(timezone.utc)
     started_clock = perf_counter()
     raw_response: dict[str, Any] = {}
@@ -52,14 +57,24 @@ def execute_attempt(spec: AttemptSpec, transport: GenerationTransport) -> RunRec
     native: dict[str, Any] = {}
 
     try:
-        raw_response = transport.generate(spec.sanitized_request)
+        raw_response = transport.generate(request_payload or spec.sanitized_request)
         http_status = 200
-        candidate = raw_response.get("parsed_payload")
-        parsed_payload = candidate if isinstance(candidate, dict) else None
-        validation = ValidationEvidence(
-            valid=parsed_payload is not None,
-            errors=[] if parsed_payload is not None else ["parsed_payload missing or invalid"],
-        )
+        candidate = _candidate_payload(raw_response)
+        if response_model is not None and isinstance(candidate, dict):
+            try:
+                parsed_payload = response_model.model_validate(candidate).model_dump(mode="json")
+                validation = ValidationEvidence(valid=True, errors=[])
+            except ValidationError as exc:
+                validation = ValidationEvidence(
+                    valid=False,
+                    errors=[error["msg"] for error in exc.errors(include_url=False)],
+                )
+        else:
+            parsed_payload = candidate if isinstance(candidate, dict) else None
+            validation = ValidationEvidence(
+                valid=parsed_payload is not None,
+                errors=[] if parsed_payload is not None else ["structured payload missing or invalid"],
+            )
         done_reason = raw_response.get("done_reason", "") if isinstance(raw_response.get("done_reason"), str) else ""
         native = raw_response
     except Exception as exc:
@@ -92,3 +107,18 @@ def execute_attempt(spec: AttemptSpec, transport: GenerationTransport) -> RunRec
 
 def _nonnegative_int(value: object) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else 0
+
+
+def _candidate_payload(raw_response: dict[str, Any]) -> object:
+    candidate = raw_response.get("parsed_payload")
+    if isinstance(candidate, dict):
+        return candidate
+    response = raw_response.get("response")
+    if not isinstance(response, str):
+        return None
+    import json
+
+    try:
+        return json.loads(response)
+    except json.JSONDecodeError:
+        return None

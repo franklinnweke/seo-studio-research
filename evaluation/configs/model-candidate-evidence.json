@@ -1,0 +1,51 @@
+{
+  "evidence_version": 1,
+  "last_checked": "2026-07-16",
+  "models": [
+    {
+      "id": "qwen25vl-3b-baseline",
+      "license": "Qwen Research License (non-commercial research use)",
+      "license_source": "https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/main/LICENSE",
+      "ollama_source": "https://ollama.com/library/qwen2.5vl:3b",
+      "pilot_status": "installed_and_single_image_schema_compatible"
+    },
+    {
+      "id": "minicpm-v45-8b",
+      "license": "MiniCPM Model License (academic research use; registration condition for commercial use)",
+      "license_source": "https://huggingface.co/openbmb/MiniCPM-V-4_5",
+      "ollama_source": "https://ollama.com/library/minicpm-v4.5:8b",
+      "pilot_status": "incompatible_with_current_ollama",
+      "replacement_reason": "The Ollama registry returned HTTP 412 and required a newer runtime before any model layer was downloaded. The shared Ollama 0.24.0 service was not upgraded."
+    },
+    {
+      "id": "qwen25vl-32b-compatibility-fallback",
+      "license": "Apache-2.0",
+      "license_source": "https://huggingface.co/Qwen/Qwen2.5-VL-32B-Instruct",
+      "ollama_source": "https://ollama.com/library/qwen2.5vl:32b",
+      "pilot_status": "installed_and_single_image_schema_compatible",
+      "replacement_for": "minicpm-v45-8b",
+      "replacement_basis": "predeclared runtime-version incompatibility; selected before comparative quality analysis"
+    },
+    {
+      "id": "qwen35-9b",
+      "license": "Apache-2.0",
+      "license_source": "https://huggingface.co/Qwen/Qwen3.5-9B",
+      "ollama_source": "https://ollama.com/library/qwen3.5",
+      "pilot_status": "installed_and_single_image_schema_compatible"
+    },
+    {
+      "id": "gemma3-12b",
+      "license": "Gemma Terms of Use",
+      "license_source": "https://ai.google.dev/gemma/terms",
+      "ollama_source": "https://ollama.com/library/gemma3:12b",
+      "pilot_status": "installed_and_single_image_schema_compatible"
+    },
+    {
+      "id": "mistral-small31-24b",
+      "license": "Apache-2.0",
+      "license_source": "https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+      "ollama_source": "https://ollama.com/library/mistral-small3.1:24b",
+      "pilot_status": "installed_and_single_image_schema_compatible"
+    }
+  ]
+}

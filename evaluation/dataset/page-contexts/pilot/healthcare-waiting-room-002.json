@@ -1,0 +1,9 @@
+{
+  "audience": "Clinic visitors",
+  "id": "healthcare-waiting-room-002-context",
+  "language": "en-CA",
+  "nearby_text": "Visitors sit in rows of chairs beside a reception desk and floor lamp.",
+  "page_title": "Clinic Waiting Area",
+  "page_url": "https://example.invalid/northstar/visit",
+  "section_heading": "A waiting room with seated visitors"
+}

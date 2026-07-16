@@ -55,6 +55,18 @@ class StudyConfig(BaseModel):
     seed: int
     require_frozen_models: bool
     allow_dirty_worktree: bool
+    dataset_split: Literal["contract", "pilot", "full"]
+    expected_dataset_items: int = Field(ge=1)
+    required_domains: list[str] = Field(min_length=1)
+    required_purposes: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_dataset_requirements(self) -> "StudyConfig":
+        if len(self.required_domains) != len(set(self.required_domains)):
+            raise ValueError("required_domains must be unique")
+        if len(self.required_purposes) != len(set(self.required_purposes)):
+            raise ValueError("required_purposes must be unique")
+        return self
 
 
 @dataclass(frozen=True)

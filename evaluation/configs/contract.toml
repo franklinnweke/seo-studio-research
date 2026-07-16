@@ -1,0 +1,16 @@
+schema_version = 1
+experiment_id = "seo-studio-contract-v1"
+protocol_version = "2.1-contract"
+study_mode = "pilot"
+dataset_split = "contract"
+dataset_manifest = "dataset/manifest-contract.jsonl"
+expected_dataset_items = 1
+required_domains = ["contract_fixture"]
+required_purposes = ["decorative"]
+models_config = "configs/models.toml"
+output_dir = "runs/seo-studio-contract-v1"
+model_ids = ["qwen35-9b"]
+repeats = 1
+seed = 20260716
+require_frozen_models = false
+allow_dirty_worktree = true

@@ -1,19 +1,101 @@
 {
+  "$defs": {
+    "ClaimAnnotation": {
+      "additionalProperties": false,
+      "properties": {
+        "claim_id": {
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "claim_text": {
+          "minLength": 1,
+          "title": "Claim Text",
+          "type": "string"
+        },
+        "evidence_note": {
+          "default": "",
+          "title": "Evidence Note",
+          "type": "string"
+        },
+        "label": {
+          "enum": [
+            "supported",
+            "unsupported",
+            "contradicted",
+            "not_verifiable_from_permitted_evidence"
+          ],
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "claim_id",
+        "claim_text",
+        "label"
+      ],
+      "title": "ClaimAnnotation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
   "properties": {
     "blinded_condition_id": {
       "title": "Blinded Condition Id",
       "type": "string"
     },
-    "completeness_score": {
+    "brand_alignment_score": {
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Brand Alignment Score"
+    },
+    "calibration_item": {
+      "default": false,
+      "title": "Calibration Item",
+      "type": "boolean"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/ClaimAnnotation"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "concision_fluency_score": {
       "maximum": 5,
       "minimum": 1,
-      "title": "Completeness Score",
+      "title": "Concision Fluency Score",
       "type": "integer"
     },
     "contextual_usefulness_score": {
       "maximum": 5,
       "minimum": 1,
       "title": "Contextual Usefulness Score",
+      "type": "integer"
+    },
+    "disposition": {
+      "enum": [
+        "accept_unchanged",
+        "minor_edit",
+        "major_edit",
+        "reject"
+      ],
+      "title": "Disposition",
+      "type": "string"
+    },
+    "factual_grounding_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Factual Grounding Score",
       "type": "integer"
     },
     "item_id": {
@@ -25,29 +107,80 @@
       "title": "Notes",
       "type": "string"
     },
+    "purpose_appropriateness_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Purpose Appropriateness Score",
+      "type": "integer"
+    },
+    "record_type": {
+      "default": "individual",
+      "enum": [
+        "individual",
+        "adjudicated"
+      ],
+      "title": "Record Type",
+      "type": "string"
+    },
+    "redundancy_control_score": {
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Redundancy Control Score"
+    },
+    "repeat": {
+      "const": 1,
+      "default": 1,
+      "title": "Repeat",
+      "type": "integer"
+    },
+    "review_item_id": {
+      "title": "Review Item Id",
+      "type": "string"
+    },
     "reviewer_alias": {
       "title": "Reviewer Alias",
       "type": "string"
     },
-    "supported_claims": {
-      "minimum": 0,
-      "title": "Supported Claims",
+    "rubric_version": {
+      "const": "rubric-v1",
+      "default": "rubric-v1",
+      "title": "Rubric Version",
+      "type": "string"
+    },
+    "safety_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Safety Score",
       "type": "integer"
     },
-    "unsupported_claims": {
-      "minimum": 0,
-      "title": "Unsupported Claims",
+    "salient_coverage_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Salient Coverage Score",
       "type": "integer"
     }
   },
   "required": [
     "item_id",
+    "review_item_id",
     "blinded_condition_id",
     "reviewer_alias",
-    "supported_claims",
-    "unsupported_claims",
-    "completeness_score",
-    "contextual_usefulness_score"
+    "factual_grounding_score",
+    "salient_coverage_score",
+    "contextual_usefulness_score",
+    "purpose_appropriateness_score",
+    "safety_score",
+    "concision_fluency_score",
+    "disposition"
   ],
   "title": "AnnotationRecord",
   "type": "object"

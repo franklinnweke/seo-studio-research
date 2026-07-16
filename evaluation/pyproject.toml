@@ -3,7 +3,7 @@ name = "seo-studio-eval"
 version = "0.1.0"
 description = "Offline-first evaluation harness for SEO Studio image metadata research"
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.11,<3"]
+dependencies = ["pydantic>=2.11,<3", "pillow>=11,<13"]
 
 [project.scripts]
 seo-studio-eval = "seo_studio_eval.cli:main"

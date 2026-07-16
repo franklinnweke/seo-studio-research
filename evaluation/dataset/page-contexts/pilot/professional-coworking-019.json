@@ -1,0 +1,11 @@
+{
+  "audience": "Independent professionals",
+  "functional_action": "Request a workspace tour",
+  "id": "professional-coworking-019-context",
+  "language": "en-CA",
+  "link_destination": "/workspace/tour",
+  "nearby_text": "Select the image to request a tour of the shared workspace.",
+  "page_title": "Collaborative Workspace",
+  "page_url": "https://example.invalid/horizon/workspace",
+  "section_heading": "Book a workspace tour"
+}

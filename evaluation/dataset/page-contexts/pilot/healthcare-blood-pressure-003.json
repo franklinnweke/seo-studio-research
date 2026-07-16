@@ -1,0 +1,9 @@
+{
+  "audience": "Adult patients",
+  "id": "healthcare-blood-pressure-003-context",
+  "language": "en-CA",
+  "nearby_text": "A care team member may measure blood pressure during a routine visit.",
+  "page_title": "Routine Health Screening",
+  "page_url": "https://example.invalid/northstar/screening",
+  "section_heading": "Blood pressure checks"
+}

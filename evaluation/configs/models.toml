@@ -8,7 +8,7 @@ family = "Qwen2.5-VL"
 parameters = "3.8B"
 quantization = "Q4_K_M"
 role = "vision_candidate"
-license = "REQUIRES_PILOT_VERIFICATION"
+license = "Qwen Research License (non-commercial research use)"
 frozen = false
 
 [[models]]
@@ -16,10 +16,21 @@ id = "minicpm-v45-8b"
 ollama_name = "minicpm-v4.5:8b"
 expected_digest = ""
 family = "MiniCPM-V"
-parameters = "8B"
-quantization = "UNVERIFIED"
+parameters = "8.19B + 527M projector"
+quantization = "Q4_K_M + F16 projector"
 role = "vision_candidate"
-license = "REQUIRES_PILOT_VERIFICATION"
+license = "MiniCPM Model License (academic research use)"
+frozen = false
+
+[[models]]
+id = "qwen25vl-32b-compatibility-fallback"
+ollama_name = "qwen2.5vl:32b"
+expected_digest = "3edc3a52fe988de3e8ba4f99ac1f21a1bbc35e1af32a74983fe4e1667d6b6188"
+family = "Qwen2.5-VL"
+parameters = "33.5B"
+quantization = "Q4_K_M"
+role = "vision_candidate"
+license = "Apache-2.0"
 frozen = false
 
 [[models]]
@@ -36,21 +47,21 @@ frozen = false
 [[models]]
 id = "gemma3-12b"
 ollama_name = "gemma3:12b"
-expected_digest = ""
+expected_digest = "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a"
 family = "Gemma 3"
-parameters = "12B"
-quantization = "UNVERIFIED"
+parameters = "12.2B"
+quantization = "Q4_K_M"
 role = "vision_candidate"
-license = "REQUIRES_PILOT_VERIFICATION"
+license = "Gemma Terms of Use"
 frozen = false
 
 [[models]]
 id = "mistral-small31-24b"
 ollama_name = "mistral-small3.1:24b"
-expected_digest = ""
+expected_digest = "b9aaf0c2586a8ed8105feab808c0f034bd4d346203822f048e2366165a13f4ea"
 family = "Mistral Small 3.1"
 parameters = "24B"
-quantization = "UNVERIFIED"
+quantization = "Q4_K_M"
 role = "vision_candidate"
 license = "Apache-2.0"
 frozen = false

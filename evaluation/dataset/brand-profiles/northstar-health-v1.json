@@ -1,0 +1,7 @@
+{
+  "id": "northstar-health-v1",
+  "name": "Northstar Community Health",
+  "voice": ["calm", "plain-language", "respectful"],
+  "approved_terms": ["clinician", "patient", "appointment", "care team"],
+  "prohibited_visible_claims": ["diagnosis", "treatment outcome", "test result", "patient identity"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "harbour-house-v1",
+  "name": "Harbour House Hospitality",
+  "voice": ["warm", "clear", "service-oriented"],
+  "approved_terms": ["guest", "dining room", "reception", "stay"],
+  "prohibited_visible_claims": ["luxury rating", "availability", "menu price", "guest identity"]
+}

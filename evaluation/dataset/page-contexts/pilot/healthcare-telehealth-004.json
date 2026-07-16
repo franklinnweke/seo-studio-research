@@ -1,0 +1,11 @@
+{
+  "audience": "Patients seeking remote care",
+  "functional_action": "Open virtual-care booking",
+  "id": "healthcare-telehealth-004-context",
+  "language": "en-CA",
+  "link_destination": "/book/virtual-care",
+  "nearby_text": "Select the image to open the virtual-care booking form.",
+  "page_title": "Virtual Care",
+  "page_url": "https://example.invalid/northstar/virtual-care",
+  "section_heading": "Book a virtual appointment"
+}

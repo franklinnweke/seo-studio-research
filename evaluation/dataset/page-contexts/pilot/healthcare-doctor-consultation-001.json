@@ -1,0 +1,9 @@
+{
+  "audience": "Prospective adult patients",
+  "id": "healthcare-doctor-consultation-001-context",
+  "language": "en-CA",
+  "nearby_text": "Learn what happens during a scheduled primary care consultation.",
+  "page_title": "Primary Care Appointments",
+  "page_url": "https://example.invalid/northstar/primary-care",
+  "section_heading": "Meet with a clinician"
+}

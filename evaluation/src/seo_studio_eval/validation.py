@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
-from .records import read_attempt_record
+from .records import attempt_record_paths, read_attempt_record
 
 
 class RunValidationSummary(BaseModel):
@@ -16,9 +16,7 @@ class RunValidationSummary(BaseModel):
 
 def validate_run_directory(run_dir: Path) -> tuple[RunValidationSummary, Path]:
     errors: list[str] = []
-    record_paths = sorted(
-        path for path in run_dir.glob("*.json") if path.name not in {"validation-summary.json", "preflight-summary.json"}
-    )
+    record_paths = attempt_record_paths(run_dir)
     valid_records = 0
     if not record_paths:
         errors.append("No attempt records found")

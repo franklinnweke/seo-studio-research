@@ -1,0 +1,6 @@
+{
+  "catalog": "dataset/pilot-catalog.json",
+  "items": 20,
+  "manifest": "dataset/manifest.jsonl",
+  "retrieved_at": "2026-07-16T15:30:49Z"
+}

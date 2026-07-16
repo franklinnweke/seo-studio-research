@@ -1,0 +1,9 @@
+{
+  "audience": "Patients with prescriptions",
+  "id": "healthcare-pharmacy-005-context",
+  "language": "en-CA",
+  "nearby_text": "A pharmacist can review how prescribed medicines are organized and used.",
+  "page_title": "Medication Review",
+  "page_url": "https://example.invalid/northstar/pharmacy",
+  "section_heading": "Speak with the pharmacy team"
+}
