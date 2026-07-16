@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -33,9 +33,15 @@ import {
   uploadBrandContext,
   type ImageMetadataListResponse,
   type ImageMetadataResult,
+  type MetadataGenerationRequest,
 } from "@/lib/api";
 import { useAuthenticatedObjectUrl } from "@/hooks/use-authenticated-object-url";
 import { setActiveImageJobId, useActiveImageJobId } from "@/lib/workspace";
+import {
+  MetadataContextPanel,
+  isImageContextReady,
+  type ContextReadinessState,
+} from "@/components/metadata-context-panel";
 
 type MetadataEdit = {
   suggested_filename: string;
@@ -47,6 +53,14 @@ const emptyEdit: MetadataEdit = {
   suggested_filename: "",
   alt_text: "",
   caption: "",
+};
+
+const emptyContextReadiness: ContextReadinessState = {
+  pageReady: false,
+  confirmedImageIds: [],
+  imageContexts: {},
+  isLoading: false,
+  hasError: false,
 };
 
 function confidenceLabel(confidence: number) {
@@ -97,9 +111,35 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
   const [activeJobId, setActiveJobId] = useState(initialJobId);
   const [metadataEdits, setMetadataEdits] = useState<Record<string, MetadataEdit>>({});
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const drawerCloseButtonRef = useRef<HTMLButtonElement>(null);
   const [selectedBrandFiles, setSelectedBrandFiles] = useState<File[]>([]);
   const [brandUploadProgress, setBrandUploadProgress] = useState(0);
   const [selectedExportImageIds, setSelectedExportImageIds] = useState<string[]>([]);
+  const [generationMode, setGenerationMode] = useState<"dual_stage" | "direct">("dual_stage");
+  const [contextMode, setContextMode] = useState<
+    "none" | "brand_only" | "page_only" | "brand_and_page"
+  >("brand_and_page");
+  const [contextReadiness, setContextReadiness] =
+    useState<ContextReadinessState>(emptyContextReadiness);
+
+  useEffect(() => {
+    if (!selectedImageId) return;
+
+    const previouslyFocusedElement = document.activeElement as HTMLElement | null;
+    drawerCloseButtonRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedImageId(null);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement?.focus();
+    };
+  }, [selectedImageId]);
 
   const settingsQuery = useQuery({
     queryKey: ["settings"],
@@ -140,6 +180,25 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
         availableImageIds.has(imageId),
       );
 
+      if (settingsQuery.data?.context_metadata_enabled) {
+        const targetImageIds =
+          selectedImageIds.length > 0 ? selectedImageIds : Array.from(availableImageIds);
+        const missingPurpose = targetImageIds.filter(
+          (imageId) => !contextReadiness.confirmedImageIds.includes(imageId),
+        );
+        if (!contextReadiness.pageReady || missingPurpose.length > 0) {
+          throw new Error(
+            "Complete page context and confirm the purpose of every selected image before generation.",
+          );
+        }
+        const payload: MetadataGenerationRequest = {
+          generation_mode: generationMode,
+          context_mode: contextMode,
+          ...(selectedImageIds.length > 0 ? { image_ids: selectedImageIds } : {}),
+        };
+        return generateImageMetadata(activeJobId, payload);
+      }
+
       if (selectedImageIds.length === 0) {
         return generateImageMetadata(activeJobId);
       }
@@ -178,7 +237,18 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
   });
 
   const regenerateMutation = useMutation({
-    mutationFn: (imageId: string) => regenerateImageMetadata(activeJobId, imageId),
+    mutationFn: (imageId: string) => {
+      if (settingsQuery.data?.context_metadata_enabled) {
+        if (!contextReadiness.pageReady || !contextReadiness.confirmedImageIds.includes(imageId)) {
+          throw new Error("Save page context and confirm this image purpose before regeneration.");
+        }
+        return regenerateImageMetadata(activeJobId, imageId, {
+          generation_mode: generationMode,
+          context_mode: contextMode,
+        });
+      }
+      return regenerateImageMetadata(activeJobId, imageId);
+    },
     onSuccess: (result) => {
       queryClient.setQueryData(
         ["image-metadata", activeJobId],
@@ -314,6 +384,7 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
     generateMutation.reset();
     regenerateMutation.reset();
     setSelectedExportImageIds([]);
+    setContextReadiness(emptyContextReadiness);
   };
 
   const updateEdit = (imageId: string, update: Partial<MetadataEdit>) => {
@@ -328,6 +399,12 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
   };
 
   const selectedRow = rows.find(({ file }) => file.id === selectedImageId) ?? null;
+  const selectedImageContext = selectedRow
+    ? contextReadiness.imageContexts[selectedRow.file.id]
+    : undefined;
+  const selectedUsesEmptyAlt =
+    selectedImageContext?.purpose === "decorative" ||
+    selectedImageContext?.purpose === "redundant";
   const selectedPreviewUrl =
     activeJobId && selectedRow
       ? getMetadataImageDownloadUrl(
@@ -353,8 +430,22 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
       : "";
   const selectedApprovableIds = selectedExportIds.filter((imageId) => {
     const result = metadataById.get(imageId);
-    return Boolean(result) && result?.status !== "failed";
+    const purposeReady = !settingsQuery.data?.context_metadata_enabled ||
+      isImageContextReady(contextReadiness.imageContexts[imageId]);
+    return Boolean(result) && result?.status !== "failed" && purposeReady;
   });
+  const generationTargetIds = someRowsSelected
+    ? selectedExportIds
+    : rows.map(({ file }) => file.id);
+  const unconfirmedTargetIds = generationTargetIds.filter(
+    (imageId) => !contextReadiness.confirmedImageIds.includes(imageId),
+  );
+  const contextGenerationReady =
+    !settingsQuery.data?.context_metadata_enabled ||
+    (contextReadiness.pageReady &&
+      unconfirmedTargetIds.length === 0 &&
+      !contextReadiness.isLoading &&
+      !contextReadiness.hasError);
 
   const hasPendingMutation =
     generateMutation.isPending ||
@@ -563,6 +654,14 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
             </div>
           </div>
 
+          <MetadataContextPanel
+            jobId={activeJobId}
+            files={files}
+            contextEnabled={Boolean(settingsQuery.data?.context_metadata_enabled)}
+            purposeSuggestionEnabled={Boolean(settingsQuery.data?.purpose_suggestion_enabled)}
+            onReadinessChange={setContextReadiness}
+          />
+
           <div className="rounded-lg border border-[#dfe3e8] bg-white">
           <div className="border-b border-[#dfe3e8]">
             <div className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
@@ -595,7 +694,12 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 ) : null}
                 <button
                   type="button"
-                  disabled={files.length === 0 || generateMutation.isPending || regenerateMutation.isPending}
+                  disabled={
+                    files.length === 0 ||
+                    generateMutation.isPending ||
+                    regenerateMutation.isPending ||
+                    !contextGenerationReady
+                  }
                   onClick={() => generateMutation.mutate()}
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1d4ed8] px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-[#98a2b3]"
                 >
@@ -627,6 +731,83 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 ) : null}
               </div>
             </div>
+            {settingsQuery.data?.context_metadata_enabled ? (
+              <div className="border-t border-[#edf0f2] px-5 py-4">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(220px,0.55fr)_auto] xl:items-end">
+                  <fieldset>
+                    <legend className="text-xs font-semibold uppercase tracking-wide text-[#667085]">
+                      Generation architecture
+                    </legend>
+                    <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg bg-[#f2f4f7] p-1">
+                      <label className={`cursor-pointer rounded-md px-3 py-2 transition ${generationMode === "dual_stage" ? "bg-white text-[#1d4ed8] shadow-sm" : "text-[#667085] hover:text-[#344054]"}`}>
+                        <input
+                          type="radio"
+                          name="generation-mode"
+                          value="dual_stage"
+                          checked={generationMode === "dual_stage"}
+                          onChange={() => setGenerationMode("dual_stage")}
+                          className="sr-only"
+                        />
+                        <span className="block text-sm font-semibold">Dual stage</span>
+                        <span className="mt-0.5 block text-xs">Facts, then writer</span>
+                      </label>
+                      <label className={`cursor-pointer rounded-md px-3 py-2 transition ${generationMode === "direct" ? "bg-white text-[#1d4ed8] shadow-sm" : "text-[#667085] hover:text-[#344054]"}`}>
+                        <input
+                          type="radio"
+                          name="generation-mode"
+                          value="direct"
+                          checked={generationMode === "direct"}
+                          onChange={() => setGenerationMode("direct")}
+                          className="sr-only"
+                        />
+                        <span className="block text-sm font-semibold">Direct</span>
+                        <span className="mt-0.5 block text-xs">Controlled baseline</span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <label className="space-y-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[#667085]">
+                      Context evidence
+                    </span>
+                    <select
+                      value={contextMode}
+                      onChange={(event) =>
+                        setContextMode(event.target.value as typeof contextMode)
+                      }
+                      className="h-[58px] w-full rounded-lg border border-[#d4dae2] bg-white px-3 text-sm text-[#344054]"
+                    >
+                      <option value="brand_and_page">Page + brand</option>
+                      <option value="page_only">Page only</option>
+                      <option value="brand_only">Brand only</option>
+                      <option value="none">No page or brand context</option>
+                    </select>
+                  </label>
+
+                  <div
+                    aria-live="polite"
+                    className={`flex min-h-[58px] items-center gap-2 rounded-lg px-3 text-sm ${
+                      contextGenerationReady
+                        ? "bg-[#eef6f0] text-[#20744a]"
+                        : "bg-[#fff6ed] text-[#9a5b13]"
+                    }`}
+                  >
+                    {contextGenerationReady ? (
+                      <Check aria-hidden="true" size={16} />
+                    ) : (
+                      <AlertCircle aria-hidden="true" size={16} />
+                    )}
+                    <span>
+                      {contextGenerationReady
+                        ? `${generationTargetIds.length} image${generationTargetIds.length === 1 ? "" : "s"} ready`
+                        : !contextReadiness.pageReady
+                          ? "Save required page context"
+                          : `Confirm ${unconfirmedTargetIds.length} image purpose${unconfirmedTargetIds.length === 1 ? "" : "s"}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {filesQuery.isError ||
@@ -659,7 +840,7 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1040px] table-fixed text-left text-sm">
+              <table className="w-full min-w-[1160px] table-fixed text-left text-sm">
                 <thead className="bg-[#fafbfc] text-[#667085]">
                   <tr>
                     <th className="w-[56px] px-4 py-3 font-medium">
@@ -679,12 +860,13 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                       ) : null}
                     </th>
                     <th className="w-[18%] px-4 py-3 font-medium">Image</th>
-                    <th className="w-[30%] px-4 py-3 font-medium">
+                    <th className="w-[23%] px-4 py-3 font-medium">
                       Filename
                     </th>
-                    <th className="w-[28%] px-4 py-3 font-medium">
+                    <th className="w-[24%] px-4 py-3 font-medium">
                       Alt Text
                     </th>
+                    <th className="w-[12%] px-4 py-3 font-medium">Purpose</th>
                     <th className="w-[9%] px-4 py-3 font-medium">Confidence</th>
                     <th className="w-[9%] px-4 py-3 font-medium">Status</th>
                     <th className="w-[140px] px-4 py-3 text-center font-medium">Actions</th>
@@ -693,7 +875,7 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 <tbody className="divide-y divide-[#edf0f2]">
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-10 text-center text-[#667085]">
+                      <td colSpan={8} className="px-4 py-10 text-center text-[#667085]">
                         No images found for this job.
                       </td>
                     </tr>
@@ -728,6 +910,24 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                           <p className="truncate" title={displayText(edit.alt_text)}>
                             {displayText(edit.alt_text)}
                           </p>
+                        </td>
+                        <td className="px-4 py-3">
+                          {(() => {
+                            const imageContext = contextReadiness.imageContexts[file.id];
+                            const purpose = imageContext?.purpose ?? result?.purpose ?? "unknown";
+                            const confirmed = isImageContextReady(imageContext);
+                            return (
+                              <span
+                                className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                  confirmed
+                                    ? "bg-[#eef6f0] text-[#20744a]"
+                                    : "bg-[#fff6ed] text-[#b54708]"
+                                }`}
+                              >
+                                {purpose === "unknown" ? "Unconfirmed" : purpose}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-3 text-[#475467]">
                           {result ? confidenceLabel(result.confidence) : "Not generated"}
@@ -771,7 +971,13 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                             </button>
                             <button
                               type="button"
-                              disabled={regenerateMutation.isPending || generateMutation.isPending}
+                              disabled={
+                                regenerateMutation.isPending ||
+                                generateMutation.isPending ||
+                                (Boolean(settingsQuery.data?.context_metadata_enabled) &&
+                                  (!contextReadiness.pageReady ||
+                                    !contextReadiness.confirmedImageIds.includes(file.id)))
+                              }
                               onClick={() => regenerateMutation.mutate(file.id)}
                               title={`Regenerate metadata for ${file.original_filename}`}
                               aria-label={`Regenerate metadata for ${file.original_filename}`}
@@ -781,7 +987,13 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                             </button>
                             <button
                               type="button"
-                              disabled={!result || result.status === "failed" || hasPendingMutation}
+                              disabled={
+                                !result ||
+                                result.status === "failed" ||
+                                hasPendingMutation ||
+                                (Boolean(settingsQuery.data?.context_metadata_enabled) &&
+                                  !isImageContextReady(contextReadiness.imageContexts[file.id]))
+                              }
                               onClick={() =>
                                 approveMutation.mutate({
                                   imageId: file.id,
@@ -815,15 +1027,21 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
             aria-label="Close metadata details"
             onClick={() => setSelectedImageId(null)}
           />
-          <aside className="absolute right-0 top-0 flex h-full w-full max-w-xl flex-col bg-white shadow-2xl">
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="metadata-details-title"
+            className="absolute right-0 top-0 flex h-full w-full max-w-xl flex-col bg-white shadow-2xl"
+          >
             <div className="flex items-start justify-between gap-4 border-b border-[#dfe3e8] px-5 py-4">
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-[#151923]">Metadata Details</h2>
+                <h2 id="metadata-details-title" className="text-base font-semibold text-[#151923]">Metadata Details</h2>
                 <p className="mt-1 truncate text-sm text-[#667085]">
                   {selectedRow.file.original_filename}
                 </p>
               </div>
               <button
+                ref={drawerCloseButtonRef}
                 type="button"
                 onClick={() => setSelectedImageId(null)}
                 className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475467] hover:bg-[#f2f4f7]"
@@ -837,16 +1055,22 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
             <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
               <div className="overflow-hidden rounded-lg border border-[#dfe3e8] bg-[#f6f7f9]">
                 <div className="flex aspect-[16/10] items-center justify-center bg-[#eef2f6]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={selectedPreviewObjectUrl}
-                    alt={
-                      selectedRow.edit.alt_text.trim()
-                        ? selectedRow.edit.alt_text
-                        : `Preview of ${selectedRow.file.original_filename}`
-                    }
-                    className="h-full w-full object-contain"
-                  />
+                  {selectedPreviewObjectUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={selectedPreviewObjectUrl}
+                      alt={
+                        selectedRow.edit.alt_text.trim()
+                          ? selectedRow.edit.alt_text
+                          : `Preview of ${selectedRow.file.original_filename}`
+                      }
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <p role="status" className="text-xs text-[#667085]">
+                      Loading image preview…
+                    </p>
+                  )}
                 </div>
                 <div className="border-t border-[#dfe3e8] px-4 py-3">
                   <p className="truncate text-sm font-medium text-[#151923]" title={selectedRow.file.original_filename}>
@@ -885,6 +1109,73 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 </div>
               </div>
 
+              {settingsQuery.data?.context_metadata_enabled ? (
+                <section className="border-y border-[#dfe3e8] py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#667085]">Confirmed purpose</p>
+                      <p className="mt-1 text-sm font-semibold capitalize text-[#151923]">
+                        {selectedImageContext?.purpose ?? selectedRow.result?.purpose ?? "unknown"}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isImageContextReady(selectedImageContext) ? "bg-[#eef6f0] text-[#20744a]" : "bg-[#fff6ed] text-[#b54708]"}`}>
+                      {isImageContextReady(selectedImageContext) ? "Human confirmed" : "Confirmation required"}
+                    </span>
+                  </div>
+                  {selectedRow.result?.purpose_rationale ? (
+                    <p className="mt-3 text-sm leading-6 text-[#475467]">
+                      {selectedRow.result.purpose_rationale}
+                    </p>
+                  ) : null}
+                  {selectedUsesEmptyAlt ? (
+                    <div className="mt-3 flex items-start gap-2 rounded-md bg-[#eef6f0] p-3 text-sm text-[#236245]">
+                      <Check aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
+                      Empty alt text is intentional for this confirmed purpose.
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
+
+              {selectedRow.result?.warnings.length ? (
+                <section aria-labelledby="metadata-warnings-title" className="rounded-md border border-[#ead8ae] bg-[#fffaf0] p-3">
+                  <h3 id="metadata-warnings-title" className="flex items-center gap-2 text-sm font-semibold text-[#765719]">
+                    <AlertCircle aria-hidden="true" size={16} />
+                    Review warnings
+                  </h3>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#765719]">
+                    {selectedRow.result.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                  </ul>
+                </section>
+              ) : null}
+
+              {selectedRow.result?.visual_facts ? (
+                <section className="rounded-md border border-[#dfe3e8] p-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[#667085]">Structured visual facts</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#344054]">{selectedRow.result.visual_facts.summary}</p>
+                  {selectedRow.result.visual_facts.uncertain_facts.length ? (
+                    <p className="mt-2 text-xs leading-5 text-[#8a5d14]">
+                      Uncertain: {selectedRow.result.visual_facts.uncertain_facts.join("; ")}
+                    </p>
+                  ) : null}
+                </section>
+              ) : null}
+
+              {selectedRow.result?.provenance ? (
+                <details className="rounded-md border border-[#dfe3e8] bg-[#fafbfc] p-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-[#344054]">
+                    Generation provenance
+                  </summary>
+                  <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                    <div><dt className="text-[#667085]">Architecture</dt><dd className="mt-1 font-medium text-[#151923]">{selectedRow.result.provenance.generation_mode === "dual_stage" ? "Dual stage" : "Direct"}</dd></div>
+                    <div><dt className="text-[#667085]">Retries</dt><dd className="mt-1 font-medium text-[#151923]">{selectedRow.result.provenance.retry_count}</dd></div>
+                    <div><dt className="text-[#667085]">Vision model</dt><dd className="mt-1 break-all font-medium text-[#151923]">{selectedRow.result.provenance.vision_model}</dd></div>
+                    <div><dt className="text-[#667085]">Writer model</dt><dd className="mt-1 break-all font-medium text-[#151923]">{selectedRow.result.provenance.writer_model}</dd></div>
+                    <div><dt className="text-[#667085]">Prompt</dt><dd className="mt-1 font-medium text-[#151923]">{selectedRow.result.provenance.metadata_prompt_version}</dd></div>
+                    <div><dt className="text-[#667085]">Schema</dt><dd className="mt-1 font-medium text-[#151923]">{selectedRow.result.provenance.metadata_schema_version}</dd></div>
+                  </dl>
+                </details>
+              ) : null}
+
               <div className="rounded-md border border-[#dfe3e8] bg-[#fafbfc] p-3 text-sm text-[#667085]">
                 Downloads use the processed image when available. Otherwise, the original upload is
                 downloaded with the suggested filename.
@@ -909,7 +1200,12 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm font-medium text-[#151923]">Alt text</span>
+                <span className="flex items-center justify-between gap-3 text-sm font-medium text-[#151923]">
+                  Alt text
+                  {selectedUsesEmptyAlt ? (
+                    <span className="text-xs font-normal text-[#20744a]">Leave empty for this purpose</span>
+                  ) : null}
+                </span>
                 <textarea
                   value={selectedRow.edit.alt_text}
                   onChange={(event) => updateEdit(selectedRow.file.id, { alt_text: event.target.value })}
@@ -929,8 +1225,8 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
               </label>
             </div>
 
-            <div className="flex items-center justify-between gap-3 border-t border-[#dfe3e8] px-5 py-4">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 border-t border-[#dfe3e8] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => downloadApiFile(
@@ -961,7 +1257,13 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 </button>
                 <button
                   type="button"
-                  disabled={hasPendingMutation || !selectedRow.result || selectedRow.result.status === "failed"}
+                  disabled={
+                    hasPendingMutation ||
+                    !selectedRow.result ||
+                    selectedRow.result.status === "failed" ||
+                    (Boolean(settingsQuery.data?.context_metadata_enabled) &&
+                      !isImageContextReady(selectedImageContext))
+                  }
                   onClick={() =>
                     approveMutation.mutate({
                       imageId: selectedRow.file.id,
@@ -979,7 +1281,12 @@ export function SeoMetadataPanel({ activeJobId: externalJobId, embedded }: SeoMe
                 </button>
                 <button
                   type="button"
-                  disabled={regenerateMutation.isPending || generateMutation.isPending}
+                  disabled={
+                    regenerateMutation.isPending ||
+                    generateMutation.isPending ||
+                    (Boolean(settingsQuery.data?.context_metadata_enabled) &&
+                      (!contextReadiness.pageReady || !isImageContextReady(selectedImageContext)))
+                  }
                   onClick={() => regenerateMutation.mutate(selectedRow.file.id)}
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dfe3e8] px-4 text-sm font-medium text-[#475467] hover:bg-[#edf4ff] hover:text-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
                 >

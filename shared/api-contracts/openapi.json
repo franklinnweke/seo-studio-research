@@ -1120,6 +1120,13 @@
             "title": "Purpose Source",
             "type": "string"
           },
+          "purpose_suggestion_rationale": {
+            "default": "",
+            "description": "Short model rationale retained as suggestion evidence, never as human confirmation.",
+            "maxLength": 1000,
+            "title": "Purpose Suggestion Rationale",
+            "type": "string"
+          },
           "suggested_purpose": {
             "anyOf": [
               {
@@ -1259,6 +1266,13 @@
             "description": "Whether a human explicitly confirmed the purpose.",
             "title": "Purpose Confirmed",
             "type": "boolean"
+          },
+          "purpose_suggestion_rationale": {
+            "default": "",
+            "description": "Short model rationale retained as suggestion evidence, never as human confirmation.",
+            "maxLength": 1000,
+            "title": "Purpose Suggestion Rationale",
+            "type": "string"
           },
           "suggested_purpose": {
             "anyOf": [
@@ -3432,6 +3446,79 @@
           }
         ],
         "summary": "Regenerate AI metadata for one image",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/images/{image_id}/purpose-suggestion": {
+      "post": {
+        "description": "Uses the configured vision model and page context to suggest an image-purpose category. The suggestion is persisted as unconfirmed evidence and never replaces human confirmation.",
+        "operationId": "suggest_image_purpose_api_jobs__job_id__images__image_id__purpose_suggestion_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job or image file not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Purpose suggestions are disabled."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "description": "The AI suggestion could not be validated."
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Suggest image purpose",
         "tags": [
           "image jobs"
         ]

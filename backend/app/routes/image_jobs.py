@@ -217,6 +217,28 @@ def update_image_context(
 
 
 @router.post(
+    "/{job_id}/images/{image_id}/purpose-suggestion",
+    response_model=ImageContextResponse,
+    summary="Suggest image purpose",
+    description=(
+        "Uses the configured vision model and page context to suggest an image-purpose category. "
+        "The suggestion is persisted as unconfirmed evidence and never replaces human confirmation."
+    ),
+    responses={
+        409: {"model": ApiErrorResponse, "description": "Purpose suggestions are disabled."},
+        404: {"description": "Job or image file not found."},
+        502: {"description": "The AI suggestion could not be validated."},
+    },
+)
+def suggest_image_purpose(
+    job_id: str,
+    image_id: str,
+    service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+) -> ImageContextResponse:
+    return service.suggest_image_purpose(job_id, image_id)
+
+
+@router.post(
     "/{job_id}/process",
     response_model=ImageCompressionResponse,
     summary="Process uploaded image files",

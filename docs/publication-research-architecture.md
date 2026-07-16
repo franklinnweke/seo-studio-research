@@ -198,7 +198,7 @@ flowchart LR
 
 Verified July 16, 2026 on the research branch:
 
-- backend test suite: 89 passing after the A2 error-contract slice;
+- backend test suite: 96 passing after the A4 context-workflow slice;
 - offline evaluation harness: 7 passing tests plus a successful canonical synthetic pilot preflight with five declared candidates and explicit non-frozen/license/digest warnings;
 - frontend lint: passing;
 - frontend production build: passing with Next.js 16.2.6;
@@ -212,8 +212,9 @@ Verified July 16, 2026 on the research branch:
 - the listener was reported on all interfaces, but firewall rules and external reachability were not verified. Gate 1 therefore remains open and the deployment must not yet be described as securely private;
 - ordinary `nvidia-smi` did not communicate with the NVIDIA driver in this session. This does not by itself establish a driver fault on a unified-memory DGX Spark; the supported DGX telemetry path still needs confirmation.
 - first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
-- first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested. The frontend context-review UI and purpose suggestion remain pending.
+- first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested.
 - second A2 slice: sanitized request-ID middleware, top-level context/purpose error responses, offline study/model configuration validation, path containment, dataset/license/hash preflight, append-only run records, no-hidden-retry fake transport, machine-readable CLI summaries, exported JSON schemas, and synthetic fixtures are implemented. Live Ollama/DGX preflight, the 20-image pilot set, blinding, normalization, and reporting commands remain pending.
+- A4 slice: the feature-flagged frontend now collects page context, requires explicit per-image purpose confirmation, exposes optional AI purpose suggestions without conflating them with human decisions, gates generation/approval on contextual readiness, supports direct and dual-stage selection, and presents purpose, warnings, structured facts, and sanitized provenance during review. The workflow is keyboard operable, has responsive no-overflow behavior at 390 px, and preserves legacy metadata mode when the feature flag is disabled.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
 
@@ -752,6 +753,8 @@ Per-image fields:
 | `frontend/lib/workspace.ts` | Keep job ID behavior; do not persist sensitive page context in browser local storage |
 | metadata detail drawer | Show visible facts, context used, alt decision, rationale, warnings, and provenance |
 | export controls | Include context/purpose columns and warn when rows remain unconfirmed or unapproved |
+
+Implemented in A4. The existing metadata workspace is the canonical review sequence: page evidence first, per-image purpose confirmation second, controlled generation third, and review/export last. The dashboard summarizes this as “Prepare Context & Metadata” instead of adding separate top-level route steps, keeping the workflow within one job-scoped screen and avoiding duplicate state. Page context remains server-side and is not written to browser local storage.
 
 ### 11.3 Accessibility of the review UI
 
@@ -1827,13 +1830,15 @@ Status: satisfied locally. Backend fixtures pass for both routes and the offline
 
 #### Work package A4: frontend context-review workflow — July 28–31
 
-- Add the page-context form and contextual readiness state.
-- Add per-image purpose suggestion, explicit human confirmation, purpose badges, warnings, and empty-alt explanation.
-- Prevent final approval when purpose is unknown or validation fails.
-- Preserve keyboard access, focus behavior, error announcements, and small-screen usability.
-- Run lint, clean build, and targeted browser flow tests.
+- [x] Add the page-context form and contextual readiness state.
+- [x] Add per-image purpose suggestion, explicit human confirmation, purpose badges, warnings, and empty-alt explanation.
+- [x] Prevent generation and final approval when purpose is unknown or validation fails.
+- [x] Preserve keyboard access, drawer focus restoration/Escape dismissal, error announcements, and small-screen usability.
+- [x] Run lint, clean build, and targeted browser flow tests.
 
 Exit: upload → context → purpose → generate → review → export works end to end.
+
+Status: satisfied locally ahead of schedule on July 16, 2026. Backend deterministic fixtures cover generation routing, validation, retry, review, and export behavior; the browser flow verified incomplete-state blocking, page-context persistence, human purpose confirmation, enabled generation readiness, responsive layout without horizontal overflow at 390 px, modal focus/Escape behavior, and no application runtime errors. Live DGX inference remains an A5 compatibility/pilot activity and is not represented as an A4 security-gate result.
 
 #### Work package A5: harness and dedicated pilot — August 1–7
 
@@ -1959,9 +1964,9 @@ Not permitted during the deferral:
 - [x] Allow and validate empty alt text by purpose behind the context feature flag.
 - [x] Add purpose-aware prompts and structured visual facts.
 - [x] Preserve model/prompt provenance.
-- [ ] Update frontend context and review workflow.
+- [x] Update frontend context and review workflow.
 - [x] Update CSV/ZIP report fields and OpenAPI for the A3 contract.
-- [ ] Add full frontend workflow and browser tests; backend A3 routing/provenance fixtures are complete.
+- [x] Add the A4 frontend workflow and targeted browser validation; backend routing/provenance fixtures remain the deterministic generation oracle until A5 live preflight.
 
 ### P1: research harness minimum
 
@@ -2046,19 +2051,19 @@ The three most important research controls are protocol freeze, immutable raw re
 
 ### 31.1 Current implementation assignment
 
-Work packages A0–A3 are implemented on `codex/research-context-aware-metadata`. The branch now includes schema versioning, context endpoints, purpose-aware approval, stable research-facing errors, offline harness foundations, structured visual facts, controlled direct/dual generation, sanitized provenance, retry accounting, review history, export fields, frontend API types, and regenerated OpenAPI. The existing no-body metadata request remains backward compatible. Network verification remains explicitly deferred and Gate 1 remains open; this does not block local A4 product work or offline harness work.
+Work packages A0–A4 are implemented on `codex/research-context-aware-metadata`. The branch now includes schema versioning, context endpoints, optional purpose suggestion, explicit human purpose confirmation, purpose-aware generation and approval gates, stable research-facing errors, offline harness foundations, structured visual facts, controlled direct/dual generation, sanitized provenance, retry accounting, review history, export fields, the complete context-review UI, matching frontend API types, and regenerated OpenAPI. The existing no-body metadata request remains backward compatible. Network verification remains explicitly deferred and Gate 1 remains open; this does not block offline A5 harness and dataset work.
 
-The next agent begins A4 frontend context-review workflow while extending the harness incrementally, without treating the network deferral as a passed security gate:
+The next agent begins A5 pilot/harness preparation without treating the network deferral as a passed security gate:
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.
 3. Read and invoke `$davneet-dgx-access`; run its required current-status check before any live-state claim and do not duplicate its connection profile in project files.
-4. Build the page-context and per-image confirmed-purpose workflow against the existing schema-version-2 endpoints.
-5. Send an explicit `MetadataGenerationRequest` only when contextual readiness is satisfied; keep ordinary legacy behavior unchanged elsewhere.
-6. Expose purpose warnings, decorative/redundant empty-alt behavior, generation mode, and safe provenance summaries without displaying raw private context unnecessarily.
-7. Preserve keyboard access, focus behavior, error announcements, and small-screen usability.
-8. Use `$davneet-dgx-access` for any live inventory or digest collection, preserve all owner-managed resources, and write only sanitized locked digests into the approved private runtime configuration.
-9. Run backend tests, frontend lint/build, targeted browser flows, OpenAPI validation, and `git diff --check`, then hand off A4 readiness.
+4. Extend the harness from its synthetic contract fixture into licensed pilot-dataset ingestion, blinding, normalization, run accounting, and reporting commands.
+5. Define the dedicated 20-image pilot manifest with hashes, fictional page-context profiles, confirmed purposes, reference facts, and forbidden claims; do not reuse private brand or participant data.
+6. Freeze compatibility criteria and the model advancement rule before inspecting quality outcomes.
+7. Use `$davneet-dgx-access` for every live inventory, compatibility run, model pull, or digest collection; preserve all owner-managed resources and use only a verified dedicated project namespace.
+8. Keep live DGX addresses, credentials, and transient reachability out of Git; commit only sanitized evidence and approved locked digests.
+9. Run backend/evaluation tests, schema and dataset validation, synthetic preflight, and `git diff --check`, then hand off A5 pilot readiness.
 
 Do not pull models, change public-network exposure, begin participant recruitment, or run full experiments without the applicable Gate 0/Gate 1 approvals.
 

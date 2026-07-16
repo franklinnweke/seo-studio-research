@@ -8,8 +8,9 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from app.config import get_settings
+from app.errors import ApiError
 from app.main import app
-from app.schemas.responses import ImageContextUpdateRequest, ImageMetadataUpdateRequest
+from app.schemas.responses import ImageContextUpdateRequest, ImageMetadataUpdateRequest, PageContextUpdateRequest
 from app.services.ai_metadata_service import AiMetadataService
 from app.services.job_context_service import JobContextService
 
@@ -23,6 +24,20 @@ class UnusedAiClient:
 
     def generate_text(self, prompt: str) -> str:
         raise AssertionError("Purpose approval tests do not call text generation.")
+
+
+class PurposeSuggestionAiClient:
+    def __init__(self, responses: list[str]) -> None:
+        self.responses = responses
+        self.prompts: list[str] = []
+
+    def generate_image_metadata(self, image_path: Path, prompt: str) -> str:
+        assert image_path.exists()
+        self.prompts.append(prompt)
+        return self.responses.pop(0)
+
+    def generate_text(self, prompt: str) -> str:
+        raise AssertionError("Purpose suggestion uses the vision model only.")
 
 
 def make_image_bytes() -> bytes:
@@ -201,6 +216,54 @@ def test_image_context_supports_the_full_seven_state_taxonomy(purpose: str) -> N
 
     assert response.status_code == 200
     assert response.json()["image_context"]["purpose"] == purpose
+
+
+def test_ai_purpose_suggestion_persists_unconfirmed_evidence() -> None:
+    body = create_image_job()
+    image_id = body["files"][0]["id"]
+    context_service = JobContextService(get_settings())
+    context_service.update_page_context(
+        body["id"],
+        request=PageContextUpdateRequest(
+            page_title="Primary Care",
+            section_heading="Book a visit",
+            nearby_text="Choose an appointment time.",
+            audience="Patients",
+        ),
+    )
+    fake = PurposeSuggestionAiClient(
+        ['{"purpose":"functional","confidence":0.84,"rationale":"The placement suggests an appointment action."}']
+    )
+    settings = get_settings().model_copy(update={"purpose_suggestion_enabled": True})
+    service = AiMetadataService(settings, client=fake)
+
+    try:
+        response = service.suggest_image_purpose(body["id"], image_id)
+        stored = JobContextService(settings).get_image_context(body["id"], image_id)
+    finally:
+        cleanup_job(body["id"])
+
+    assert response.image_context.purpose == "unknown"
+    assert response.image_context.purpose_confirmed is False
+    assert response.image_context.suggested_purpose == "functional"
+    assert response.image_context.purpose_source == "ai_suggested"
+    assert response.image_context.purpose_suggestion_rationale.startswith("The placement")
+    assert stored.image_context.suggested_purpose == "functional"
+    assert "Primary Care" in fake.prompts[0]
+
+
+def test_ai_purpose_suggestion_respects_feature_flag() -> None:
+    body = create_image_job()
+    image_id = body["files"][0]["id"]
+    service = AiMetadataService(get_settings(), client=UnusedAiClient())
+
+    try:
+        with pytest.raises(ApiError, match="disabled") as exc_info:
+            service.suggest_image_purpose(body["id"], image_id)
+    finally:
+        cleanup_job(body["id"])
+
+    assert exc_info.value.code == "FEATURE_DISABLED"
 
 
 def test_decorative_image_accepts_empty_alt_when_context_mode_is_enabled() -> None:

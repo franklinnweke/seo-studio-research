@@ -113,6 +113,7 @@ export type ImageContextUpdateRequest = {
   purpose_confirmed: boolean;
   suggested_purpose: ImagePurpose | null;
   purpose_confidence: number | null;
+  purpose_suggestion_rationale: string;
   link_destination: string;
   functional_action: string;
   long_description_available: boolean;
@@ -429,6 +430,16 @@ export async function updateImageContext(
   const response = await apiClient.put<ImageContextResponse>(
     `/api/jobs/${encodeURIComponent(jobId)}/images/${encodeURIComponent(imageId)}/context`,
     payload,
+  );
+  return response.data;
+}
+
+export async function suggestImagePurpose(
+  jobId: string,
+  imageId: string,
+): Promise<ImageContextResponse> {
+  const response = await apiClient.post<ImageContextResponse>(
+    `/api/jobs/${encodeURIComponent(jobId)}/images/${encodeURIComponent(imageId)}/purpose-suggestion`,
   );
   return response.data;
 }

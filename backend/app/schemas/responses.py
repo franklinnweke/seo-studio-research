@@ -85,6 +85,11 @@ class ImageContextUpdateRequest(BaseModel):
         le=1.0,
         description="Optional confidence attached to an AI purpose suggestion.",
     )
+    purpose_suggestion_rationale: str = Field(
+        default="",
+        max_length=1000,
+        description="Short model rationale retained as suggestion evidence, never as human confirmation.",
+    )
     link_destination: str = Field(default="", max_length=2000, description="Link destination for a functional image.")
     functional_action: str = Field(default="", max_length=500, description="Action performed by a functional image.")
     long_description_available: bool = Field(
@@ -404,6 +409,14 @@ class ContextualMetadataPayload(BaseModel):
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     purpose_rationale: str = Field(default="", max_length=1000)
     warnings: list[str] = Field(default_factory=list)
+
+
+class PurposeSuggestionPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    purpose: ImagePurpose
+    confidence: float = Field(ge=0.0, le=1.0)
+    rationale: str = Field(min_length=1, max_length=1000)
 
 
 class GenerationStageEvidence(BaseModel):

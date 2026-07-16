@@ -25,3 +25,24 @@ textarea,
 select {
   outline-color: #2563eb;
 }
+
+@keyframes context-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.context-reveal {
+  animation: context-reveal 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .context-reveal {
+    animation: none;
+  }
+}

@@ -27,11 +27,13 @@ from app.ai.prompts import (
     IMAGE_METADATA_RETRY_PROMPT,
     VISUAL_FACTS_PROMPT_V1,
     VISUAL_FACTS_PROMPT_VERSION,
+    PURPOSE_SUGGESTION_PROMPT_V1,
 )
 from app.config import Settings
 from app.errors import ApiError
 from app.schemas.responses import (
     ImageContext,
+    ImageContextResponse,
     ContextualMetadataPayload,
     CONTEXTUAL_METADATA_SCHEMA_VERSION,
     GenerationProvenance,
@@ -44,10 +46,12 @@ from app.schemas.responses import (
     ImageMetadataUpdateRequest,
     ImageUploadFileRecord,
     PageContext,
+    PurposeSuggestionPayload,
     VisualFactsPayload,
     VISUAL_FACTS_SCHEMA_VERSION,
 )
 from app.services.image_upload_service import ImageUploadService
+from app.services.job_context_service import JobContextService
 from app.utils.file_utils import dedupe_filename, sanitize_filename
 from app.utils.slugify import slugify
 
@@ -136,6 +140,61 @@ class AiMetadataService:
         self.upload_service.read_job(job_id)
         data = self.upload_service.read_job_data(job_id)
         return self._response_from_job_data(job_id, data)
+
+    def suggest_image_purpose(self, job_id: str, image_id: str) -> ImageContextResponse:
+        if not self.settings.purpose_suggestion_enabled:
+            raise ApiError(
+                status_code=status.HTTP_409_CONFLICT,
+                code="FEATURE_DISABLED",
+                message="AI purpose suggestions are disabled.",
+                field="purpose_suggestion_enabled",
+            )
+        job = self.upload_service.read_job(job_id)
+        file_record = next((record for record in job.files if record.id == image_id), None)
+        if file_record is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found.")
+        source_path = self.upload_root / job_id / file_record.relative_path
+        if not source_path.exists():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Uploaded image is missing.")
+
+        prompt = PURPOSE_SUGGESTION_PROMPT_V1.format(
+            page_context_json=self._canonical_json(self._page_context(job_id).model_dump(mode="json")),
+        )
+        preview_path = self._create_preview(job_id, source_path)
+        try:
+            payload = self._request_purpose_suggestion(preview_path, prompt)
+        finally:
+            preview_path.unlink(missing_ok=True)
+        return JobContextService(self.settings).apply_purpose_suggestion(
+            job_id,
+            image_id,
+            purpose=payload.purpose,
+            confidence=payload.confidence,
+            rationale=payload.rationale,
+        )
+
+    def _request_purpose_suggestion(
+        self,
+        preview_path: Path,
+        prompt: str,
+    ) -> PurposeSuggestionPayload:
+        for _ in range(2):
+            try:
+                content, _ = self._call_vision(
+                    self.vision_client,
+                    preview_path,
+                    prompt,
+                    PurposeSuggestionPayload.model_json_schema(),
+                    {"temperature": 0, "seed": 42, "num_ctx": 8192, "num_predict": 180},
+                )
+                data = json.loads(self._extract_json_object(content))
+                return PurposeSuggestionPayload.model_validate(data)
+            except (ValueError, ValidationError, json.JSONDecodeError):
+                continue
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Purpose suggestion was invalid after retry.",
+        )
 
     def export_image_metadata_csv(self, job_id: str, fields: list[str] | None = None) -> str:
         job = self.upload_service.read_job(job_id)

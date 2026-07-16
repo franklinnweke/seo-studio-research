@@ -55,6 +55,7 @@ Return only valid JSON with summary, seo_title, meta_description, and confidence
 VISUAL_FACTS_PROMPT_VERSION = "visual-facts-v1"
 CONTEXTUAL_METADATA_PROMPT_VERSION = "contextual-metadata-v1"
 DIRECT_METADATA_PROMPT_VERSION = "direct-metadata-v1"
+PURPOSE_SUGGESTION_PROMPT_VERSION = "purpose-suggestion-v1"
 
 VISUAL_FACTS_PROMPT_V1 = """You inspect image pixels for a grounded metadata experiment.
 
@@ -116,4 +117,17 @@ Context rules:
 [CONFIRMED_PURPOSE_JSON]
 {image_context_json}
 [/CONFIRMED_PURPOSE_JSON]
+"""
+
+PURPOSE_SUGGESTION_PROMPT_V1 = """/no_think
+Suggest the role this image most likely serves at its stated page placement.
+
+Return only JSON matching the supplied schema. Choose one purpose from informative, decorative,
+functional, text, complex, redundant, or unknown. Page context may support the role decision but
+must not be treated as evidence of visible image content. Use unknown when the role cannot be
+determined reliably. This is an AI suggestion that a human must confirm.
+
+[PAGE_CONTEXT_JSON]
+{page_context_json}
+[/PAGE_CONTEXT_JSON]
 """

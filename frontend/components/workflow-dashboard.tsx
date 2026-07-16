@@ -63,8 +63,8 @@ const STEPS: StepDefinition[] = [
   },
   {
     id: "metadata",
-    label: "Generate SEO Metadata",
-    description: "AI-powered filenames, alt text, and captions.",
+    label: "Prepare Context & Metadata",
+    description: "Add page evidence, confirm image purpose, then generate and review metadata.",
     icon: Sparkles,
     number: 3,
   },
@@ -227,7 +227,7 @@ export function WorkflowDashboard() {
       metadata: metadataGeneratedCount > 0
         ? `${metadataGeneratedCount} metadata result${metadataGeneratedCount === 1 ? "" : "s"} generated`
         : uploadedCount > 0
-          ? "Ready to generate AI metadata"
+          ? "Ready to add context and confirm image purpose"
           : "",
       resize: uploadedCount > 0
         ? "Ready to resize and crop"

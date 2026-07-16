@@ -51,6 +51,7 @@ def test_current_routes_are_documented() -> None:
         ("/api/jobs/{job_id}/page-context", "put"),
         ("/api/jobs/{job_id}/images/{image_id}/context", "get"),
         ("/api/jobs/{job_id}/images/{image_id}/context", "put"),
+        ("/api/jobs/{job_id}/images/{image_id}/purpose-suggestion", "post"),
         ("/api/jobs/{job_id}", "get"),
         ("/api/jobs/{job_id}/process", "post"),
         ("/api/jobs/{job_id}/resize-instructions", "post"),

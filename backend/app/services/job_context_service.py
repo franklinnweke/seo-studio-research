@@ -88,6 +88,39 @@ class JobContextService:
             image_context=image_context,
         )
 
+    def apply_purpose_suggestion(
+        self,
+        job_id: str,
+        image_id: str,
+        *,
+        purpose: str,
+        confidence: float,
+        rationale: str,
+    ) -> ImageContextResponse:
+        self._require_image(job_id, image_id)
+        data = self._normalized_job_data(job_id)
+        current = self._image_context_from_data(data, image_id)
+        image_context = current.model_copy(
+            update={
+                "suggested_purpose": purpose,
+                "purpose_confidence": confidence,
+                "purpose_suggestion_rationale": rationale.strip(),
+                "purpose_source": (
+                    "human_confirmed" if current.purpose_confirmed else "ai_suggested"
+                ),
+                "updated_at": datetime.now(timezone.utc),
+            }
+        )
+        image_contexts = data["image_contexts"]
+        assert isinstance(image_contexts, dict)
+        image_contexts[image_id] = image_context.model_dump(mode="json")
+        self.upload_service.write_job_data(job_id, data)
+        return ImageContextResponse(
+            job_id=job_id,
+            image_id=image_id,
+            image_context=image_context,
+        )
+
     def _normalized_job_data(self, job_id: str) -> dict[str, Any]:
         data = self.upload_service.read_job_data(job_id)
         data["schema_version"] = self.SCHEMA_VERSION
