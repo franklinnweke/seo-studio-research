@@ -11,6 +11,8 @@ from app.schemas.responses import (
     CropReviewResponse,
     ImageCompressionResponse,
     ImageCompressionSettings,
+    ImageContextResponse,
+    ImageContextUpdateRequest,
     ImageJobCreateResponse,
     ImageMetadataBulkAcceptRequest,
     ImageMetadataListResponse,
@@ -18,6 +20,8 @@ from app.schemas.responses import (
     ImageMetadataUpdateRequest,
     JobFileListResponse,
     JobStatusResponse,
+    PageContextResponse,
+    PageContextUpdateRequest,
     ResizeInstructionRequest,
     ResizeInstructionResponse,
 )
@@ -25,6 +29,7 @@ from app.services.ai_metadata_service import AiMetadataService
 from app.services.brand_context_service import BrandContextService
 from app.services.image_processor import ImageProcessor
 from app.services.image_upload_service import ImageUploadService
+from app.services.job_context_service import JobContextService
 
 
 router = APIRouter()
@@ -54,6 +59,10 @@ def get_ai_metadata_service(
 
 def get_brand_context_service(settings: Annotated[Settings, Depends(get_settings)]) -> BrandContextService:
     return BrandContextService(settings)
+
+
+def get_job_context_service(settings: Annotated[Settings, Depends(get_settings)]) -> JobContextService:
+    return JobContextService(settings)
 
 
 @router.post(
@@ -131,6 +140,75 @@ async def upload_brand_context(
     ],
 ) -> BrandContextResponse:
     return await service.upload_brand_context(job_id, files)
+
+
+@router.get(
+    "/{job_id}/page-context",
+    response_model=PageContextResponse,
+    summary="Read page context",
+    description=(
+        "Returns versioned page-level context for image metadata generation. Legacy jobs "
+        "without context return safe schema-version-2 defaults."
+    ),
+    responses={404: {"description": "Job not found."}},
+)
+def read_page_context(
+    job_id: str,
+    service: Annotated[JobContextService, Depends(get_job_context_service)],
+) -> PageContextResponse:
+    return service.get_page_context(job_id)
+
+
+@router.put(
+    "/{job_id}/page-context",
+    response_model=PageContextResponse,
+    summary="Save page context",
+    description="Persists human-provided page evidence without storing it in browser local storage.",
+    responses={404: {"description": "Job not found."}},
+)
+def update_page_context(
+    job_id: str,
+    request: Annotated[PageContextUpdateRequest, Body(description="Page evidence for contextual metadata generation.")],
+    service: Annotated[JobContextService, Depends(get_job_context_service)],
+) -> PageContextResponse:
+    return service.update_page_context(job_id, request)
+
+
+@router.get(
+    "/{job_id}/images/{image_id}/context",
+    response_model=ImageContextResponse,
+    summary="Read image purpose context",
+    description="Returns the seven-state purpose decision and explicit human-confirmation state for one image.",
+    responses={404: {"description": "Job or image file not found."}},
+)
+def read_image_context(
+    job_id: str,
+    image_id: str,
+    service: Annotated[JobContextService, Depends(get_job_context_service)],
+) -> ImageContextResponse:
+    return service.get_image_context(job_id, image_id)
+
+
+@router.put(
+    "/{job_id}/images/{image_id}/context",
+    response_model=ImageContextResponse,
+    summary="Save image purpose context",
+    description=(
+        "Persists a human-reviewed image purpose, confirmation state, functional context, "
+        "complex-image description state, and optional AI suggestion evidence."
+    ),
+    responses={
+        400: {"description": "Purpose confirmation or suggestion evidence is inconsistent."},
+        404: {"description": "Job or image file not found."},
+    },
+)
+def update_image_context(
+    job_id: str,
+    image_id: str,
+    request: Annotated[ImageContextUpdateRequest, Body(description="Human-reviewed per-image purpose context.")],
+    service: Annotated[JobContextService, Depends(get_job_context_service)],
+) -> ImageContextResponse:
+    return service.update_image_context(job_id, image_id, request)
 
 
 @router.post(

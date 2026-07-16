@@ -31,8 +31,26 @@ export type HealthResponse = {
   app: string;
 };
 
+export type AiModelReadiness = {
+  role: "vision" | "language";
+  model: string;
+  ready: boolean;
+};
+
+export type AiHealthResponse = {
+  status: "ready" | "degraded" | "unavailable";
+  provider: string;
+  inference_reachable: boolean;
+  models_ready: boolean;
+  version: string | null;
+  models: AiModelReadiness[];
+  issue_code: "unsupported_provider" | "inference_unreachable" | "required_models_missing" | null;
+};
+
 export type SettingsResponse = {
   ai_provider: string;
+  context_metadata_enabled: boolean;
+  purpose_suggestion_enabled: boolean;
   ollama_model: string;
   vision_model: string;
   language_model: string;
@@ -54,12 +72,67 @@ export type ImageUploadFileRecord = {
   source_archive: string | null;
 };
 
+export type ImagePurpose =
+  | "informative"
+  | "decorative"
+  | "functional"
+  | "text"
+  | "complex"
+  | "redundant"
+  | "unknown";
+
+export type PageContextUpdateRequest = {
+  page_title: string;
+  section_heading: string;
+  nearby_text: string;
+  page_url: string;
+  audience: string;
+  language: string;
+};
+
+export type PageContext = PageContextUpdateRequest & {
+  updated_at: string | null;
+};
+
+export type PageContextResponse = {
+  job_id: string;
+  schema_version: 2;
+  page_context: PageContext;
+};
+
+export type ImageContextUpdateRequest = {
+  purpose: ImagePurpose;
+  purpose_confirmed: boolean;
+  suggested_purpose: ImagePurpose | null;
+  purpose_confidence: number | null;
+  link_destination: string;
+  functional_action: string;
+  long_description_available: boolean;
+  complex_description_acknowledged: boolean;
+  notes: string;
+};
+
+export type ImageContext = ImageContextUpdateRequest & {
+  purpose_source: "unconfirmed" | "human_confirmed" | "ai_suggested";
+  updated_at: string | null;
+};
+
+export type ImageContextResponse = {
+  job_id: string;
+  image_id: string;
+  schema_version: 2;
+  image_context: ImageContext;
+};
+
 export type ImageJobCreateResponse = {
+  schema_version: 2;
   id: string;
   type: "image";
   status: "pending" | "processing" | "processed" | "needs_review" | "accepted" | "failed";
   accepted_extensions: string[];
   files: ImageUploadFileRecord[];
+  page_context: PageContext;
+  image_contexts: Record<string, ImageContext>;
 };
 
 export type JobStatusResponse = {
@@ -203,6 +276,11 @@ export async function getHealth(): Promise<HealthResponse> {
   return response.data;
 }
 
+export async function getAiHealth(): Promise<AiHealthResponse> {
+  const response = await apiClient.get<AiHealthResponse>("/api/ai/health");
+  return response.data;
+}
+
 export async function getSettings(): Promise<SettingsResponse> {
   const response = await apiClient.get<SettingsResponse>("/api/settings");
   return response.data;
@@ -240,6 +318,46 @@ export async function getJobFiles(jobId: string): Promise<JobFileListResponse> {
 
 export async function getBrandContext(jobId: string): Promise<BrandContextResponse> {
   const response = await apiClient.get<BrandContextResponse>(`/api/jobs/${jobId}/brand-context`);
+  return response.data;
+}
+
+export async function getPageContext(jobId: string): Promise<PageContextResponse> {
+  const response = await apiClient.get<PageContextResponse>(
+    `/api/jobs/${encodeURIComponent(jobId)}/page-context`,
+  );
+  return response.data;
+}
+
+export async function updatePageContext(
+  jobId: string,
+  payload: PageContextUpdateRequest,
+): Promise<PageContextResponse> {
+  const response = await apiClient.put<PageContextResponse>(
+    `/api/jobs/${encodeURIComponent(jobId)}/page-context`,
+    payload,
+  );
+  return response.data;
+}
+
+export async function getImageContext(
+  jobId: string,
+  imageId: string,
+): Promise<ImageContextResponse> {
+  const response = await apiClient.get<ImageContextResponse>(
+    `/api/jobs/${encodeURIComponent(jobId)}/images/${encodeURIComponent(imageId)}/context`,
+  );
+  return response.data;
+}
+
+export async function updateImageContext(
+  jobId: string,
+  imageId: string,
+  payload: ImageContextUpdateRequest,
+): Promise<ImageContextResponse> {
+  const response = await apiClient.put<ImageContextResponse>(
+    `/api/jobs/${encodeURIComponent(jobId)}/images/${encodeURIComponent(imageId)}/context`,
+    payload,
+  );
   return response.data;
 }
 

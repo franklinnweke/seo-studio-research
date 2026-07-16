@@ -1,9 +1,12 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 JobType = Literal["image", "website"]
 JobStatus = Literal["pending", "processing", "processed", "needs_review", "accepted", "failed"]
+ImagePurpose = Literal["informative", "decorative", "functional", "text", "complex", "redundant", "unknown"]
+PurposeSource = Literal["unconfirmed", "human_confirmed", "ai_suggested"]
 
 
 class HealthResponse(BaseModel):
@@ -41,8 +44,64 @@ class AuthUserResponse(BaseModel):
     email: str | None = Field(default=None, description="Authenticated user's email address.")
 
 
+class PageContextUpdateRequest(BaseModel):
+    page_title: str = Field(default="", max_length=300, description="Title of the page containing the image.")
+    section_heading: str = Field(default="", max_length=300, description="Nearest relevant section heading.")
+    nearby_text: str = Field(default="", max_length=4000, description="Relevant surrounding page copy.")
+    page_url: str = Field(default="", max_length=2000, description="Optional public page URL.")
+    audience: str = Field(default="", max_length=500, description="Intended audience for the page.")
+    language: str = Field(default="en-CA", min_length=2, max_length=35, description="BCP 47-style content language.")
+
+
+class PageContext(PageContextUpdateRequest):
+    updated_at: datetime | None = Field(default=None, description="UTC timestamp of the most recent human update.")
+
+
+class PageContextResponse(BaseModel):
+    job_id: str = Field(description="Image job identifier.")
+    schema_version: Literal[2] = Field(default=2, description="Persisted job context schema version.")
+    page_context: PageContext = Field(description="Page-level evidence available to metadata generation.")
+
+
+class ImageContextUpdateRequest(BaseModel):
+    purpose: ImagePurpose = Field(default="unknown", description="Human-selected role of the image on the page.")
+    purpose_confirmed: bool = Field(default=False, description="Whether a human explicitly confirmed the purpose.")
+    suggested_purpose: ImagePurpose | None = Field(default=None, description="Optional AI suggestion retained for review.")
+    purpose_confidence: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Optional confidence attached to an AI purpose suggestion.",
+    )
+    link_destination: str = Field(default="", max_length=2000, description="Link destination for a functional image.")
+    functional_action: str = Field(default="", max_length=500, description="Action performed by a functional image.")
+    long_description_available: bool = Field(
+        default=False,
+        description="Whether an equivalent long description is available for a complex image.",
+    )
+    complex_description_acknowledged: bool = Field(
+        default=False,
+        description="Whether a reviewer acknowledged the complex-image description requirement.",
+    )
+    notes: str = Field(default="", max_length=2000, description="Human review notes about image purpose or context.")
+
+
+class ImageContext(ImageContextUpdateRequest):
+    purpose_source: PurposeSource = Field(default="unconfirmed", description="Source of the current purpose decision.")
+    updated_at: datetime | None = Field(default=None, description="UTC timestamp of the most recent update.")
+
+
+class ImageContextResponse(BaseModel):
+    job_id: str = Field(description="Image job identifier.")
+    image_id: str = Field(description="Uploaded image identifier.")
+    schema_version: Literal[2] = Field(default=2, description="Persisted job context schema version.")
+    image_context: ImageContext = Field(description="Per-image purpose and review context.")
+
+
 class SettingsResponse(BaseModel):
     ai_provider: str = Field(description="Configured AI provider for metadata workflows.")
+    context_metadata_enabled: bool = Field(description="Whether the context-aware metadata workflow is enabled.")
+    purpose_suggestion_enabled: bool = Field(description="Whether AI purpose suggestions are enabled.")
     ollama_model: str = Field(description="Default Ollama model used by AI workflows.")
     vision_model: str = Field(description="Ollama vision model used for image inspection and crop targeting.")
     language_model: str = Field(description="Ollama language model used for SEO metadata writing.")
@@ -75,11 +134,17 @@ class ImageUploadFileRecord(BaseModel):
 
 
 class ImageJobCreateResponse(BaseModel):
+    schema_version: Literal[2] = Field(default=2, description="Version of the persisted image-job schema.")
     id: str = Field(description="Unique image job identifier.")
     type: Literal["image"] = Field(description="Job workflow type.")
     status: JobStatus = Field(description="Current job status after upload.")
     accepted_extensions: list[str] = Field(description="File extensions accepted by the upload endpoint.")
     files: list[ImageUploadFileRecord] = Field(description="Validated uploaded image files.")
+    page_context: PageContext = Field(default_factory=PageContext, description="Page-level metadata context.")
+    image_contexts: dict[str, ImageContext] = Field(
+        default_factory=dict,
+        description="Per-image purpose contexts keyed by uploaded image id.",
+    )
 
 
 class JobFileListResponse(BaseModel):
@@ -307,9 +372,9 @@ class ImageMetadataUpdateRequest(BaseModel):
         description="Reviewed extension-free filename to persist for this image.",
     )
     alt_text: str = Field(
-        min_length=1,
+        min_length=0,
         max_length=500,
-        description="Reviewed alt text to persist for this image.",
+        description="Reviewed alt text; empty is valid only for confirmed decorative or redundant images.",
     )
     caption: str = Field(
         min_length=1,

@@ -20,6 +20,8 @@ def read_settings() -> SettingsResponse:
     settings = get_settings()
     return SettingsResponse(
         ai_provider=settings.ai_provider,
+        context_metadata_enabled=settings.context_metadata_enabled,
+        purpose_suggestion_enabled=settings.purpose_suggestion_enabled,
         ollama_model=settings.ollama_model,
         vision_model=settings.vision_model,
         language_model=settings.language_model,

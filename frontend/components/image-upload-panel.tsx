@@ -122,11 +122,22 @@ export function ImageUploadPanel({
   const [lastJob, setLastJob] = useState<ImageJobCreateResponse | null>(() =>
     activeJobId
       ? {
+          schema_version: 2,
           id: activeJobId,
           type: "image",
           status: "pending",
           accepted_extensions: [".jpg", ".jpeg", ".png", ".webp", ".zip"],
           files: [],
+          page_context: {
+            page_title: "",
+            section_heading: "",
+            nearby_text: "",
+            page_url: "",
+            audience: "",
+            language: "en-CA",
+            updated_at: null,
+          },
+          image_contexts: {},
         }
       : null,
   );

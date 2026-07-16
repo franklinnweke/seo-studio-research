@@ -22,6 +22,7 @@ from app.ai.prompts import (
 )
 from app.config import Settings
 from app.schemas.responses import (
+    ImageContext,
     ImageMetadataBulkAcceptRequest,
     ImageMetadataListResponse,
     ImageMetadataResult,
@@ -242,7 +243,8 @@ class AiMetadataService:
         self.upload_service.read_job(job_id)
         current = self.list_image_metadata(job_id)
         current_result = self._result_by_id(current, image_id)
-        next_result = self._merge_review_update(current_result, request)
+        image_context = self._image_context(job_id, image_id)
+        next_result = self._merge_review_update(current_result, request, image_context)
         self._replace_metadata_result(job_id, current, next_result)
         return next_result
 
@@ -250,7 +252,7 @@ class AiMetadataService:
         self.upload_service.read_job(job_id)
         current = self.list_image_metadata(job_id)
         current_result = self._result_by_id(current, image_id)
-        next_result = self._accepted_result(current_result)
+        next_result = self._accepted_result(current_result, self._image_context(job_id, image_id))
         self._replace_metadata_result(job_id, current, next_result)
         return next_result
 
@@ -273,7 +275,9 @@ class AiMetadataService:
 
         accepted_ids = set(requested_ids)
         next_results = [
-            self._accepted_result(result) if result.id in accepted_ids else result
+            self._accepted_result(result, self._image_context(job_id, result.id))
+            if result.id in accepted_ids
+            else result
             for result in current.results
         ]
         response = ImageMetadataListResponse(
@@ -647,6 +651,7 @@ Required JSON shape:
         self,
         current_result: ImageMetadataResult,
         request: ImageMetadataUpdateRequest,
+        image_context: ImageContext,
     ) -> ImageMetadataResult:
         suggested_filename = slugify(request.suggested_filename)
         alt_text = request.alt_text.strip()
@@ -656,7 +661,7 @@ Required JSON shape:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Suggested filename must contain letters or numbers after sanitization.",
             )
-        if not alt_text:
+        if not alt_text and not self.settings.context_metadata_enabled:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Alt text cannot be empty.",
@@ -678,7 +683,7 @@ Required JSON shape:
         if request.status is None and changed and current_result.status in {"accepted", "failed"}:
             next_status = "needs_review"
 
-        return ImageMetadataResult(
+        result = ImageMetadataResult(
             id=current_result.id,
             original_filename=current_result.original_filename,
             suggested_filename=suggested_filename,
@@ -688,17 +693,28 @@ Required JSON shape:
             status=next_status,
             error_message="" if next_status != "failed" else current_result.error_message,
         )
+        if next_status == "accepted" and self.settings.context_metadata_enabled:
+            self._validate_purpose_approval(result, image_context)
+        return result
 
-    def _accepted_result(self, current_result: ImageMetadataResult) -> ImageMetadataResult:
+    def _accepted_result(self, current_result: ImageMetadataResult, image_context: ImageContext) -> ImageMetadataResult:
         if current_result.status == "failed":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed metadata rows must be regenerated or edited before approval.",
             )
-        if not current_result.suggested_filename.strip() or not current_result.alt_text.strip() or not current_result.caption.strip():
+        if not current_result.suggested_filename.strip() or not current_result.caption.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Filename, alt text, and caption are required before approval.",
+                detail="Filename and caption are required before approval.",
+            )
+
+        if self.settings.context_metadata_enabled:
+            self._validate_purpose_approval(current_result, image_context)
+        elif not current_result.alt_text.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Alt text is required before approval.",
             )
 
         return ImageMetadataResult(
@@ -711,6 +727,50 @@ Required JSON shape:
             status="accepted",
             error_message="",
         )
+
+    def _validate_purpose_approval(self, result: ImageMetadataResult, image_context: ImageContext) -> None:
+        if not image_context.purpose_confirmed or image_context.purpose == "unknown":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Image purpose must be human-confirmed before approval.",
+            )
+
+        alt_text = result.alt_text.strip()
+        if image_context.purpose in {"decorative", "redundant"}:
+            if alt_text:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"{image_context.purpose.capitalize()} images must use empty alt text.",
+                )
+        elif not alt_text:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{image_context.purpose.capitalize()} images require non-empty alt text.",
+            )
+
+        if image_context.purpose == "functional" and not (
+            image_context.functional_action.strip() or image_context.link_destination.strip()
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Functional images require an action or link destination before approval.",
+            )
+
+        if image_context.purpose == "complex" and not (
+            image_context.long_description_available or image_context.complex_description_acknowledged
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Complex images require a long description or explicit reviewer acknowledgement.",
+            )
+
+    def _image_context(self, job_id: str, image_id: str) -> ImageContext:
+        data = self.upload_service.read_job_data(job_id)
+        contexts = data.get("image_contexts")
+        if not isinstance(contexts, dict):
+            return ImageContext()
+        value = contexts.get(image_id)
+        return ImageContext.model_validate(value) if isinstance(value, dict) else ImageContext()
 
     def _response_from_job_data(self, job_id: str, data: dict[str, Any]) -> ImageMetadataListResponse:
         metadata = data.get("image_metadata")

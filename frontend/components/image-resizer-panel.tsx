@@ -112,7 +112,24 @@ export function ImageResizerPanel({ activeJobId: externalJobId, embedded }: Imag
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [lastJob, setLastJob] = useState<ImageJobCreateResponse | null>(() =>
     externalJobId
-      ? { id: externalJobId, type: 'image', status: 'pending', accepted_extensions: ['.jpg', '.jpeg', '.png', '.webp', '.zip'], files: [] }
+      ? {
+          schema_version: 2,
+          id: externalJobId,
+          type: "image",
+          status: "pending",
+          accepted_extensions: [".jpg", ".jpeg", ".png", ".webp", ".zip"],
+          files: [],
+          page_context: {
+            page_title: "",
+            section_heading: "",
+            nearby_text: "",
+            page_url: "",
+            audience: "",
+            language: "en-CA",
+            updated_at: null,
+          },
+          image_contexts: {},
+        }
       : null,
   );
   const [uploadProgress, setUploadProgress] = useState(0);

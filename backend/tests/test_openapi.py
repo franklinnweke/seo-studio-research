@@ -31,6 +31,8 @@ def test_settings_exposes_dual_model_configuration() -> None:
     body = response.json()
     assert body["vision_model"]
     assert body["language_model"]
+    assert isinstance(body["context_metadata_enabled"], bool)
+    assert isinstance(body["purpose_suggestion_enabled"], bool)
     assert body["ai_language_timeout_seconds"] > 0
     assert body["ai_crop_timeout_seconds"] > 0
     assert "ollama_base_url" not in body
@@ -45,6 +47,10 @@ def test_current_routes_are_documented() -> None:
         ("/health", "get"),
         ("/api/ai/health", "get"),
         ("/api/settings", "get"),
+        ("/api/jobs/{job_id}/page-context", "get"),
+        ("/api/jobs/{job_id}/page-context", "put"),
+        ("/api/jobs/{job_id}/images/{image_id}/context", "get"),
+        ("/api/jobs/{job_id}/images/{image_id}/context", "put"),
         ("/api/jobs/{job_id}", "get"),
         ("/api/jobs/{job_id}/process", "post"),
         ("/api/jobs/{job_id}/resize-instructions", "post"),

@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     language_model: str = "qwen3.5"
     ollama_timeout_seconds: float = 90.0
     ai_health_timeout_seconds: float = 3.0
+    context_metadata_enabled: bool = False
+    purpose_suggestion_enabled: bool = False
+    research_provenance_enabled: bool = False
     ai_language_timeout_seconds: float = 120.0
     ai_crop_timeout_seconds: float = 45.0
     ai_preview_max_width: int = 1024

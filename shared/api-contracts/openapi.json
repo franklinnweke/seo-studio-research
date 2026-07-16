@@ -799,6 +799,252 @@
         "title": "ImageCompressionSettings",
         "type": "object"
       },
+      "ImageContext": {
+        "properties": {
+          "complex_description_acknowledged": {
+            "default": false,
+            "description": "Whether a reviewer acknowledged the complex-image description requirement.",
+            "title": "Complex Description Acknowledged",
+            "type": "boolean"
+          },
+          "functional_action": {
+            "default": "",
+            "description": "Action performed by a functional image.",
+            "maxLength": 500,
+            "title": "Functional Action",
+            "type": "string"
+          },
+          "link_destination": {
+            "default": "",
+            "description": "Link destination for a functional image.",
+            "maxLength": 2000,
+            "title": "Link Destination",
+            "type": "string"
+          },
+          "long_description_available": {
+            "default": false,
+            "description": "Whether an equivalent long description is available for a complex image.",
+            "title": "Long Description Available",
+            "type": "boolean"
+          },
+          "notes": {
+            "default": "",
+            "description": "Human review notes about image purpose or context.",
+            "maxLength": 2000,
+            "title": "Notes",
+            "type": "string"
+          },
+          "purpose": {
+            "default": "unknown",
+            "description": "Human-selected role of the image on the page.",
+            "enum": [
+              "informative",
+              "decorative",
+              "functional",
+              "text",
+              "complex",
+              "redundant",
+              "unknown"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "purpose_confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional confidence attached to an AI purpose suggestion.",
+            "title": "Purpose Confidence"
+          },
+          "purpose_confirmed": {
+            "default": false,
+            "description": "Whether a human explicitly confirmed the purpose.",
+            "title": "Purpose Confirmed",
+            "type": "boolean"
+          },
+          "purpose_source": {
+            "default": "unconfirmed",
+            "description": "Source of the current purpose decision.",
+            "enum": [
+              "unconfirmed",
+              "human_confirmed",
+              "ai_suggested"
+            ],
+            "title": "Purpose Source",
+            "type": "string"
+          },
+          "suggested_purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "informative",
+                  "decorative",
+                  "functional",
+                  "text",
+                  "complex",
+                  "redundant",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional AI suggestion retained for review.",
+            "title": "Suggested Purpose"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UTC timestamp of the most recent update.",
+            "title": "Updated At"
+          }
+        },
+        "title": "ImageContext",
+        "type": "object"
+      },
+      "ImageContextResponse": {
+        "properties": {
+          "image_context": {
+            "$ref": "#/components/schemas/ImageContext",
+            "description": "Per-image purpose and review context."
+          },
+          "image_id": {
+            "description": "Uploaded image identifier.",
+            "title": "Image Id",
+            "type": "string"
+          },
+          "job_id": {
+            "description": "Image job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 2,
+            "default": 2,
+            "description": "Persisted job context schema version.",
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "image_id",
+          "image_context"
+        ],
+        "title": "ImageContextResponse",
+        "type": "object"
+      },
+      "ImageContextUpdateRequest": {
+        "properties": {
+          "complex_description_acknowledged": {
+            "default": false,
+            "description": "Whether a reviewer acknowledged the complex-image description requirement.",
+            "title": "Complex Description Acknowledged",
+            "type": "boolean"
+          },
+          "functional_action": {
+            "default": "",
+            "description": "Action performed by a functional image.",
+            "maxLength": 500,
+            "title": "Functional Action",
+            "type": "string"
+          },
+          "link_destination": {
+            "default": "",
+            "description": "Link destination for a functional image.",
+            "maxLength": 2000,
+            "title": "Link Destination",
+            "type": "string"
+          },
+          "long_description_available": {
+            "default": false,
+            "description": "Whether an equivalent long description is available for a complex image.",
+            "title": "Long Description Available",
+            "type": "boolean"
+          },
+          "notes": {
+            "default": "",
+            "description": "Human review notes about image purpose or context.",
+            "maxLength": 2000,
+            "title": "Notes",
+            "type": "string"
+          },
+          "purpose": {
+            "default": "unknown",
+            "description": "Human-selected role of the image on the page.",
+            "enum": [
+              "informative",
+              "decorative",
+              "functional",
+              "text",
+              "complex",
+              "redundant",
+              "unknown"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "purpose_confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional confidence attached to an AI purpose suggestion.",
+            "title": "Purpose Confidence"
+          },
+          "purpose_confirmed": {
+            "default": false,
+            "description": "Whether a human explicitly confirmed the purpose.",
+            "title": "Purpose Confirmed",
+            "type": "boolean"
+          },
+          "suggested_purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "informative",
+                  "decorative",
+                  "functional",
+                  "text",
+                  "complex",
+                  "redundant",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional AI suggestion retained for review.",
+            "title": "Suggested Purpose"
+          }
+        },
+        "title": "ImageContextUpdateRequest",
+        "type": "object"
+      },
       "ImageJobCreateResponse": {
         "properties": {
           "accepted_extensions": {
@@ -821,6 +1067,25 @@
             "description": "Unique image job identifier.",
             "title": "Id",
             "type": "string"
+          },
+          "image_contexts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ImageContext"
+            },
+            "description": "Per-image purpose contexts keyed by uploaded image id.",
+            "title": "Image Contexts",
+            "type": "object"
+          },
+          "page_context": {
+            "$ref": "#/components/schemas/PageContext",
+            "description": "Page-level metadata context."
+          },
+          "schema_version": {
+            "const": 2,
+            "default": 2,
+            "description": "Version of the persisted image-job schema.",
+            "title": "Schema Version",
+            "type": "integer"
           },
           "status": {
             "description": "Current job status after upload.",
@@ -982,9 +1247,9 @@
       "ImageMetadataUpdateRequest": {
         "properties": {
           "alt_text": {
-            "description": "Reviewed alt text to persist for this image.",
+            "description": "Reviewed alt text; empty is valid only for confirmed decorative or redundant images.",
             "maxLength": 500,
-            "minLength": 1,
+            "minLength": 0,
             "title": "Alt Text",
             "type": "string"
           },
@@ -1181,6 +1446,143 @@
         "title": "LinkListResponse",
         "type": "object"
       },
+      "PageContext": {
+        "properties": {
+          "audience": {
+            "default": "",
+            "description": "Intended audience for the page.",
+            "maxLength": 500,
+            "title": "Audience",
+            "type": "string"
+          },
+          "language": {
+            "default": "en-CA",
+            "description": "BCP 47-style content language.",
+            "maxLength": 35,
+            "minLength": 2,
+            "title": "Language",
+            "type": "string"
+          },
+          "nearby_text": {
+            "default": "",
+            "description": "Relevant surrounding page copy.",
+            "maxLength": 4000,
+            "title": "Nearby Text",
+            "type": "string"
+          },
+          "page_title": {
+            "default": "",
+            "description": "Title of the page containing the image.",
+            "maxLength": 300,
+            "title": "Page Title",
+            "type": "string"
+          },
+          "page_url": {
+            "default": "",
+            "description": "Optional public page URL.",
+            "maxLength": 2000,
+            "title": "Page Url",
+            "type": "string"
+          },
+          "section_heading": {
+            "default": "",
+            "description": "Nearest relevant section heading.",
+            "maxLength": 300,
+            "title": "Section Heading",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UTC timestamp of the most recent human update.",
+            "title": "Updated At"
+          }
+        },
+        "title": "PageContext",
+        "type": "object"
+      },
+      "PageContextResponse": {
+        "properties": {
+          "job_id": {
+            "description": "Image job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "page_context": {
+            "$ref": "#/components/schemas/PageContext",
+            "description": "Page-level evidence available to metadata generation."
+          },
+          "schema_version": {
+            "const": 2,
+            "default": 2,
+            "description": "Persisted job context schema version.",
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "page_context"
+        ],
+        "title": "PageContextResponse",
+        "type": "object"
+      },
+      "PageContextUpdateRequest": {
+        "properties": {
+          "audience": {
+            "default": "",
+            "description": "Intended audience for the page.",
+            "maxLength": 500,
+            "title": "Audience",
+            "type": "string"
+          },
+          "language": {
+            "default": "en-CA",
+            "description": "BCP 47-style content language.",
+            "maxLength": 35,
+            "minLength": 2,
+            "title": "Language",
+            "type": "string"
+          },
+          "nearby_text": {
+            "default": "",
+            "description": "Relevant surrounding page copy.",
+            "maxLength": 4000,
+            "title": "Nearby Text",
+            "type": "string"
+          },
+          "page_title": {
+            "default": "",
+            "description": "Title of the page containing the image.",
+            "maxLength": 300,
+            "title": "Page Title",
+            "type": "string"
+          },
+          "page_url": {
+            "default": "",
+            "description": "Optional public page URL.",
+            "maxLength": 2000,
+            "title": "Page Url",
+            "type": "string"
+          },
+          "section_heading": {
+            "default": "",
+            "description": "Nearest relevant section heading.",
+            "maxLength": 300,
+            "title": "Section Heading",
+            "type": "string"
+          }
+        },
+        "title": "PageContextUpdateRequest",
+        "type": "object"
+      },
       "PageListResponse": {
         "properties": {
           "job_id": {
@@ -1276,6 +1678,11 @@
             "title": "Ai Provider",
             "type": "string"
           },
+          "context_metadata_enabled": {
+            "description": "Whether the context-aware metadata workflow is enabled.",
+            "title": "Context Metadata Enabled",
+            "type": "boolean"
+          },
           "frontend_origin": {
             "description": "Allowed frontend origin for local CORS.",
             "title": "Frontend Origin",
@@ -1296,6 +1703,11 @@
             "title": "Ollama Timeout Seconds",
             "type": "number"
           },
+          "purpose_suggestion_enabled": {
+            "description": "Whether AI purpose suggestions are enabled.",
+            "title": "Purpose Suggestion Enabled",
+            "type": "boolean"
+          },
           "vision_model": {
             "description": "Ollama vision model used for image inspection and crop targeting.",
             "title": "Vision Model",
@@ -1304,6 +1716,8 @@
         },
         "required": [
           "ai_provider",
+          "context_metadata_enabled",
+          "purpose_suggestion_enabled",
           "ollama_model",
           "vision_model",
           "language_model",
@@ -2279,6 +2693,138 @@
         ]
       }
     },
+    "/api/jobs/{job_id}/images/{image_id}/context": {
+      "get": {
+        "description": "Returns the seven-state purpose decision and explicit human-confirmation state for one image.",
+        "operationId": "read_image_context_api_jobs__job_id__images__image_id__context_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job or image file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read image purpose context",
+        "tags": [
+          "image jobs"
+        ]
+      },
+      "put": {
+        "description": "Persists a human-reviewed image purpose, confirmation state, functional context, complex-image description state, and optional AI suggestion evidence.",
+        "operationId": "update_image_context_api_jobs__job_id__images__image_id__context_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageContextUpdateRequest",
+                "description": "Human-reviewed per-image purpose context."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Purpose confirmation or suggestion evidence is inconsistent."
+          },
+          "404": {
+            "description": "Job or image file not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save image purpose context",
+        "tags": [
+          "image jobs"
+        ]
+      }
+    },
     "/api/jobs/{job_id}/images/{image_id}/download": {
       "get": {
         "description": "Downloads the processed image for an uploaded image id when processed output exists. If the job has not been processed, downloads the original uploaded image instead. The attachment filename uses the provided filename query value, generated AI filename, or stored filename while preserving the actual downloaded file extension.",
@@ -2458,6 +3004,117 @@
         "summary": "List checked links",
         "tags": [
           "website jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/page-context": {
+      "get": {
+        "description": "Returns versioned page-level context for image metadata generation. Legacy jobs without context return safe schema-version-2 defaults.",
+        "operationId": "read_page_context_api_jobs__job_id__page_context_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read page context",
+        "tags": [
+          "image jobs"
+        ]
+      },
+      "put": {
+        "description": "Persists human-provided page evidence without storing it in browser local storage.",
+        "operationId": "update_page_context_api_jobs__job_id__page_context_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageContextUpdateRequest",
+                "description": "Page evidence for contextual metadata generation."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Job not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save page context",
+        "tags": [
+          "image jobs"
         ]
       }
     },

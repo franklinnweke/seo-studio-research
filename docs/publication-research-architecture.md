@@ -198,7 +198,7 @@ flowchart LR
 
 Verified July 16, 2026 on the research branch:
 
-- backend test suite: 70 passing after the first A1 code slice;
+- backend test suite: 87 passing after the first A2 context-contract slice;
 - frontend lint: passing;
 - frontend production build: passing with Next.js 16.2.6;
 - `git diff --check`: passing for the A0 changes;
@@ -211,6 +211,7 @@ Verified July 16, 2026 on the research branch:
 - the listener was reported on all interfaces, but firewall rules and external reachability were not verified. Gate 1 therefore remains open and the deployment must not yet be described as securely private;
 - ordinary `nvidia-smi` did not communicate with the NVIDIA driver in this session. This does not by itself establish a driver fault on a unified-memory DGX Spark; the supported DGX telemetry path still needs confirmation.
 - first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
+- first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested. The frontend context-review UI, stable top-level API error contract, purpose suggestion, and evaluation harness remain pending.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
 
@@ -1947,9 +1948,9 @@ Not permitted during the deferral:
 
 ### P1: publication-capable product minimum
 
-- [ ] Add page-context schema and endpoints.
-- [ ] Add per-image purpose and confirmation state.
-- [ ] Allow and validate empty alt text by purpose.
+- [x] Add schema-version-2 page-context persistence and `GET/PUT` endpoints with legacy defaults.
+- [x] Add the seven-state per-image purpose taxonomy and explicit confirmation state.
+- [x] Allow and validate empty alt text by purpose behind the context feature flag.
 - [ ] Add purpose-aware prompts and structured visual facts.
 - [ ] Preserve model/prompt provenance.
 - [ ] Update frontend context and review workflow.
@@ -2039,9 +2040,9 @@ The three most important research controls are protocol freeze, immutable raw re
 
 ### 31.1 Current implementation assignment
 
-Work package A0 is implemented on `codex/research-context-aware-metadata`. The first non-network A1 slice is also implemented: sanitized AI health, structured Ollama telemetry, private settings removal, updated frontend types, and regenerated OpenAPI. Network verification remains explicitly deferred and Gate 1 remains open.
+Work package A0 and the safe A1 code slice are implemented on `codex/research-context-aware-metadata`. The first A2 context-contract slice is also implemented: schema versioning, legacy defaults, page/image context endpoints, seven-state purpose confirmation, purpose-aware empty-alt approval, frontend API types, and regenerated OpenAPI. Network verification remains explicitly deferred and Gate 1 remains open.
 
-The next agent finishes the remaining safe A1/A2 implementation without treating the network deferral as a passed security gate:
+The next agent finishes the remaining safe A2 implementation—stable error contracts and the evaluation harness skeleton—without treating the network deferral as a passed security gate:
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.
