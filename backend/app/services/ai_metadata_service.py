@@ -2,6 +2,8 @@ import json
 import logging
 import re
 import csv
+import hashlib
+from datetime import datetime, timezone
 from io import StringIO
 from time import perf_counter
 from pathlib import Path
@@ -14,21 +16,36 @@ from fastapi import HTTPException, status
 from PIL import Image, ImageOps
 from pydantic import BaseModel, Field, ValidationError
 
-from app.ai.ollama_client import OllamaClient
+from app.ai.ollama_client import OllamaClient, OllamaGenerationResult
 from app.ai.prompts import (
+    CONTEXTUAL_METADATA_PROMPT_VERSION,
+    CONTEXTUAL_METADATA_PROMPT_V1,
+    DIRECT_METADATA_PROMPT_VERSION,
+    DIRECT_METADATA_PROMPT_V1,
     IMAGE_METADATA_BRAND_CONTEXT_BLOCK,
     IMAGE_METADATA_PROMPT,
     IMAGE_METADATA_RETRY_PROMPT,
+    VISUAL_FACTS_PROMPT_V1,
+    VISUAL_FACTS_PROMPT_VERSION,
 )
 from app.config import Settings
 from app.errors import ApiError
 from app.schemas.responses import (
     ImageContext,
+    ContextualMetadataPayload,
+    CONTEXTUAL_METADATA_SCHEMA_VERSION,
+    GenerationProvenance,
+    GenerationStageEvidence,
     ImageMetadataBulkAcceptRequest,
     ImageMetadataListResponse,
+    MetadataGenerationRequest,
+    MetadataReviewEvent,
     ImageMetadataResult,
     ImageMetadataUpdateRequest,
     ImageUploadFileRecord,
+    PageContext,
+    VisualFactsPayload,
+    VISUAL_FACTS_SCHEMA_VERSION,
 )
 from app.services.image_upload_service import ImageUploadService
 from app.utils.file_utils import dedupe_filename, sanitize_filename
@@ -72,6 +89,20 @@ class AiMetadataService:
         "size_bytes": "size_bytes",
         "source": "source",
         "source_archive": "source_archive",
+        "purpose": "purpose",
+        "purpose_rationale": "purpose_rationale",
+        "generation_id": "generation_id",
+        "generation_mode": "generation_mode",
+        "vision_model_digest": "vision_model_digest",
+        "writer_model_digest": "writer_model_digest",
+        "metadata_prompt_version": "metadata_prompt_version",
+        "metadata_schema_version": "metadata_schema_version",
+        "image_sha256": "image_sha256",
+        "page_context_sha256": "page_context_sha256",
+        "brand_context_sha256": "brand_context_sha256",
+        "image_context_sha256": "image_context_sha256",
+        "retry_count": "retry_count",
+        "warnings": "warnings",
     }
 
     def __init__(self, settings: Settings, client: ImageMetadataClient | None = None) -> None:
@@ -187,16 +218,45 @@ class AiMetadataService:
 
         return zip_path
 
-    def generate_all_image_metadata(self, job_id: str) -> ImageMetadataListResponse:
+    def generate_all_image_metadata(
+        self,
+        job_id: str,
+        request: MetadataGenerationRequest | None = None,
+    ) -> ImageMetadataListResponse:
         job = self.upload_service.read_job(job_id)
+        self._validate_research_request(request)
         brand_context = self._brand_context_for_job(job_id)
+        requested_ids = set(request.image_ids or []) if request else set()
+        if request and request.image_ids:
+            known_ids = {record.id for record in job.files}
+            missing_ids = sorted(requested_ids - known_ids)
+            if missing_ids:
+                raise ApiError(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    code="IMAGE_NOT_FOUND",
+                    message=f"Image file(s) not found: {', '.join(missing_ids)}",
+                    field="image_ids",
+                )
         results: list[ImageMetadataResult] = []
         for file_record in job.files:
+            if requested_ids and file_record.id not in requested_ids:
+                continue
             try:
-                result = self._generate_for_file(job_id, file_record, brand_context)
+                result = self._generate_for_file(job_id, file_record, brand_context, request)
             except Exception as exc:
                 result = self._failed_result(file_record, exc)
             results.append(result)
+
+        if requested_ids:
+            generated_by_id = {result.id: result for result in results}
+            existing_by_id = {
+                result.id: result for result in self.list_image_metadata(job_id).results
+            }
+            results = [
+                generated_by_id.get(file_record.id) or existing_by_id[file_record.id]
+                for file_record in job.files
+                if file_record.id in generated_by_id or file_record.id in existing_by_id
+            ]
 
         response = ImageMetadataListResponse(
             job_id=job_id,
@@ -209,15 +269,21 @@ class AiMetadataService:
         self._write_metadata_response(response)
         return response
 
-    def generate_single_image_metadata(self, job_id: str, image_id: str) -> ImageMetadataResult:
+    def generate_single_image_metadata(
+        self,
+        job_id: str,
+        image_id: str,
+        request: MetadataGenerationRequest | None = None,
+    ) -> ImageMetadataResult:
         job = self.upload_service.read_job(job_id)
+        self._validate_research_request(request)
         file_record = next((record for record in job.files if record.id == image_id), None)
         if not file_record:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found.")
 
         brand_context = self._brand_context_for_job(job_id)
         try:
-            result = self._generate_for_file(job_id, file_record, brand_context)
+            result = self._generate_for_file(job_id, file_record, brand_context, request)
         except Exception as exc:
             result = self._failed_result(file_record, exc)
         current = self.list_image_metadata(job_id)
@@ -297,6 +363,7 @@ class AiMetadataService:
         job_id: str,
         file_record: ImageUploadFileRecord,
         brand_context: str,
+        request: MetadataGenerationRequest | None = None,
     ) -> ImageMetadataResult:
         source_path = self.upload_root / job_id / file_record.relative_path
         if not source_path.exists():
@@ -307,10 +374,140 @@ class AiMetadataService:
 
         preview_path = self._create_preview(job_id, source_path)
         try:
-            payload = self._request_metadata(preview_path, brand_context)
+            if request is None:
+                payload = self._request_metadata(preview_path, brand_context)
+                return ImageMetadataResult(
+                    id=file_record.id,
+                    original_filename=file_record.original_filename,
+                    suggested_filename=slugify(payload.filename),
+                    alt_text=payload.alt_text.strip(),
+                    caption=payload.caption.strip(),
+                    confidence=payload.confidence,
+                    status="needs_review",
+                )
+
+            return self._generate_contextual_metadata(
+                job_id=job_id,
+                file_record=file_record,
+                source_path=source_path,
+                preview_path=preview_path,
+                brand_context=brand_context,
+                request=request,
+            )
         finally:
             preview_path.unlink(missing_ok=True)
 
+    def _generate_contextual_metadata(
+        self,
+        *,
+        job_id: str,
+        file_record: ImageUploadFileRecord,
+        source_path: Path,
+        preview_path: Path,
+        brand_context: str,
+        request: MetadataGenerationRequest,
+    ) -> ImageMetadataResult:
+        page_context = self._page_context(job_id)
+        image_context = self._image_context(job_id, file_record.id)
+        self._require_confirmed_purpose(image_context)
+        permitted_page = page_context if request.context_mode in {"page_only", "brand_and_page"} else PageContext()
+        permitted_brand = brand_context if request.context_mode in {"brand_only", "brand_and_page"} else ""
+        options = {
+            "thinking_mode": "disabled",
+            "seed": 42,
+            "context_window": 8192,
+            "vision": {"temperature": 0, "seed": 42, "num_ctx": 8192, "num_predict": 320},
+            "writer": {"temperature": 0, "seed": 42, "num_ctx": 8192, "num_predict": 420},
+        }
+        facts: VisualFactsPayload | None = None
+        vision_evidence: GenerationStageEvidence | None = None
+        retry_count = 0
+
+        if request.generation_mode == "dual_stage":
+            facts, vision_evidence, facts_retries = self._request_structured_visual_facts(preview_path)
+            retry_count += facts_retries
+            metadata_prompt = CONTEXTUAL_METADATA_PROMPT_V1.format(
+                visual_facts_json=self._canonical_json(facts.model_dump(mode="json")),
+                page_context_json=self._canonical_json(permitted_page.model_dump(mode="json")),
+                brand_context=permitted_brand,
+                image_context_json=self._canonical_json(image_context.model_dump(mode="json")),
+            )
+            payload, writer_evidence, writer_retries = self._request_contextual_text(
+                metadata_prompt,
+                image_context,
+            )
+            retry_count += writer_retries
+            prompt_version = CONTEXTUAL_METADATA_PROMPT_VERSION
+            writer_model = self.settings.language_model
+        else:
+            metadata_prompt = DIRECT_METADATA_PROMPT_V1.format(
+                page_context_json=self._canonical_json(permitted_page.model_dump(mode="json")),
+                brand_context=permitted_brand,
+                image_context_json=self._canonical_json(image_context.model_dump(mode="json")),
+            )
+            payload, writer_evidence, writer_retries = self._request_contextual_vision(
+                preview_path,
+                metadata_prompt,
+                image_context,
+            )
+            retry_count += writer_retries
+            prompt_version = DIRECT_METADATA_PROMPT_VERSION
+            writer_model = self.settings.language_model
+
+        provenance = None
+        if self.settings.research_provenance_enabled:
+            schema_json = self._canonical_json(ContextualMetadataPayload.model_json_schema())
+            provenance = GenerationProvenance(
+                generation_id=str(uuid4()),
+                generation_mode=request.generation_mode,
+                generated_at=datetime.now(timezone.utc),
+                vision_model=(self.settings.vision_model if facts is not None else self.settings.language_model),
+                writer_model=writer_model,
+                vision_model_digest=(
+                    self.settings.vision_model_digest
+                    if facts is not None
+                    else self.settings.language_model_digest
+                ),
+                writer_model_digest=self.settings.language_model_digest,
+                visual_facts_prompt_version=(
+                    VISUAL_FACTS_PROMPT_VERSION if facts is not None else ""
+                ),
+                metadata_prompt_version=prompt_version,
+                visual_facts_schema_version=(
+                    VISUAL_FACTS_SCHEMA_VERSION if facts is not None else ""
+                ),
+                metadata_schema_version=CONTEXTUAL_METADATA_SCHEMA_VERSION,
+                image_sha256=self._sha256_bytes(source_path.read_bytes()),
+                page_context_sha256=self._sha256_json(permitted_page.model_dump(mode="json")),
+                brand_context_sha256=self._sha256_bytes(permitted_brand.encode("utf-8")),
+                image_context_sha256=self._sha256_json(image_context.model_dump(mode="json")),
+                prompt_sha256=self._sha256_bytes(metadata_prompt.encode("utf-8")),
+                schema_sha256=self._sha256_bytes(schema_json.encode("utf-8")),
+                system_prompt_sha256=self._sha256_bytes(b""),
+                visual_facts_prompt_sha256=(
+                    self._sha256_bytes(VISUAL_FACTS_PROMPT_V1.encode("utf-8"))
+                    if facts is not None
+                    else ""
+                ),
+                visual_facts_schema_sha256=(
+                    self._sha256_json(VisualFactsPayload.model_json_schema())
+                    if facts is not None
+                    else ""
+                ),
+                generation_options=options,
+                image_preprocessing={
+                    "exif_transpose": True,
+                    "max_width": self.settings.ai_preview_max_width,
+                    "thumbnail_resampling": "LANCZOS",
+                    "output_format": "JPEG",
+                    "jpeg_quality": 85,
+                },
+                retry_count=retry_count,
+                vision_stage=vision_evidence,
+                writer_stage=writer_evidence,
+            )
+
+        generated_at = provenance.generated_at if provenance else datetime.now(timezone.utc)
         return ImageMetadataResult(
             id=file_record.id,
             original_filename=file_record.original_filename,
@@ -319,6 +516,12 @@ class AiMetadataService:
             caption=payload.caption.strip(),
             confidence=payload.confidence,
             status="needs_review",
+            purpose=image_context.purpose,
+            purpose_rationale=payload.purpose_rationale.strip(),
+            warnings=payload.warnings,
+            visual_facts=facts,
+            provenance=provenance,
+            review_history=[MetadataReviewEvent(action="generated", at=generated_at)],
         )
 
     def _create_preview(self, job_id: str, source_path: Path) -> Path:
@@ -338,6 +541,202 @@ class AiMetadataService:
 
         return preview_path
 
+    def _validate_research_request(self, request: MetadataGenerationRequest | None) -> None:
+        if request is not None and not self.settings.context_metadata_enabled:
+            raise ApiError(
+                status_code=status.HTTP_409_CONFLICT,
+                code="FEATURE_DISABLED",
+                message="Context-aware metadata generation is disabled.",
+                field="context_metadata_enabled",
+            )
+        if request is None or not self.settings.research_provenance_enabled:
+            return
+        required_digests = {"language_model_digest": self.settings.language_model_digest}
+        if request.generation_mode == "dual_stage":
+            required_digests["vision_model_digest"] = self.settings.vision_model_digest
+        invalid = [name for name, digest in required_digests.items() if not re.fullmatch(r"[0-9a-f]{64}", digest)]
+        if invalid:
+            raise ApiError(
+                status_code=status.HTTP_409_CONFLICT,
+                code="PROVENANCE_CONFIGURATION_INVALID",
+                message=f"Pinned 64-character model digest required: {', '.join(sorted(invalid))}.",
+                field=sorted(invalid)[0],
+            )
+
+    @staticmethod
+    def _require_confirmed_purpose(image_context: ImageContext) -> None:
+        if not image_context.purpose_confirmed or image_context.purpose == "unknown":
+            raise ApiError(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                code="PURPOSE_VALIDATION_FAILED",
+                message="Image purpose must be human-confirmed before contextual generation.",
+                field="purpose",
+            )
+
+    def _request_structured_visual_facts(
+        self,
+        preview_path: Path,
+    ) -> tuple[VisualFactsPayload, GenerationStageEvidence, int]:
+        for retry_count in range(2):
+            try:
+                content, evidence = self._call_vision(
+                    self.vision_client,
+                    preview_path,
+                    VISUAL_FACTS_PROMPT_V1,
+                    VisualFactsPayload.model_json_schema(),
+                    {"temperature": 0, "seed": 42, "num_ctx": 8192, "num_predict": 320},
+                )
+                data = json.loads(self._extract_json_object(content))
+                return VisualFactsPayload.model_validate(data), evidence, retry_count
+            except (ValueError, ValidationError, json.JSONDecodeError):
+                continue
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Structured visual facts were invalid after retry.",
+        )
+
+    def _request_contextual_text(
+        self,
+        prompt: str,
+        image_context: ImageContext,
+    ) -> tuple[ContextualMetadataPayload, GenerationStageEvidence, int]:
+        for retry_count in range(2):
+            try:
+                content, evidence = self._call_text(
+                    self.language_client,
+                    prompt,
+                    ContextualMetadataPayload.model_json_schema(),
+                    {"temperature": 0, "seed": 42, "num_ctx": 8192, "num_predict": 420},
+                )
+                payload = self._parse_contextual_payload(content)
+                self._validate_generated_alt(payload, image_context)
+                return payload, evidence, retry_count
+            except (ValueError, ValidationError, json.JSONDecodeError):
+                continue
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Contextual metadata was invalid after retry.",
+        )
+
+    def _request_contextual_vision(
+        self,
+        preview_path: Path,
+        prompt: str,
+        image_context: ImageContext,
+    ) -> tuple[ContextualMetadataPayload, GenerationStageEvidence, int]:
+        for retry_count in range(2):
+            try:
+                content, evidence = self._call_vision(
+                    self.language_client,
+                    preview_path,
+                    prompt,
+                    ContextualMetadataPayload.model_json_schema(),
+                    {"temperature": 0, "seed": 42, "num_ctx": 8192, "num_predict": 420},
+                )
+                payload = self._parse_contextual_payload(content)
+                self._validate_generated_alt(payload, image_context)
+                return payload, evidence, retry_count
+            except (ValueError, ValidationError, json.JSONDecodeError):
+                continue
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Direct contextual metadata was invalid after retry.",
+        )
+
+    def _call_vision(
+        self,
+        client: ImageMetadataClient,
+        image_path: Path,
+        prompt: str,
+        response_schema: dict[str, object],
+        options: dict[str, object],
+    ) -> tuple[str, GenerationStageEvidence]:
+        started_at = perf_counter()
+        if isinstance(client, OllamaClient):
+            result = client.generate_vision(
+                image_path,
+                prompt,
+                response_schema=response_schema,
+                options=options,
+                think=False,
+            )
+            return result.response, self._stage_evidence(result)
+        content = client.generate_image_metadata(image_path, prompt)
+        return content, GenerationStageEvidence(
+            request_id=str(uuid4()),
+            model="injected-test-client",
+            wall_duration_ms=(perf_counter() - started_at) * 1000,
+        )
+
+    def _call_text(
+        self,
+        client: ImageMetadataClient,
+        prompt: str,
+        response_schema: dict[str, object],
+        options: dict[str, object],
+    ) -> tuple[str, GenerationStageEvidence]:
+        started_at = perf_counter()
+        if isinstance(client, OllamaClient):
+            result = client.generate_text_result(
+                prompt,
+                response_schema=response_schema,
+                options=options,
+                think=False,
+                timeout_seconds=min(
+                    self.settings.ai_language_timeout_seconds,
+                    self.settings.ollama_timeout_seconds,
+                ),
+            )
+            return result.response, self._stage_evidence(result)
+        content = client.generate_text(prompt)
+        return content, GenerationStageEvidence(
+            request_id=str(uuid4()),
+            model="injected-test-client",
+            wall_duration_ms=(perf_counter() - started_at) * 1000,
+        )
+
+    @staticmethod
+    def _stage_evidence(result: OllamaGenerationResult) -> GenerationStageEvidence:
+        return GenerationStageEvidence(
+            request_id=result.request_id,
+            model=result.model,
+            wall_duration_ms=result.wall_duration_ms,
+            total_duration_ns=result.total_duration_ns,
+            prompt_eval_count=result.prompt_eval_count,
+            eval_count=result.eval_count,
+        )
+
+    def _parse_contextual_payload(self, content: str) -> ContextualMetadataPayload:
+        data = json.loads(self._extract_json_object(content))
+        if not isinstance(data, dict):
+            raise ValueError("Contextual metadata response must be a JSON object.")
+        return ContextualMetadataPayload.model_validate(data)
+
+    @staticmethod
+    def _validate_generated_alt(payload: ContextualMetadataPayload, image_context: ImageContext) -> None:
+        alt_text = payload.alt_text.strip()
+        if image_context.purpose in {"decorative", "redundant"} and alt_text:
+            raise ValueError(f"{image_context.purpose.capitalize()} images require empty alt text.")
+        if image_context.purpose not in {"decorative", "redundant"} and not alt_text:
+            raise ValueError(f"{image_context.purpose.capitalize()} images require non-empty alt text.")
+
+    @staticmethod
+    def _canonical_json(value: object) -> str:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+    @classmethod
+    def _sha256_json(cls, value: object) -> str:
+        return cls._sha256_bytes(cls._canonical_json(value).encode("utf-8"))
+
+    @staticmethod
+    def _sha256_bytes(value: bytes) -> str:
+        return hashlib.sha256(value).hexdigest()
+
+    def _page_context(self, job_id: str) -> PageContext:
+        data = self.upload_service.read_job_data(job_id)
+        value = data.get("page_context")
+        return PageContext.model_validate(value) if isinstance(value, dict) else PageContext()
+
     def _request_metadata(self, preview_path: Path, brand_context: str) -> AiImageMetadataPayload:
         if self.injected_client is not None:
             return self._request_metadata_single_model(preview_path, brand_context)
@@ -346,7 +745,6 @@ class AiMetadataService:
         return self._request_language_metadata(visual_description, brand_context)
 
     def _request_metadata_single_model(self, preview_path: Path, brand_context: str) -> AiImageMetadataPayload:
-        errors: list[str] = []
         prompts = (
             ("main", self._metadata_prompt(IMAGE_METADATA_PROMPT, brand_context)),
             ("json_retry", self._metadata_prompt(IMAGE_METADATA_RETRY_PROMPT, brand_context)),
@@ -370,7 +768,6 @@ class AiMetadataService:
                 )
                 return payload
             except (ValueError, ValidationError, json.JSONDecodeError) as exc:
-                errors.append(str(exc))
                 logger.warning(
                     "AI image metadata attempt returned invalid JSON attempt=%s model=%s duration_seconds=%.2f error=%s",
                     attempt_name,
@@ -389,12 +786,12 @@ class AiMetadataService:
                 )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Ollama request failed: {exc}",
+                    detail="Ollama metadata request failed.",
                 ) from exc
 
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"AI response was not valid JSON after retry. {'; '.join(errors)}",
+            detail="AI response was not valid JSON after retry.",
         )
 
     def _request_visual_description(self, preview_path: Path) -> str:
@@ -433,11 +830,10 @@ class AiMetadataService:
             )
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Ollama vision request failed: {exc}",
+                detail="Ollama vision request failed.",
             ) from exc
 
     def _request_language_metadata(self, visual_description: str, brand_context: str) -> AiImageMetadataPayload:
-        errors: list[str] = []
         timeout_seconds = min(self.settings.ai_language_timeout_seconds, self.settings.ollama_timeout_seconds)
         prompts = (
             ("main", self._language_metadata_prompt(visual_description, brand_context)),
@@ -466,7 +862,6 @@ class AiMetadataService:
                 )
                 return payload
             except (ValueError, ValidationError, json.JSONDecodeError) as exc:
-                errors.append(str(exc))
                 logger.warning(
                     "AI language metadata returned invalid JSON attempt=%s model=%s duration_seconds=%.2f error=%s",
                     attempt_name,
@@ -485,12 +880,12 @@ class AiMetadataService:
                 )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Ollama language request failed: {exc}",
+                    detail="Ollama language request failed.",
                 ) from exc
 
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"AI language response was not valid JSON after retry. {'; '.join(errors)}",
+            detail="AI language response was not valid JSON after retry.",
         )
 
     def _parse_metadata_payload(self, content: str) -> AiImageMetadataPayload:
@@ -597,7 +992,7 @@ Required JSON shape:
 
     def _write_metadata_response(self, response: ImageMetadataListResponse) -> None:
         data = self.upload_service.read_job_data(response.job_id)
-        data["image_metadata"] = response.model_dump()
+        data["image_metadata"] = response.model_dump(mode="json")
         self.upload_service.write_job_data(response.job_id, data)
 
     def _failed_result(self, file_record: ImageUploadFileRecord, exc: Exception) -> ImageMetadataResult:
@@ -684,15 +1079,19 @@ Required JSON shape:
         if request.status is None and changed and current_result.status in {"accepted", "failed"}:
             next_status = "needs_review"
 
-        result = ImageMetadataResult(
-            id=current_result.id,
-            original_filename=current_result.original_filename,
-            suggested_filename=suggested_filename,
-            alt_text=alt_text,
-            caption=caption,
-            confidence=current_result.confidence,
-            status=next_status,
-            error_message="" if next_status != "failed" else current_result.error_message,
+        action = "accepted" if next_status == "accepted" else "edited"
+        result = current_result.model_copy(
+            update={
+                "suggested_filename": suggested_filename,
+                "alt_text": alt_text,
+                "caption": caption,
+                "status": next_status,
+                "error_message": "" if next_status != "failed" else current_result.error_message,
+                "review_history": [
+                    *current_result.review_history,
+                    MetadataReviewEvent(action=action, at=datetime.now(timezone.utc)),
+                ],
+            }
         )
         if next_status == "accepted" and self.settings.context_metadata_enabled:
             self._validate_purpose_approval(result, image_context)
@@ -718,15 +1117,15 @@ Required JSON shape:
                 detail="Alt text is required before approval.",
             )
 
-        return ImageMetadataResult(
-            id=current_result.id,
-            original_filename=current_result.original_filename,
-            suggested_filename=current_result.suggested_filename,
-            alt_text=current_result.alt_text,
-            caption=current_result.caption,
-            confidence=current_result.confidence,
-            status="accepted",
-            error_message="",
+        return current_result.model_copy(
+            update={
+                "status": "accepted",
+                "error_message": "",
+                "review_history": [
+                    *current_result.review_history,
+                    MetadataReviewEvent(action="accepted", at=datetime.now(timezone.utc)),
+                ],
+            }
         )
 
     def _validate_purpose_approval(self, result: ImageMetadataResult, image_context: ImageContext) -> None:
@@ -799,7 +1198,11 @@ Required JSON shape:
     def _public_error_message(self, exc: Exception) -> str:
         if isinstance(exc, HTTPException):
             return str(exc.detail)
-        return str(exc) or "Metadata generation failed."
+        if isinstance(exc, httpx.HTTPError):
+            return "AI provider request failed."
+        if isinstance(exc, (ValueError, ValidationError, json.JSONDecodeError)):
+            return "Metadata generation failed schema validation."
+        return "Metadata generation failed."
 
     def _csv_fields(self, fields: list[str] | None) -> list[str]:
         if not fields:
@@ -892,6 +1295,20 @@ Required JSON shape:
             "size_bytes": file_record.size_bytes,
             "source": file_record.source,
             "source_archive": file_record.source_archive or "",
+            "purpose": metadata.purpose if metadata else "unknown",
+            "purpose_rationale": metadata.purpose_rationale if metadata else "",
+            "generation_id": metadata.provenance.generation_id if metadata and metadata.provenance else "",
+            "generation_mode": metadata.provenance.generation_mode if metadata and metadata.provenance else "",
+            "vision_model_digest": metadata.provenance.vision_model_digest if metadata and metadata.provenance else "",
+            "writer_model_digest": metadata.provenance.writer_model_digest if metadata and metadata.provenance else "",
+            "metadata_prompt_version": metadata.provenance.metadata_prompt_version if metadata and metadata.provenance else "",
+            "metadata_schema_version": metadata.provenance.metadata_schema_version if metadata and metadata.provenance else "",
+            "image_sha256": metadata.provenance.image_sha256 if metadata and metadata.provenance else "",
+            "page_context_sha256": metadata.provenance.page_context_sha256 if metadata and metadata.provenance else "",
+            "brand_context_sha256": metadata.provenance.brand_context_sha256 if metadata and metadata.provenance else "",
+            "image_context_sha256": metadata.provenance.image_context_sha256 if metadata and metadata.provenance else "",
+            "retry_count": metadata.provenance.retry_count if metadata and metadata.provenance else "",
+            "warnings": " | ".join(metadata.warnings) if metadata else "",
         }
 
     def _metadata_download_source_path(

@@ -8,8 +8,15 @@ from PIL import Image
 
 from app.config import get_settings
 from app.main import app
-from app.schemas.responses import ImageMetadataBulkAcceptRequest, ImageMetadataUpdateRequest
+from app.schemas.responses import (
+    ImageContextUpdateRequest,
+    ImageMetadataBulkAcceptRequest,
+    ImageMetadataUpdateRequest,
+    MetadataGenerationRequest,
+    PageContextUpdateRequest,
+)
 from app.services.ai_metadata_service import AiMetadataService
+from app.services.job_context_service import JobContextService
 
 
 client = TestClient(app)
@@ -64,6 +71,247 @@ def create_image_job() -> dict:
     )
     assert response.status_code == 201
     return response.json()
+
+
+def configure_research_context(job_id: str, image_id: str) -> None:
+    context_service = JobContextService(get_settings())
+    context_service.update_page_context(
+        job_id,
+        PageContextUpdateRequest(
+            page_title="Graduate tutoring services",
+            section_heading="Meet your tutor",
+            nearby_text="Book a focused study session.",
+            audience="College students",
+        ),
+    )
+    context_service.update_image_context(
+        job_id,
+        image_id,
+        ImageContextUpdateRequest(purpose="informative", purpose_confirmed=True),
+    )
+
+
+def add_research_brand_context(job_id: str) -> None:
+    job_file = get_settings().storage_root / "uploads" / job_id / "job.json"
+    data = json.loads(job_file.read_text())
+    data["brand_context"] = {
+        "job_id": job_id,
+        "documents": [],
+        "combined_text": "Use the approved Northstar tutoring voice.",
+        "max_chars": 8000,
+    }
+    job_file.write_text(json.dumps(data, indent=2))
+
+
+def research_settings():
+    return get_settings().model_copy(
+        update={
+            "context_metadata_enabled": True,
+            "research_provenance_enabled": True,
+            "vision_model_digest": "a" * 64,
+            "language_model_digest": "b" * 64,
+        }
+    )
+
+
+def test_dual_stage_contextual_generation_separates_evidence_and_persists_provenance() -> None:
+    body = create_image_job()
+    image_id = body["files"][0]["id"]
+    configure_research_context(body["id"], image_id)
+    add_research_brand_context(body["id"])
+    fake_client = FakeAiClient(
+        [
+            json.dumps(
+                {
+                    "summary": "A blue square graphic.",
+                    "people": [],
+                    "objects": ["blue square"],
+                    "setting": "",
+                    "visible_text": [],
+                    "uncertain_facts": [],
+                    "forbidden_inferences_observed": [],
+                }
+            ),
+            json.dumps(
+                {
+                    "filename": "northstar-blue-graphic",
+                    "alt_text": "Blue square graphic.",
+                    "caption": "A blue square graphic for the tutoring page.",
+                    "confidence": 0.91,
+                    "purpose_rationale": "The image is human-confirmed as informative.",
+                    "warnings": [],
+                }
+            ),
+        ]
+    )
+    service = AiMetadataService(research_settings(), client=fake_client)
+
+    try:
+        response = service.generate_all_image_metadata(
+            body["id"],
+            MetadataGenerationRequest(generation_mode="dual_stage"),
+        )
+        stored = service.list_image_metadata(body["id"]).results[0]
+        csv_export = service.export_image_metadata_csv(body["id"])
+    finally:
+        cleanup_job(body["id"])
+
+    result = response.results[0]
+    assert result.status == "needs_review"
+    assert result.visual_facts is not None
+    assert result.visual_facts.objects == ["blue square"]
+    assert "Northstar" not in fake_client.prompts[0]
+    assert "Graduate tutoring services" not in fake_client.prompts[0]
+    assert "informative" not in fake_client.prompts[0]
+    assert "[VISUAL_FACTS_JSON]" in fake_client.prompts[1]
+    assert "[PAGE_CONTEXT_JSON]" in fake_client.prompts[1]
+    assert "[BRAND_CONTEXT]" in fake_client.prompts[1]
+    assert "[CONFIRMED_PURPOSE_JSON]" in fake_client.prompts[1]
+    assert result.provenance is not None
+    assert result.provenance.generation_mode == "dual_stage"
+    assert result.provenance.vision_model_digest == "a" * 64
+    assert len(result.provenance.image_sha256) == 64
+    assert stored.provenance == result.provenance
+    assert "Northstar tutoring voice" not in json.dumps(result.provenance.model_dump(mode="json"))
+    assert result.provenance.generation_id in csv_export
+    assert result.provenance.page_context_sha256 in csv_export
+    assert "Graduate tutoring services" not in csv_export
+    assert "Northstar tutoring voice" not in csv_export
+
+
+def test_direct_contextual_generation_uses_one_multimodal_call() -> None:
+    body = create_image_job()
+    image_id = body["files"][0]["id"]
+    configure_research_context(body["id"], image_id)
+    add_research_brand_context(body["id"])
+    fake_client = FakeAiClient(
+        [
+            json.dumps(
+                {
+                    "filename": "direct-blue-graphic",
+                    "alt_text": "Blue square graphic.",
+                    "caption": "A blue square graphic.",
+                    "confidence": 0.8,
+                    "purpose_rationale": "Human-confirmed informative image.",
+                    "warnings": [],
+                }
+            )
+        ]
+    )
+    service = AiMetadataService(research_settings(), client=fake_client)
+
+    try:
+        result = service.generate_single_image_metadata(
+            body["id"],
+            image_id,
+            MetadataGenerationRequest(generation_mode="direct"),
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert fake_client.calls == 1
+    assert "[PAGE_CONTEXT_JSON]" in fake_client.prompts[0]
+    assert "Use the approved Northstar" in fake_client.prompts[0]
+    assert result.visual_facts is None
+    assert result.provenance is not None
+    assert result.provenance.generation_mode == "direct"
+    assert result.provenance.vision_stage is None
+    assert result.provenance.writer_stage is not None
+
+
+def test_contextual_generation_retries_invalid_structured_facts_once() -> None:
+    body = create_image_job()
+    image_id = body["files"][0]["id"]
+    configure_research_context(body["id"], image_id)
+    fake_client = FakeAiClient(
+        [
+            "not-json",
+            json.dumps({"summary": "A blue square.", "objects": ["blue square"]}),
+            json.dumps(
+                {
+                    "filename": "blue-square",
+                    "alt_text": "Blue square.",
+                    "caption": "A blue square.",
+                    "confidence": 0.75,
+                    "purpose_rationale": "Informative graphic.",
+                    "warnings": [],
+                }
+            ),
+        ]
+    )
+    service = AiMetadataService(research_settings(), client=fake_client)
+
+    try:
+        result = service.generate_single_image_metadata(
+            body["id"],
+            image_id,
+            MetadataGenerationRequest(generation_mode="dual_stage", context_mode="none"),
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert result.provenance is not None
+    assert result.provenance.retry_count == 1
+    assert fake_client.calls == 3
+
+
+def test_review_edits_preserve_research_provenance_and_append_history() -> None:
+    body = create_image_job()
+    image_id = body["files"][0]["id"]
+    configure_research_context(body["id"], image_id)
+    fake_client = FakeAiClient(
+        [
+            json.dumps(
+                {
+                    "filename": "direct-blue-graphic",
+                    "alt_text": "Blue square graphic.",
+                    "caption": "A blue square graphic.",
+                    "confidence": 0.8,
+                    "purpose_rationale": "Informative image.",
+                    "warnings": [],
+                }
+            )
+        ]
+    )
+    service = AiMetadataService(research_settings(), client=fake_client)
+
+    try:
+        generated = service.generate_single_image_metadata(
+            body["id"],
+            image_id,
+            MetadataGenerationRequest(generation_mode="direct", context_mode="none"),
+        )
+        updated = service.update_image_metadata(
+            body["id"],
+            image_id,
+            ImageMetadataUpdateRequest(
+                suggested_filename="reviewed-blue-graphic",
+                alt_text="Reviewed blue square graphic.",
+                caption="Reviewed blue graphic caption.",
+            ),
+        )
+    finally:
+        cleanup_job(body["id"])
+
+    assert updated.provenance == generated.provenance
+    assert [event.action for event in updated.review_history] == ["generated", "edited"]
+
+
+def test_explicit_contextual_generation_is_rejected_when_feature_is_disabled() -> None:
+    body = create_image_job()
+    service = AiMetadataService(get_settings(), client=FakeAiClient([]))
+
+    try:
+        try:
+            service.generate_all_image_metadata(body["id"], MetadataGenerationRequest())
+        except Exception as exc:
+            error = exc
+        else:
+            raise AssertionError("Expected contextual generation to be disabled.")
+    finally:
+        cleanup_job(body["id"])
+
+    assert getattr(error, "code", "") == "FEATURE_DISABLED"
 
 
 def test_generate_single_image_metadata_persists_result() -> None:

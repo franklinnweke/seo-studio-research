@@ -17,6 +17,7 @@ from app.schemas.responses import (
     ImageJobCreateResponse,
     ImageMetadataBulkAcceptRequest,
     ImageMetadataListResponse,
+    MetadataGenerationRequest,
     ImageMetadataResult,
     ImageMetadataUpdateRequest,
     JobFileListResponse,
@@ -425,8 +426,12 @@ def export_selected_image_metadata_zip(
 def generate_all_image_metadata(
     job_id: str,
     service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+    request: Annotated[
+        MetadataGenerationRequest | None,
+        Body(description="Optional research generation mode and evidence selection."),
+    ] = None,
 ) -> ImageMetadataListResponse:
-    return service.generate_all_image_metadata(job_id)
+    return service.generate_all_image_metadata(job_id, request)
 
 
 @router.post(
@@ -446,8 +451,12 @@ def generate_single_image_metadata(
     job_id: str,
     image_id: str,
     service: Annotated[AiMetadataService, Depends(get_ai_metadata_service)],
+    request: Annotated[
+        MetadataGenerationRequest | None,
+        Body(description="Optional research generation mode and evidence selection."),
+    ] = None,
 ) -> ImageMetadataResult:
-    return service.generate_single_image_metadata(job_id, image_id)
+    return service.generate_single_image_metadata(job_id, image_id, request)
 
 
 @router.patch(

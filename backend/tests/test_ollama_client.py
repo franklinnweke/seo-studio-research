@@ -42,6 +42,7 @@ def test_generate_vision_returns_native_telemetry(tmp_path: Path) -> None:
             response_schema={"type": "object"},
             options={"seed": 42, "temperature": 0},
             keep_alive="5m",
+            think=False,
             request_id="request-123",
         )
     finally:
@@ -52,6 +53,7 @@ def test_generate_vision_returns_native_telemetry(tmp_path: Path) -> None:
     assert payload["model"] == "qwen3.5:latest"
     assert payload["format"] == {"type": "object"}
     assert payload["keep_alive"] == "5m"
+    assert payload["think"] is False
     assert payload["options"] == {"temperature": 0, "seed": 42}
     assert payload["images"] == [base64.b64encode(b"safe-public-fixture").decode("ascii")]
     headers = captured["headers"]

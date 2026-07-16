@@ -1,4 +1,5 @@
 {
+  "additionalProperties": false,
   "properties": {
     "forbidden_inferences_observed": {
       "items": {

@@ -261,6 +261,70 @@ export type ImageMetadataResult = {
   confidence: number;
   status: "needs_review" | "accepted" | "failed";
   error_message: string;
+  purpose: ImagePurpose;
+  purpose_rationale: string;
+  warnings: string[];
+  visual_facts: VisualFactsPayload | null;
+  provenance: GenerationProvenance | null;
+  review_history: MetadataReviewEvent[];
+};
+
+export type VisualFactsPayload = {
+  summary: string;
+  people: string[];
+  objects: string[];
+  setting: string;
+  visible_text: string[];
+  uncertain_facts: string[];
+  forbidden_inferences_observed: string[];
+};
+
+export type GenerationStageEvidence = {
+  request_id: string;
+  model: string;
+  wall_duration_ms: number;
+  total_duration_ns: number;
+  prompt_eval_count: number;
+  eval_count: number;
+};
+
+export type GenerationProvenance = {
+  generation_id: string;
+  generation_mode: "dual_stage" | "direct";
+  generated_at: string;
+  vision_model: string;
+  writer_model: string;
+  vision_model_digest: string;
+  writer_model_digest: string;
+  visual_facts_prompt_version: string;
+  metadata_prompt_version: string;
+  visual_facts_schema_version: string;
+  metadata_schema_version: string;
+  image_sha256: string;
+  page_context_sha256: string;
+  brand_context_sha256: string;
+  image_context_sha256: string;
+  prompt_sha256: string;
+  schema_sha256: string;
+  system_prompt_sha256: string;
+  visual_facts_prompt_sha256: string;
+  visual_facts_schema_sha256: string;
+  generation_options: Record<string, unknown>;
+  image_preprocessing: Record<string, unknown>;
+  retry_count: number;
+  vision_stage: GenerationStageEvidence | null;
+  writer_stage: GenerationStageEvidence | null;
+};
+
+export type MetadataReviewEvent = {
+  action: "generated" | "edited" | "accepted";
+  at: string;
+};
+
+export type MetadataGenerationRequest = {
+  image_ids?: string[];
+  generation_mode?: "dual_stage" | "direct";
+  context_mode?: "none" | "brand_only" | "page_only" | "brand_and_page";
 };
 
 export type ImageMetadataListResponse = {
@@ -508,9 +572,13 @@ export async function getImageMetadata(jobId: string): Promise<ImageMetadataList
   return response.data;
 }
 
-export async function generateImageMetadata(jobId: string): Promise<ImageMetadataListResponse> {
+export async function generateImageMetadata(
+  jobId: string,
+  payload?: MetadataGenerationRequest,
+): Promise<ImageMetadataListResponse> {
   const response = await apiClient.post<ImageMetadataListResponse>(
     `/api/jobs/${jobId}/images/metadata`,
+    payload,
   );
   return response.data;
 }
@@ -518,9 +586,11 @@ export async function generateImageMetadata(jobId: string): Promise<ImageMetadat
 export async function regenerateImageMetadata(
   jobId: string,
   imageId: string,
+  payload?: MetadataGenerationRequest,
 ): Promise<ImageMetadataResult> {
   const response = await apiClient.post<ImageMetadataResult>(
     `/api/jobs/${jobId}/images/${imageId}/metadata`,
+    payload,
   );
   return response.data;
 }

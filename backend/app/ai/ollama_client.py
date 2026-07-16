@@ -50,6 +50,7 @@ class OllamaClient:
         response_schema: dict[str, object] | str | None = None,
         options: dict[str, object] | None = None,
         keep_alive: str | int | None = None,
+        think: bool | str | None = None,
         request_id: str | None = None,
         timeout_seconds: float | None = None,
     ) -> OllamaGenerationResult:
@@ -61,6 +62,7 @@ class OllamaClient:
             response_schema=response_schema,
             options=options,
             keep_alive=keep_alive,
+            think=think,
             request_id=request_id,
             timeout_seconds=timeout_seconds,
         )
@@ -73,6 +75,7 @@ class OllamaClient:
         response_schema: dict[str, object] | str | None = None,
         options: dict[str, object] | None = None,
         keep_alive: str | int | None = None,
+        think: bool | str | None = None,
         request_id: str | None = None,
         timeout_seconds: float | None = None,
     ) -> OllamaGenerationResult:
@@ -82,6 +85,7 @@ class OllamaClient:
             response_schema=response_schema,
             options=options,
             keep_alive=keep_alive,
+            think=think,
             request_id=request_id,
             timeout_seconds=timeout_seconds,
         )
@@ -121,6 +125,7 @@ class OllamaClient:
         response_schema: dict[str, object] | str | None = None,
         options: dict[str, object] | None = None,
         keep_alive: str | int | None = None,
+        think: bool | str | None = None,
         request_id: str | None = None,
         timeout_seconds: float | None = None,
     ) -> OllamaGenerationResult:
@@ -141,6 +146,8 @@ class OllamaClient:
             payload["format"] = response_schema
         if keep_alive is not None:
             payload["keep_alive"] = keep_alive
+        if think is not None:
+            payload["think"] = think
 
         started_at = perf_counter()
         response = self._client.post(

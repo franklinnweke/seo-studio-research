@@ -520,6 +520,202 @@
         "title": "ExportPlaceholderResponse",
         "type": "object"
       },
+      "GenerationProvenance": {
+        "properties": {
+          "brand_context_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Brand Context Sha256",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "generation_id": {
+            "title": "Generation Id",
+            "type": "string"
+          },
+          "generation_mode": {
+            "enum": [
+              "dual_stage",
+              "direct"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "generation_options": {
+            "additionalProperties": true,
+            "title": "Generation Options",
+            "type": "object"
+          },
+          "image_context_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Image Context Sha256",
+            "type": "string"
+          },
+          "image_preprocessing": {
+            "additionalProperties": true,
+            "title": "Image Preprocessing",
+            "type": "object"
+          },
+          "image_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Image Sha256",
+            "type": "string"
+          },
+          "metadata_prompt_version": {
+            "title": "Metadata Prompt Version",
+            "type": "string"
+          },
+          "metadata_schema_version": {
+            "title": "Metadata Schema Version",
+            "type": "string"
+          },
+          "page_context_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Page Context Sha256",
+            "type": "string"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "retry_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Retry Count",
+            "type": "integer"
+          },
+          "schema_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Schema Sha256",
+            "type": "string"
+          },
+          "system_prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "System Prompt Sha256",
+            "type": "string"
+          },
+          "vision_model": {
+            "title": "Vision Model",
+            "type": "string"
+          },
+          "vision_model_digest": {
+            "default": "",
+            "title": "Vision Model Digest",
+            "type": "string"
+          },
+          "vision_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationStageEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "visual_facts_prompt_sha256": {
+            "default": "",
+            "title": "Visual Facts Prompt Sha256",
+            "type": "string"
+          },
+          "visual_facts_prompt_version": {
+            "default": "",
+            "title": "Visual Facts Prompt Version",
+            "type": "string"
+          },
+          "visual_facts_schema_sha256": {
+            "default": "",
+            "title": "Visual Facts Schema Sha256",
+            "type": "string"
+          },
+          "visual_facts_schema_version": {
+            "default": "",
+            "title": "Visual Facts Schema Version",
+            "type": "string"
+          },
+          "writer_model": {
+            "title": "Writer Model",
+            "type": "string"
+          },
+          "writer_model_digest": {
+            "default": "",
+            "title": "Writer Model Digest",
+            "type": "string"
+          },
+          "writer_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationStageEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "generation_id",
+          "generation_mode",
+          "generated_at",
+          "vision_model",
+          "writer_model",
+          "metadata_prompt_version",
+          "metadata_schema_version",
+          "image_sha256",
+          "page_context_sha256",
+          "brand_context_sha256",
+          "image_context_sha256",
+          "prompt_sha256",
+          "schema_sha256",
+          "system_prompt_sha256"
+        ],
+        "title": "GenerationProvenance",
+        "type": "object"
+      },
+      "GenerationStageEvidence": {
+        "properties": {
+          "eval_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Eval Count",
+            "type": "integer"
+          },
+          "model": {
+            "default": "",
+            "title": "Model",
+            "type": "string"
+          },
+          "prompt_eval_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Prompt Eval Count",
+            "type": "integer"
+          },
+          "request_id": {
+            "default": "",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "total_duration_ns": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Total Duration Ns",
+            "type": "integer"
+          },
+          "wall_duration_ms": {
+            "default": 0.0,
+            "minimum": 0.0,
+            "title": "Wall Duration Ms",
+            "type": "number"
+          }
+        },
+        "title": "GenerationStageEvidence",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1261,6 +1457,46 @@
             "title": "Original Filename",
             "type": "string"
           },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sanitized reproducibility evidence; never contains raw page or brand context."
+          },
+          "purpose": {
+            "default": "unknown",
+            "description": "Confirmed page role used during generation.",
+            "enum": [
+              "informative",
+              "decorative",
+              "functional",
+              "text",
+              "complex",
+              "redundant",
+              "unknown"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "purpose_rationale": {
+            "default": "",
+            "description": "Short rationale grounded in the permitted evidence.",
+            "title": "Purpose Rationale",
+            "type": "string"
+          },
+          "review_history": {
+            "description": "Append-only generation, edit, and acceptance events.",
+            "items": {
+              "$ref": "#/components/schemas/MetadataReviewEvent"
+            },
+            "title": "Review History",
+            "type": "array"
+          },
           "status": {
             "description": "Metadata generation or review status for this image.",
             "enum": [
@@ -1275,6 +1511,25 @@
             "description": "AI-generated extension-free filename.",
             "title": "Suggested Filename",
             "type": "string"
+          },
+          "visual_facts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VisualFactsPayload"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Structured pixel-grounded facts produced only by the decomposed condition."
+          },
+          "warnings": {
+            "description": "Model or validation warnings requiring review.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
           }
         },
         "required": [
@@ -1488,6 +1743,71 @@
           "job_id"
         ],
         "title": "LinkListResponse",
+        "type": "object"
+      },
+      "MetadataGenerationRequest": {
+        "properties": {
+          "context_mode": {
+            "default": "brand_and_page",
+            "enum": [
+              "none",
+              "brand_only",
+              "page_only",
+              "brand_and_page"
+            ],
+            "title": "Context Mode",
+            "type": "string"
+          },
+          "generation_mode": {
+            "default": "dual_stage",
+            "enum": [
+              "dual_stage",
+              "direct"
+            ],
+            "title": "Generation Mode",
+            "type": "string"
+          },
+          "image_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional subset of image ids; omitted runs every image in the job.",
+            "title": "Image Ids"
+          }
+        },
+        "title": "MetadataGenerationRequest",
+        "type": "object"
+      },
+      "MetadataReviewEvent": {
+        "properties": {
+          "action": {
+            "enum": [
+              "generated",
+              "edited",
+              "accepted"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "at"
+        ],
+        "title": "MetadataReviewEvent",
         "type": "object"
       },
       "PageContext": {
@@ -1805,6 +2125,63 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VisualFactsPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "forbidden_inferences_observed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Forbidden Inferences Observed",
+            "type": "array"
+          },
+          "objects": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Objects",
+            "type": "array"
+          },
+          "people": {
+            "items": {
+              "type": "string"
+            },
+            "title": "People",
+            "type": "array"
+          },
+          "setting": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Setting",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          },
+          "uncertain_facts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Uncertain Facts",
+            "type": "array"
+          },
+          "visible_text": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Visible Text",
+            "type": "array"
+          }
+        },
+        "required": [
+          "summary"
+        ],
+        "title": "VisualFactsPayload",
         "type": "object"
       }
     },
@@ -2428,6 +2805,24 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/MetadataGenerationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Optional research generation mode and evidence selection.",
+                "title": "Request"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -2985,6 +3380,24 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/MetadataGenerationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Optional research generation mode and evidence selection.",
+                "title": "Request"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {

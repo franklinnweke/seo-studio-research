@@ -21,12 +21,14 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "moondream"
     vision_model: str = "qwen2.5vl:3b"
-    language_model: str = "qwen3.5"
+    language_model: str = "qwen3.5:9b"
     ollama_timeout_seconds: float = 90.0
     ai_health_timeout_seconds: float = 3.0
     context_metadata_enabled: bool = False
     purpose_suggestion_enabled: bool = False
     research_provenance_enabled: bool = False
+    vision_model_digest: str = ""
+    language_model_digest: str = ""
     ai_language_timeout_seconds: float = 120.0
     ai_crop_timeout_seconds: float = 45.0
     ai_preview_max_width: int = 1024

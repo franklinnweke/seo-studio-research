@@ -51,3 +51,69 @@ PAGE_METADATA_PROMPT = """You are generating SEO metadata for a website page.
 
 Return only valid JSON with summary, seo_title, meta_description, and confidence.
 """
+
+VISUAL_FACTS_PROMPT_VERSION = "visual-facts-v1"
+CONTEXTUAL_METADATA_PROMPT_VERSION = "contextual-metadata-v1"
+DIRECT_METADATA_PROMPT_VERSION = "direct-metadata-v1"
+
+VISUAL_FACTS_PROMPT_V1 = """You inspect image pixels for a grounded metadata experiment.
+
+Return only JSON matching the supplied schema. Report visible evidence only. Do not write alt text,
+captions, filenames, SEO copy, page purpose, brand claims, identity, demographics, emotions, intent,
+location, or other inferences that are not directly supported by pixels. Put uncertain observations
+in uncertain_facts and any tempting prohibited inference in forbidden_inferences_observed.
+"""
+
+CONTEXTUAL_METADATA_PROMPT_V1 = """/no_think
+You write accessible web image metadata from separately labelled evidence classes.
+
+Evidence rules:
+- VISUAL_FACTS_JSON is the only source for claims about visible image content.
+- PAGE_CONTEXT_JSON supplies placement and audience context, not visible facts.
+- BRAND_CONTEXT supplies tone and approved terminology, not visible facts.
+- CONFIRMED_PURPOSE_JSON is a human decision and controls the alt-text strategy.
+- Decorative and redundant images require empty alt text.
+- Do not merge contextual claims into visual claims or invent unsupported details.
+- Return only JSON matching the supplied schema, with an extension-free lowercase hyphenated filename.
+
+[VISUAL_FACTS_JSON]
+{visual_facts_json}
+[/VISUAL_FACTS_JSON]
+
+[PAGE_CONTEXT_JSON]
+{page_context_json}
+[/PAGE_CONTEXT_JSON]
+
+[BRAND_CONTEXT]
+{brand_context}
+[/BRAND_CONTEXT]
+
+[CONFIRMED_PURPOSE_JSON]
+{image_context_json}
+[/CONFIRMED_PURPOSE_JSON]
+"""
+
+DIRECT_METADATA_PROMPT_V1 = """/no_think
+You inspect the attached image and write accessible web image metadata in one step.
+
+Context rules:
+- Treat the attached image pixels as the only source for visible-content claims.
+- PAGE_CONTEXT_JSON supplies placement and audience context, not visible facts.
+- BRAND_CONTEXT supplies tone and approved terminology, not visible facts.
+- CONFIRMED_PURPOSE_JSON is a human decision and controls the alt-text strategy.
+- Decorative and redundant images require empty alt text.
+- Do not invent unsupported details.
+- Return only JSON matching the supplied schema, with an extension-free lowercase hyphenated filename.
+
+[PAGE_CONTEXT_JSON]
+{page_context_json}
+[/PAGE_CONTEXT_JSON]
+
+[BRAND_CONTEXT]
+{brand_context}
+[/BRAND_CONTEXT]
+
+[CONFIRMED_PURPOSE_JSON]
+{image_context_json}
+[/CONFIRMED_PURPOSE_JSON]
+"""

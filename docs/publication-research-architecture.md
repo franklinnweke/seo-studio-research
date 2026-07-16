@@ -1812,14 +1812,18 @@ Exit: Gate 2 backend criteria pass; legacy jobs still load; the evaluation harne
 
 #### Work package A3: structured pipeline and provenance — July 24–28
 
-- Version all prompts and schemas.
-- Replace prose visual description with structured visual facts.
-- Pass facts, page context, brand context, and confirmed purpose to the writer as separate evidence classes.
-- Add direct and dual-stage modes behind a feature flag.
-- Persist model digest, prompt/schema versions, context hashes, generation options, timing, retries, and review history.
-- Extend CSV/ZIP exports without leaking private context.
+- [x] Version all prompts and schemas in code so an environment override cannot silently relabel a prompt body.
+- [x] Replace prose visual description with schema-validated structured visual facts in the research route.
+- [x] Pass facts, page context, brand context, and confirmed purpose to the writer as separate labelled evidence classes; the vision-facts prompt receives pixels only.
+- [x] Add controlled direct and dual-stage modes behind `context_metadata_enabled`, while preserving the legacy bodyless request.
+- [x] Persist pinned model digests, prompt/schema versions and hashes, context hashes, frozen generation options, timing, request identifiers, retry counts, and append-only review history when `research_provenance_enabled` is active.
+- [x] Extend CSV/ZIP-compatible export rows with sanitized purpose and provenance fields without exporting raw page or brand context.
+
+Implemented early on July 16, 2026. The direct condition sends the image and permitted contextual evidence to the configured writer model; the dual-stage condition sends the image only to the configured vision model and passes its validated facts to the same writer. Enabling research provenance now requires a pinned 64-character writer digest and, for dual-stage runs, a pinned vision digest. Deterministic backend fixtures verify evidence separation, direct/dual routing, one-retry behavior, persistence, hashes, and provenance survival through review edits. The ordinary product endpoint remains backward compatible when no research request body is supplied.
 
 Exit: deterministic test fixtures prove routing, evidence boundaries, validation, retry, and provenance behavior.
+
+Status: satisfied locally. Backend fixtures pass for both routes and the offline harness validates the corrected synthetic fixture hashes. Live DGX model digests remain an A5 preflight input collected only through `$davneet-dgx-access`; they are intentionally not invented or committed here.
 
 #### Work package A4: frontend context-review workflow — July 28–31
 
@@ -1953,11 +1957,11 @@ Not permitted during the deferral:
 - [x] Add schema-version-2 page-context persistence and `GET/PUT` endpoints with legacy defaults.
 - [x] Add the seven-state per-image purpose taxonomy and explicit confirmation state.
 - [x] Allow and validate empty alt text by purpose behind the context feature flag.
-- [ ] Add purpose-aware prompts and structured visual facts.
-- [ ] Preserve model/prompt provenance.
+- [x] Add purpose-aware prompts and structured visual facts.
+- [x] Preserve model/prompt provenance.
 - [ ] Update frontend context and review workflow.
-- [ ] Update CSV/ZIP reports and OpenAPI.
-- [ ] Add full backend/frontend tests.
+- [x] Update CSV/ZIP report fields and OpenAPI for the A3 contract.
+- [ ] Add full frontend workflow and browser tests; backend A3 routing/provenance fixtures are complete.
 
 ### P1: research harness minimum
 
@@ -2042,19 +2046,19 @@ The three most important research controls are protocol freeze, immutable raw re
 
 ### 31.1 Current implementation assignment
 
-Work package A0, the safe A1 code slice, and the A2 backend/harness foundation are implemented on `codex/research-context-aware-metadata`. A2 now includes schema versioning, context endpoints, purpose-aware approval, stable research-facing errors, frontend contracts, offline preflight, hashing, append-only records, fake-transport execution, exported schemas, and regenerated OpenAPI. Network verification remains explicitly deferred and Gate 1 remains open.
+Work packages A0–A3 are implemented on `codex/research-context-aware-metadata`. The branch now includes schema versioning, context endpoints, purpose-aware approval, stable research-facing errors, offline harness foundations, structured visual facts, controlled direct/dual generation, sanitized provenance, retry accounting, review history, export fields, frontend API types, and regenerated OpenAPI. The existing no-body metadata request remains backward compatible. Network verification remains explicitly deferred and Gate 1 remains open; this does not block local A4 product work or offline harness work.
 
-The next agent begins A3 structured visual facts and provenance while extending the harness incrementally, without treating the network deferral as a passed security gate:
+The next agent begins A4 frontend context-review workflow while extending the harness incrementally, without treating the network deferral as a passed security gate:
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.
 3. Read and invoke `$davneet-dgx-access`; run its required current-status check before any live-state claim and do not duplicate its connection profile in project files.
-4. Treat the supervisor/program coordinator as the confirmed owner with project-use authorization; through the skill, confirm exact hardware identity, approved authenticated access method, dedicated project workspace, network topology, and allowed research data while preserving every existing owner-managed resource.
-5. Through the skill, capture Ollama version, installed model tags/digests/quantizations/capabilities, running models, storage, OS/driver/CUDA or supported DGX telemetry, and a non-sensitive smoke result.
-6. Decide and record the private product-to-inference topology in an ADR without operational credentials or private host inventory.
-7. Add sanitized AI health and structured Ollama telemetry behavior with tests.
-8. Remove private inference topology from ordinary frontend settings responses.
-9. Run backend tests, frontend lint/build, OpenAPI validation, and `git diff --check`, then hand off whether A2 is unblocked.
+4. Build the page-context and per-image confirmed-purpose workflow against the existing schema-version-2 endpoints.
+5. Send an explicit `MetadataGenerationRequest` only when contextual readiness is satisfied; keep ordinary legacy behavior unchanged elsewhere.
+6. Expose purpose warnings, decorative/redundant empty-alt behavior, generation mode, and safe provenance summaries without displaying raw private context unnecessarily.
+7. Preserve keyboard access, focus behavior, error announcements, and small-screen usability.
+8. Use `$davneet-dgx-access` for any live inventory or digest collection, preserve all owner-managed resources, and write only sanitized locked digests into the approved private runtime configuration.
+9. Run backend tests, frontend lint/build, targeted browser flows, OpenAPI validation, and `git diff --check`, then hand off A4 readiness.
 
 Do not pull models, change public-network exposure, begin participant recruitment, or run full experiments without the applicable Gate 0/Gate 1 approvals.
 

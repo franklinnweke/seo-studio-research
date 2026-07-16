@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class VisualFactsPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     summary: str
     people: list[str] = Field(default_factory=list)
     objects: list[str] = Field(default_factory=list)
@@ -16,9 +18,12 @@ class VisualFactsPayload(BaseModel):
 
 
 class ContextualMetadataPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     filename: str
     alt_text: str
     caption: str
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     purpose_rationale: str
     warnings: list[str] = Field(default_factory=list)
 

@@ -1,4 +1,5 @@
 {
+  "additionalProperties": false,
   "properties": {
     "alt_text": {
       "title": "Alt Text",
@@ -7,6 +8,13 @@
     "caption": {
       "title": "Caption",
       "type": "string"
+    },
+    "confidence": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
     },
     "filename": {
       "title": "Filename",

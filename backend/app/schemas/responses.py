@@ -1,12 +1,16 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 JobType = Literal["image", "website"]
 JobStatus = Literal["pending", "processing", "processed", "needs_review", "accepted", "failed"]
 ImagePurpose = Literal["informative", "decorative", "functional", "text", "complex", "redundant", "unknown"]
 PurposeSource = Literal["unconfirmed", "human_confirmed", "ai_suggested"]
+MetadataGenerationMode = Literal["dual_stage", "direct"]
+MetadataContextMode = Literal["none", "brand_only", "page_only", "brand_and_page"]
+VISUAL_FACTS_SCHEMA_VERSION = "visual-facts-v1"
+CONTEXTUAL_METADATA_SCHEMA_VERSION = "contextual-metadata-v1"
 
 
 class HealthResponse(BaseModel):
@@ -362,6 +366,95 @@ class ImageMetadataResult(BaseModel):
         description="Metadata generation or review status for this image."
     )
     error_message: str = Field(default="", description="Failure detail when status is failed.")
+    purpose: ImagePurpose = Field(default="unknown", description="Confirmed page role used during generation.")
+    purpose_rationale: str = Field(default="", description="Short rationale grounded in the permitted evidence.")
+    warnings: list[str] = Field(default_factory=list, description="Model or validation warnings requiring review.")
+    visual_facts: "VisualFactsPayload | None" = Field(
+        default=None,
+        description="Structured pixel-grounded facts produced only by the decomposed condition.",
+    )
+    provenance: "GenerationProvenance | None" = Field(
+        default=None,
+        description="Sanitized reproducibility evidence; never contains raw page or brand context.",
+    )
+    review_history: list["MetadataReviewEvent"] = Field(
+        default_factory=list,
+        description="Append-only generation, edit, and acceptance events.",
+    )
+
+
+class VisualFactsPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    summary: str = Field(min_length=1, max_length=1000)
+    people: list[str] = Field(default_factory=list)
+    objects: list[str] = Field(default_factory=list)
+    setting: str = Field(default="", max_length=500)
+    visible_text: list[str] = Field(default_factory=list)
+    uncertain_facts: list[str] = Field(default_factory=list)
+    forbidden_inferences_observed: list[str] = Field(default_factory=list)
+
+
+class ContextualMetadataPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    filename: str = Field(min_length=1, max_length=120)
+    alt_text: str = Field(default="", max_length=500)
+    caption: str = Field(min_length=1, max_length=500)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    purpose_rationale: str = Field(default="", max_length=1000)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class GenerationStageEvidence(BaseModel):
+    request_id: str = ""
+    model: str = ""
+    wall_duration_ms: float = Field(default=0.0, ge=0.0)
+    total_duration_ns: int = Field(default=0, ge=0)
+    prompt_eval_count: int = Field(default=0, ge=0)
+    eval_count: int = Field(default=0, ge=0)
+
+
+class GenerationProvenance(BaseModel):
+    generation_id: str
+    generation_mode: MetadataGenerationMode
+    generated_at: datetime
+    vision_model: str
+    writer_model: str
+    vision_model_digest: str = ""
+    writer_model_digest: str = ""
+    visual_facts_prompt_version: str = ""
+    metadata_prompt_version: str
+    visual_facts_schema_version: str = ""
+    metadata_schema_version: str
+    image_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    page_context_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    brand_context_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    image_context_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    schema_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    system_prompt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    visual_facts_prompt_sha256: str = ""
+    visual_facts_schema_sha256: str = ""
+    generation_options: dict[str, object] = Field(default_factory=dict)
+    image_preprocessing: dict[str, object] = Field(default_factory=dict)
+    retry_count: int = Field(default=0, ge=0)
+    vision_stage: GenerationStageEvidence | None = None
+    writer_stage: GenerationStageEvidence | None = None
+
+
+class MetadataReviewEvent(BaseModel):
+    action: Literal["generated", "edited", "accepted"]
+    at: datetime
+
+
+class MetadataGenerationRequest(BaseModel):
+    image_ids: list[str] | None = Field(
+        default=None,
+        description="Optional subset of image ids; omitted runs every image in the job.",
+    )
+    generation_mode: MetadataGenerationMode = "dual_stage"
+    context_mode: MetadataContextMode = "brand_and_page"
 
 
 class ImageMetadataListResponse(BaseModel):
