@@ -7,6 +7,7 @@ warmup_image_id = "synthetic-solid-blue-001"
 minimum_schema_valid_rate = 0.95
 per_attempt_timeout_seconds = 240
 hidden_retries_allowed = 0
+abort_on_transport_error = true
 temperature = 0
 seed = 20260716
 thinking_mode = "disabled"

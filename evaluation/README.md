@@ -27,4 +27,6 @@ The preflight validates configuration structure, model declarations, dataset bal
 
 Live inventory, SSH tunnels, model pulls, and DGX experiments are governed by `$davneet-dgx-access`; repository commands never contain the live connection profile. Research execution has no hidden retry. `configs/compatibility-criteria.toml` freezes the compatibility and fallback rules, while compatibility reports explicitly prohibit quality ranking from the one-image smoke data.
 
+The compatibility pilot aborts after preserving the first transport-failure record. Resume the same append-only block only when its earlier records remain valid and incomplete; if the transport failure exposed a harness defect or invalidated the block, preserve it as an infrastructure incident and recollect under a new run ID. Never convert connection failures into model-compatibility failures.
+
 Raw `runs/`, dataset cache files, and private reviewer mappings are ignored by Git.

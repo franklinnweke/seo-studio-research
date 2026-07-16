@@ -215,6 +215,11 @@
       "title": "Attempt Id",
       "type": "string"
     },
+    "criteria_sha256": {
+      "default": "",
+      "title": "Criteria Sha256",
+      "type": "string"
+    },
     "dirty_worktree": {
       "title": "Dirty Worktree",
       "type": "boolean"
@@ -270,6 +275,11 @@
     },
     "model": {
       "$ref": "#/$defs/ModelIdentity"
+    },
+    "models_config_sha256": {
+      "default": "",
+      "title": "Models Config Sha256",
+      "type": "string"
     },
     "normalization_version": {
       "title": "Normalization Version",
@@ -341,6 +351,11 @@
     "started_at": {
       "format": "date-time",
       "title": "Started At",
+      "type": "string"
+    },
+    "study_config_sha256": {
+      "default": "",
+      "title": "Study Config Sha256",
       "type": "string"
     },
     "system_snapshot_ref": {

@@ -38,6 +38,9 @@ class AttemptSpec(BaseModel):
     sanitized_request: dict[str, Any]
     parser_version: str = "parser-v1"
     normalization_version: str = "normalization-v1"
+    study_config_sha256: str = ""
+    models_config_sha256: str = ""
+    criteria_sha256: str = ""
 
 
 def execute_attempt(

@@ -41,6 +41,18 @@ class FakePilotTransport:
         }
 
 
+class InterruptingPilotTransport(FakePilotTransport):
+    def __init__(self, tags: list[dict[str, str]], fail_on_call: int) -> None:
+        super().__init__(tags)
+        self.fail_on_call = fail_on_call
+
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        if len(self.requests) + 1 == self.fail_on_call:
+            self.requests.append(request)
+            raise ConnectionError("synthetic tunnel reset")
+        return super().generate(request)
+
+
 def _live_tags(config_path: Path) -> list[dict[str, str]]:
     study = load_study(config_path)
     configured = {model.id: model for model in study.models.models}
@@ -78,6 +90,8 @@ def test_pilot_runs_warmups_and_complete_deterministic_matrix(tmp_path: Path) ->
     assert summary.failed_attempts == 0
     assert summary.warmup_records == 5
     assert summary.all_models_meet_threshold is True
+    assert summary.aborted_on_transport_error is False
+    assert summary.abort_attempt_id == ""
     assert len(transport.requests) == 105
     assert sum(event["event"] == "warmup_complete" for event in progress) == 5
     assert sum(event["event"] == "attempt_complete" for event in progress) == 100
@@ -124,3 +138,29 @@ def test_pilot_stops_before_generation_on_live_digest_mismatch(tmp_path: Path) -
         )
 
     assert transport.requests == []
+
+
+def test_pilot_aborts_after_first_recorded_transport_failure(tmp_path: Path) -> None:
+    evaluation_root = Path(__file__).resolve().parents[1]
+    config_path = evaluation_root / "configs" / "pilot.toml"
+    transport = InterruptingPilotTransport(_live_tags(config_path), fail_on_call=3)
+
+    summary, _ = run_compatibility_pilot(
+        config_path,
+        evaluation_root / "configs" / "compatibility-criteria.toml",
+        "http://127.0.0.1:11435",
+        tmp_path,
+        "pilot-interrupted-run",
+        "private-test-snapshot",
+        transport=transport,
+    )
+
+    assert summary.status == "incomplete"
+    assert summary.observed_attempts == 2
+    assert summary.valid_attempts == 1
+    assert summary.failed_attempts == 1
+    assert summary.warmup_records == 1
+    assert summary.aborted_on_transport_error is True
+    assert summary.abort_attempt_id
+    assert len(transport.requests) == 3
+    assert len(list(tmp_path.glob("*.json"))) == 3

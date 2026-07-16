@@ -68,6 +68,8 @@ def run_compatibility_smoke(
     prompt_text = prompt_path.read_text().strip()
     schema = VisualFactsPayload.model_json_schema()
     commit, dirty = _git_state(study.root.parent)
+    study_config_sha256 = sha256_file(study.config_path)
+    models_config_sha256 = sha256_file(resolve_under_root(study.root, study.config.models_config))
     run_id = datetime.now(timezone.utc).strftime("compatibility-%Y%m%dT%H%M%SZ")
     results: list[CompatibilityResult] = []
 
@@ -132,6 +134,8 @@ def run_compatibility_smoke(
             generation_options=options,
             thinking_mode="disabled",
             sanitized_request=sanitized_request,
+            study_config_sha256=study_config_sha256,
+            models_config_sha256=models_config_sha256,
         )
         record = execute_attempt(
             spec,

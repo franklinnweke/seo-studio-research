@@ -107,6 +107,9 @@ class RunRecord(BaseModel):
     telemetry: TelemetryEvidence
     parser_version: str
     normalization_version: str
+    study_config_sha256: str = ""
+    models_config_sha256: str = ""
+    criteria_sha256: str = ""
 
 
 class ClaimAnnotation(BaseModel):

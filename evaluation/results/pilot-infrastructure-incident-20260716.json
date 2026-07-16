@@ -1,0 +1,32 @@
+{
+  "evidence_version": 1,
+  "quality_ranking_permitted": false,
+  "run_id": "pilot-compatibility-20260716",
+  "classification": "infrastructure_aborted_exclude_entire_run",
+  "started_at": "2026-07-16T17:04:42.780477Z",
+  "ended_at": "2026-07-16T17:54:04.529004Z",
+  "planned_attempts": 100,
+  "valid_measured_before_reset": 8,
+  "triggering_transport_failures": 1,
+  "immediate_connection_failures_after_runner_continued": 91,
+  "trigger": {
+    "model_id": "mistral-small31-24b",
+    "image_id": "healthcare-telehealth-004",
+    "measured_position_in_model_block": 9,
+    "error_category": "transport_error",
+    "sanitized_error": "remote forwarding connection closed before an Ollama response was received"
+  },
+  "diagnosis": {
+    "host_restarted": false,
+    "ollama_service_restarted": false,
+    "ssh_forwarding_session_reset": true,
+    "runner_continuation_bug": true
+  },
+  "exclusion_reason": "The loss of the transport path is independent of model structured-output behavior, and the runner's subsequent immediate calls did not reach Ollama. Treating these records as model failures would be invalid.",
+  "remediation": [
+    "Preserve the complete raw incident block unchanged and keep it outside comparative normalization.",
+    "Abort a run block immediately after the first append-only transport-failure record.",
+    "Use a separately identified recollection block through a localhost-only SSH tunnel with keepalives.",
+    "Record study, model, and compatibility-criteria hashes in every new attempt."
+  ]
+}

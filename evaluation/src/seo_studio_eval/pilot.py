@@ -39,6 +39,7 @@ class CompatibilityCriteria(BaseModel):
     minimum_schema_valid_rate: float = Field(gt=0, le=1)
     per_attempt_timeout_seconds: float = Field(gt=0)
     hidden_retries_allowed: Literal[0]
+    abort_on_transport_error: Literal[True]
     temperature: float
     seed: int
     thinking_mode: Literal["disabled"]
@@ -73,6 +74,9 @@ class PilotRunSummary(BaseModel):
     git_commit: str
     dirty_worktree: bool
     system_snapshot_ref: str
+    study_config_sha256: str
+    models_config_sha256: str
+    criteria_sha256: str
     randomization_seed: int
     timeout_seconds: float
     keep_alive: str
@@ -84,6 +88,8 @@ class PilotRunSummary(BaseModel):
     failed_attempts: int = Field(ge=0)
     warmup_records: int = Field(ge=0)
     all_models_meet_threshold: bool
+    aborted_on_transport_error: bool
+    abort_attempt_id: str = ""
     by_model: dict[str, ModelPilotResult]
 
 
@@ -142,6 +148,9 @@ def run_compatibility_pilot(
     warmup_dir = output_dir / "warmups"
     summary_path = output_dir / "pilot-summary.json"
     commit, dirty = _git_state(study.root.parent)
+    study_config_sha256 = sha256_file(study.config_path)
+    models_config_sha256 = sha256_file(resolve_under_root(study.root, study.config.models_config))
+    criteria_sha256 = sha256_file(criteria_path.resolve())
     started_at = datetime.now(timezone.utc)
     session_id = started_at.strftime("%Y%m%dT%H%M%S%fZ").lower()
     model_order = [model.id for model in models]
@@ -181,14 +190,19 @@ def run_compatibility_pilot(
         commit,
         dirty,
         system_snapshot_ref,
+        study_config_sha256,
+        models_config_sha256,
+        criteria_sha256,
         model_order,
         image_order_by_model,
         existing,
         warmup_dir,
         status="running",
+        abort_attempt_id="",
     )
     _write_summary(summary_path, summary)
 
+    abort_attempt_id = ""
     for block_index, model_id in enumerate(model_order, start=1):
         model = configured[model_id]
         pending = [
@@ -213,6 +227,9 @@ def run_compatibility_pilot(
             dirty,
             ollama_version,
             system_snapshot_ref,
+            study_config_sha256,
+            models_config_sha256,
+            criteria_sha256,
             model,
             warmup_item,
             prompt_path,
@@ -233,6 +250,9 @@ def run_compatibility_pilot(
                 "record_path": str(warmup_path),
             },
         )
+        if warmup_record.error is not None and warmup_record.error.category == "transport_error":
+            abort_attempt_id = warmup_record.attempt_id
+            break
 
         for pending_index, (image_id, repeat) in enumerate(pending, start=1):
             item = next(item for item in manifest if item.id == image_id)
@@ -252,6 +272,9 @@ def run_compatibility_pilot(
                 dirty,
                 ollama_version,
                 system_snapshot_ref,
+                study_config_sha256,
+                models_config_sha256,
+                criteria_sha256,
                 model,
                 item,
                 prompt_path,
@@ -274,11 +297,19 @@ def run_compatibility_pilot(
                 commit,
                 dirty,
                 system_snapshot_ref,
+                study_config_sha256,
+                models_config_sha256,
+                criteria_sha256,
                 model_order,
                 image_order_by_model,
                 existing,
                 warmup_dir,
                 status="running",
+                abort_attempt_id=(
+                    record.attempt_id
+                    if record.error is not None and record.error.category == "transport_error"
+                    else ""
+                ),
             )
             _write_summary(summary_path, summary)
             _emit(
@@ -295,9 +326,14 @@ def run_compatibility_pilot(
                     "record_path": str(record_path),
                 },
             )
+            if record.error is not None and record.error.category == "transport_error":
+                abort_attempt_id = record.attempt_id
+                break
+        if abort_attempt_id:
+            break
 
     final_status: Literal["complete", "incomplete"] = (
-        "complete" if len(existing) == len(expected_keys) else "incomplete"
+        "complete" if len(existing) == len(expected_keys) and not abort_attempt_id else "incomplete"
     )
     summary = _build_summary(
         study.config.experiment_id,
@@ -309,11 +345,15 @@ def run_compatibility_pilot(
         commit,
         dirty,
         system_snapshot_ref,
+        study_config_sha256,
+        models_config_sha256,
+        criteria_sha256,
         model_order,
         image_order_by_model,
         existing,
         warmup_dir,
         status=final_status,
+        abort_attempt_id=abort_attempt_id,
     )
     _write_summary(summary_path, summary)
     return summary, summary_path
@@ -331,6 +371,9 @@ def _execute_vision_attempt(
     dirty: bool,
     ollama_version: str,
     system_snapshot_ref: str,
+    study_config_sha256: str,
+    models_config_sha256: str,
+    criteria_sha256: str,
     model: ModelEntry,
     item: DatasetItem,
     prompt_path: Path,
@@ -400,6 +443,9 @@ def _execute_vision_attempt(
         generation_options=options,
         thinking_mode="disabled",
         sanitized_request=sanitized_request,
+        study_config_sha256=study_config_sha256,
+        models_config_sha256=models_config_sha256,
+        criteria_sha256=criteria_sha256,
     )
     return execute_attempt(
         spec,
@@ -457,11 +503,15 @@ def _build_summary(
     commit: str,
     dirty: bool,
     system_snapshot_ref: str,
+    study_config_sha256: str,
+    models_config_sha256: str,
+    criteria_sha256: str,
     model_order: list[str],
     image_order_by_model: dict[str, list[str]],
     records: dict[str, RunRecord],
     warmup_dir: Path,
     status: Literal["running", "complete", "incomplete"],
+    abort_attempt_id: str,
 ) -> PilotRunSummary:
     by_model: dict[str, ModelPilotResult] = {}
     for model_id in model_order:
@@ -492,6 +542,9 @@ def _build_summary(
         git_commit=commit,
         dirty_worktree=dirty,
         system_snapshot_ref=system_snapshot_ref,
+        study_config_sha256=study_config_sha256,
+        models_config_sha256=models_config_sha256,
+        criteria_sha256=criteria_sha256,
         randomization_seed=criteria.seed,
         timeout_seconds=criteria.per_attempt_timeout_seconds,
         keep_alive=criteria.pilot_keep_alive,
@@ -503,6 +556,8 @@ def _build_summary(
         failed_attempts=len(records) - valid_total,
         warmup_records=len(attempt_record_paths(warmup_dir)),
         all_models_meet_threshold=all(result.threshold_met for result in by_model.values()),
+        aborted_on_transport_error=bool(abort_attempt_id),
+        abort_attempt_id=abort_attempt_id,
         by_model=by_model,
     )
 
