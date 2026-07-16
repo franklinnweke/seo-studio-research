@@ -15,6 +15,10 @@ class OllamaConnectionError(RuntimeError):
     pass
 
 
+class OllamaTimeoutError(RuntimeError):
+    pass
+
+
 class OllamaTransport:
     def __init__(self, base_url: str, timeout_seconds: float = 240.0) -> None:
         self.base_url = base_url.rstrip("/")
@@ -54,7 +58,9 @@ class OllamaTransport:
             raise OllamaHTTPError(exc.code, detail) from exc
         except URLError as exc:
             raise OllamaConnectionError(f"Ollama connection failed: {exc.reason}") from exc
-        except (ConnectionError, RemoteDisconnected, TimeoutError) as exc:
+        except TimeoutError as exc:
+            raise OllamaTimeoutError(f"Ollama inference timed out after {self.timeout_seconds}s") from exc
+        except (ConnectionError, RemoteDisconnected) as exc:
             raise OllamaConnectionError(f"Ollama connection failed: {exc}") from exc
         if not isinstance(decoded, dict):
             raise ValueError("Ollama response must be a JSON object")

@@ -4,7 +4,7 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
-from .ollama import OllamaHTTPError
+from .ollama import OllamaHTTPError, OllamaTimeoutError
 from .schemas import (
     ErrorEvidence,
     InputEvidence,
@@ -87,6 +87,9 @@ def execute_attempt(
         http_status = exc.status_code
         error = ErrorEvidence(category="ollama_http_error", message=str(exc) or exc.__class__.__name__)
         validation = ValidationEvidence(valid=False, errors=["Ollama rejected the inference request"])
+    except OllamaTimeoutError as exc:
+        error = ErrorEvidence(category="inference_timeout", message=str(exc) or exc.__class__.__name__)
+        validation = ValidationEvidence(valid=False, errors=["inference exceeded the frozen timeout"])
     except Exception as exc:
         error = ErrorEvidence(category="transport_error", message=str(exc) or exc.__class__.__name__)
         validation = ValidationEvidence(valid=False, errors=["transport failed"])

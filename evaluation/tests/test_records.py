@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from seo_studio_eval.ollama import OllamaHTTPError
+from seo_studio_eval.ollama import OllamaHTTPError, OllamaTimeoutError
 from seo_studio_eval.records import read_attempt_record, write_attempt_record
 from seo_studio_eval.runner import AttemptSpec, execute_attempt
 from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence, VisualFactsPayload
@@ -38,6 +38,11 @@ class FailingOllamaTransport:
 class RejectingOllamaTransport:
     def generate(self, request: dict[str, Any]) -> dict[str, Any]:
         raise OllamaHTTPError(500, "image: unknown format")
+
+
+class TimingOutOllamaTransport:
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        raise OllamaTimeoutError("Ollama inference timed out after 240s")
 
 
 class RawStructuredTransport:
@@ -129,6 +134,15 @@ def test_ollama_http_failure_is_not_mislabeled_as_transport_loss() -> None:
     assert record.http_status == 500
     assert record.error is not None
     assert record.error.category == "ollama_http_error"
+    assert record.retry_count == 0
+
+
+def test_inference_timeout_is_a_final_non_transport_outcome() -> None:
+    record = execute_attempt(make_spec("attempt-timeout"), TimingOutOllamaTransport())
+
+    assert record.validation.valid is False
+    assert record.error is not None
+    assert record.error.category == "inference_timeout"
     assert record.retry_count == 0
 
 

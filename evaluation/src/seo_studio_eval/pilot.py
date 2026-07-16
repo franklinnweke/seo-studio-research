@@ -551,14 +551,14 @@ def _existing_attempts(
         outcomes = [
             record
             for record in attempts
-            if record.error is None or record.error.category != "transport_error"
+            if not _is_recoverable_transport(record)
         ]
-        if len(outcomes) > 1:
+        if len(outcomes) > 1 and not all(_is_timeout_record(record) for record in outcomes):
             raise ValueError(f"Run directory contains multiple non-transport outcomes: {key}")
         transports = [
             record
             for record in attempts
-            if record.error is not None and record.error.category == "transport_error"
+            if _is_recoverable_transport(record)
         ]
         if len(transports) > max_transport_attempts_per_item:
             raise ValueError(f"Run directory exceeds transport-attempt limit: {key}")
@@ -611,10 +611,7 @@ def _build_summary(
         )
     expected = criteria.pilot_items * len(model_order)
     valid_total = sum(record.validation.valid for record in records.values())
-    raw_measured_records = sum(len(records_for_key) for records_for_key in transport_records.values())
-    raw_measured_records += sum(
-        1 for key, record in records.items() if record.error is None or record.error.category != "transport_error"
-    )
+    raw_measured_records = len(attempt_record_paths(warmup_dir.parent))
     return PilotRunSummary(
         status=status,
         experiment_id=experiment_id,
@@ -674,6 +671,20 @@ def _shuffled_image_ids(items: list[DatasetItem], seed: int, model_id: str) -> l
 
 def _attempt_key(model_id: str, image_id: str, repeat: int) -> str:
     return f"{model_id}|{image_id}|r{repeat}"
+
+
+def _is_timeout_record(record: RunRecord) -> bool:
+    if record.error is None:
+        return False
+    return record.error.category == "inference_timeout" or "timed out" in record.error.message.lower()
+
+
+def _is_recoverable_transport(record: RunRecord) -> bool:
+    return (
+        record.error is not None
+        and record.error.category == "transport_error"
+        and not _is_timeout_record(record)
+    )
 
 
 def _emit(progress: ProgressCallback | None, payload: dict[str, Any]) -> None:
