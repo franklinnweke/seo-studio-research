@@ -8,6 +8,7 @@ minimum_schema_valid_rate = 0.95
 per_attempt_timeout_seconds = 240
 hidden_retries_allowed = 0
 abort_on_transport_error = true
+max_transport_attempts_per_item = 3
 temperature = 0
 seed = 20260716
 thinking_mode = "disabled"

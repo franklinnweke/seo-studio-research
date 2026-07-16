@@ -215,6 +215,12 @@
       "title": "Attempt Id",
       "type": "string"
     },
+    "collection_attempt": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Collection Attempt",
+      "type": "integer"
+    },
     "criteria_sha256": {
       "default": "",
       "title": "Criteria Sha256",
@@ -356,6 +362,11 @@
     "study_config_sha256": {
       "default": "",
       "title": "Study Config Sha256",
+      "type": "string"
+    },
+    "supersedes_attempt_id": {
+      "default": "",
+      "title": "Supersedes Attempt Id",
       "type": "string"
     },
     "system_snapshot_ref": {

@@ -110,6 +110,8 @@ class RunRecord(BaseModel):
     study_config_sha256: str = ""
     models_config_sha256: str = ""
     criteria_sha256: str = ""
+    collection_attempt: int = Field(default=1, ge=1)
+    supersedes_attempt_id: str = ""
 
 
 class ClaimAnnotation(BaseModel):

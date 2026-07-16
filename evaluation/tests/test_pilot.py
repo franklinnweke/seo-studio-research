@@ -174,6 +174,26 @@ def test_pilot_aborts_after_first_recorded_transport_failure(tmp_path: Path) -> 
     assert len(transport.requests) == 3
     assert len(list(tmp_path.glob("*.json"))) == 3
 
+    recovery_transport = FakePilotTransport(_live_tags(config_path))
+    recovered, _ = run_compatibility_pilot(
+        config_path,
+        evaluation_root / "configs" / "compatibility-criteria.toml",
+        "http://127.0.0.1:11435",
+        tmp_path,
+        "pilot-interrupted-run",
+        "private-test-snapshot",
+        transport=recovery_transport,
+        max_new_attempts=5,
+    )
+
+    assert recovered.status == "paused"
+    assert recovered.observed_attempts == 6
+    assert recovered.valid_attempts == 6
+    assert recovered.failed_attempts == 0
+    assert recovered.raw_measured_records == 7
+    assert recovered.superseded_transport_records == 1
+    assert len(recovery_transport.requests) == 6
+
 
 def test_pilot_pauses_and_resumes_at_new_attempt_limit(tmp_path: Path) -> None:
     evaluation_root = Path(__file__).resolve().parents[1]

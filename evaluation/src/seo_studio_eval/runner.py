@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from .ollama import OllamaHTTPError
 from .schemas import (
@@ -42,6 +42,8 @@ class AttemptSpec(BaseModel):
     study_config_sha256: str = ""
     models_config_sha256: str = ""
     criteria_sha256: str = ""
+    collection_attempt: int = Field(default=1, ge=1)
+    supersedes_attempt_id: str = ""
 
 
 def execute_attempt(

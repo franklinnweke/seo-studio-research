@@ -40,6 +40,7 @@ class CompatibilityCriteria(BaseModel):
     per_attempt_timeout_seconds: float = Field(gt=0)
     hidden_retries_allowed: Literal[0]
     abort_on_transport_error: Literal[True]
+    max_transport_attempts_per_item: int = Field(ge=1)
     temperature: float
     seed: int
     thinking_mode: Literal["disabled"]
@@ -86,6 +87,8 @@ class PilotRunSummary(BaseModel):
     observed_attempts: int = Field(ge=0)
     valid_attempts: int = Field(ge=0)
     failed_attempts: int = Field(ge=0)
+    raw_measured_records: int = Field(ge=0)
+    superseded_transport_records: int = Field(ge=0)
     warmup_records: int = Field(ge=0)
     all_models_meet_threshold: bool
     aborted_on_transport_error: bool
@@ -164,7 +167,12 @@ def run_compatibility_pilot(
         model_id: _shuffled_image_ids(manifest, criteria.seed, model_id)
         for model_id in model_order
     }
-    existing = _existing_attempts(output_dir, study.config.experiment_id, run_id)
+    existing, completed_keys, transport_records = _existing_attempts(
+        output_dir,
+        study.config.experiment_id,
+        run_id,
+        criteria.max_transport_attempts_per_item,
+    )
     expected_keys = {
         _attempt_key(model_id, image_id, repeat)
         for model_id in model_order
@@ -201,6 +209,7 @@ def run_compatibility_pilot(
         model_order,
         image_order_by_model,
         existing,
+        transport_records,
         warmup_dir,
         status="running",
         abort_attempt_id="",
@@ -218,7 +227,7 @@ def run_compatibility_pilot(
             (image_id, repeat)
             for repeat in range(1, study.config.repeats + 1)
             for image_id in image_order_by_model[model_id]
-            if _attempt_key(model_id, image_id, repeat) not in existing
+            if _attempt_key(model_id, image_id, repeat) not in completed_keys
         ]
         if not pending:
             continue
@@ -265,7 +274,15 @@ def run_compatibility_pilot(
 
         for pending_index, (image_id, repeat) in enumerate(pending, start=1):
             item = next(item for item in manifest if item.id == image_id)
-            attempt_id = f"{run_id}-{block_index:02d}-{pending_index:03d}-{model_id}-{image_id}-r{repeat}"
+            key = _attempt_key(model_id, image_id, repeat)
+            prior_transport = transport_records.get(key, [])
+            if len(prior_transport) >= criteria.max_transport_attempts_per_item:
+                raise ValueError(f"Transport-attempt limit reached for {key}")
+            collection_attempt = len(prior_transport) + 1
+            attempt_id = (
+                f"{run_id}-{block_index:02d}-{pending_index:03d}-{model_id}-{image_id}"
+                f"-r{repeat}-c{collection_attempt}"
+            )
             keep_alive: str | int = (
                 0 if pending_index == len(pending) else criteria.pilot_keep_alive
             )
@@ -293,9 +310,15 @@ def run_compatibility_pilot(
                 options,
                 keep_alive,
                 active_transport,
+                collection_attempt=collection_attempt,
+                supersedes_attempt_id=(prior_transport[-1].attempt_id if prior_transport else ""),
             )
             record_path = write_attempt_record(output_dir, record)
-            existing[_attempt_key(model_id, image_id, repeat)] = record
+            existing[key] = record
+            if record.error is not None and record.error.category == "transport_error":
+                transport_records.setdefault(key, []).append(record)
+            else:
+                completed_keys.add(key)
             new_attempts_this_session += 1
             summary = _build_summary(
                 study.config.experiment_id,
@@ -313,6 +336,7 @@ def run_compatibility_pilot(
                 model_order,
                 image_order_by_model,
                 existing,
+                transport_records,
                 warmup_dir,
                 status="running",
                 abort_attempt_id=(
@@ -344,7 +368,7 @@ def run_compatibility_pilot(
             if (
                 max_new_attempts is not None
                 and new_attempts_this_session >= max_new_attempts
-                and len(existing) < len(expected_keys)
+                and len(completed_keys) < len(expected_keys)
             ):
                 paused = True
                 break
@@ -352,7 +376,7 @@ def run_compatibility_pilot(
             break
 
     final_status: Literal["paused", "complete", "incomplete"]
-    if len(existing) == len(expected_keys) and not abort_attempt_id:
+    if len(completed_keys) == len(expected_keys) and not abort_attempt_id:
         final_status = "complete"
     elif paused and not abort_attempt_id:
         final_status = "paused"
@@ -374,6 +398,7 @@ def run_compatibility_pilot(
         model_order,
         image_order_by_model,
         existing,
+        transport_records,
         warmup_dir,
         status=final_status,
         abort_attempt_id=abort_attempt_id,
@@ -408,6 +433,8 @@ def _execute_vision_attempt(
     options: dict[str, Any],
     keep_alive: str | int,
     transport: PilotTransport,
+    collection_attempt: int = 1,
+    supersedes_attempt_id: str = "",
 ) -> RunRecord:
     image_path = resolve_under_root(root, item.image_path)
     image_base64 = base64.b64encode(image_path.read_bytes()).decode("ascii")
@@ -471,6 +498,8 @@ def _execute_vision_attempt(
         study_config_sha256=study_config_sha256,
         models_config_sha256=models_config_sha256,
         criteria_sha256=criteria_sha256,
+        collection_attempt=collection_attempt,
+        supersedes_attempt_id=supersedes_attempt_id,
     )
     return execute_attempt(
         spec,
@@ -505,17 +534,41 @@ def _existing_attempts(
     output_dir: Path,
     experiment_id: str,
     run_id: str,
-) -> dict[str, RunRecord]:
-    records: dict[str, RunRecord] = {}
+    max_transport_attempts_per_item: int,
+) -> tuple[dict[str, RunRecord], set[str], dict[str, list[RunRecord]]]:
+    grouped: dict[str, list[RunRecord]] = {}
     for path in attempt_record_paths(output_dir):
         record = read_attempt_record(path)
         if record.experiment_id != experiment_id or record.run_id != run_id:
             raise ValueError(f"Run directory mixes experiment identities: {path.name}")
         key = _attempt_key(record.model.id, record.input.image_id, record.repeat)
-        if key in records:
-            raise ValueError(f"Run directory contains duplicate attempt key: {key}")
-        records[key] = record
-    return records
+        grouped.setdefault(key, []).append(record)
+    records: dict[str, RunRecord] = {}
+    completed: set[str] = set()
+    transport_records: dict[str, list[RunRecord]] = {}
+    for key, attempts in grouped.items():
+        attempts.sort(key=lambda record: (record.collection_attempt, record.started_at))
+        outcomes = [
+            record
+            for record in attempts
+            if record.error is None or record.error.category != "transport_error"
+        ]
+        if len(outcomes) > 1:
+            raise ValueError(f"Run directory contains multiple non-transport outcomes: {key}")
+        transports = [
+            record
+            for record in attempts
+            if record.error is not None and record.error.category == "transport_error"
+        ]
+        if len(transports) > max_transport_attempts_per_item:
+            raise ValueError(f"Run directory exceeds transport-attempt limit: {key}")
+        transport_records[key] = transports
+        if outcomes:
+            records[key] = outcomes[0]
+            completed.add(key)
+        else:
+            records[key] = transports[-1]
+    return records, completed, transport_records
 
 
 def _build_summary(
@@ -534,6 +587,7 @@ def _build_summary(
     model_order: list[str],
     image_order_by_model: dict[str, list[str]],
     records: dict[str, RunRecord],
+    transport_records: dict[str, list[RunRecord]],
     warmup_dir: Path,
     status: Literal["running", "paused", "complete", "incomplete"],
     abort_attempt_id: str,
@@ -557,6 +611,10 @@ def _build_summary(
         )
     expected = criteria.pilot_items * len(model_order)
     valid_total = sum(record.validation.valid for record in records.values())
+    raw_measured_records = sum(len(records_for_key) for records_for_key in transport_records.values())
+    raw_measured_records += sum(
+        1 for key, record in records.items() if record.error is None or record.error.category != "transport_error"
+    )
     return PilotRunSummary(
         status=status,
         experiment_id=experiment_id,
@@ -581,6 +639,13 @@ def _build_summary(
         observed_attempts=len(records),
         valid_attempts=valid_total,
         failed_attempts=len(records) - valid_total,
+        raw_measured_records=raw_measured_records,
+        superseded_transport_records=sum(
+            len(items)
+            for key, items in transport_records.items()
+            if key in records
+            and (records[key].error is None or records[key].error.category != "transport_error")
+        ),
         warmup_records=len(attempt_record_paths(warmup_dir)),
         all_models_meet_threshold=all(result.threshold_met for result in by_model.values()),
         aborted_on_transport_error=bool(abort_attempt_id),
