@@ -205,6 +205,7 @@ Verified July 16, 2026 on the clean research baseline:
 - research branch: `codex/research-context-aware-metadata` at baseline commit `aabeae3` before A0 edits;
 - upload/deletion work: isolated on `agent/automatic-upload-flow` at `5f6d137` with draft PR #33;
 - `$davneet-dgx-access` live check at 2026-07-16 04:20 EDT: key-based access succeeded to the expected aarch64 host; Ubuntu 24.04.4 LTS and Ollama 0.24.0 were reported; the Ollama service was active; no model was loaded at check time;
+- governance confirmation from the project team: the DGX Spark is owned by the project supervisor/program coordinator, and the team has permission to use it for the capstone and related research. This authorization does not permit deletion, overwriting, relocation, or repurposing of the owner's existing files or shared resources;
 - read-only A1 inventory: 119 GiB unified system memory, 316 GiB free on the root volume, and research-relevant local tags `qwen2.5vl:3b` (3.8B, Q4_K_M), `qwen2.5vl:32b` (33.5B, Q4_K_M), and `qwen3.5:latest` (9.7B, Q4_K_M, vision/thinking capable); full Ollama tag digests were captured operationally;
 - the provisional MiniCPM-V 4.5, Gemma 3 12B, and Mistral Small 3.1 candidates are not currently installed; no model pull was performed;
 - the listener was reported on all interfaces, but firewall rules and external reachability were not verified. Gate 1 therefore remains open and the deployment must not yet be described as securely private;
@@ -214,7 +215,7 @@ Current private addresses, usernames, key locations, and SSH authentication deta
 
 ## 6. Current DGX Spark and Ollama connection analysis
 
-The user has referred to the machine as a “DJX pack.” The live system identifies as the expected aarch64 GX10 host, but its exact marketed hardware identity, owner, approved data boundary, and network policy still require institutional confirmation.
+The user has referred to the machine as a “DJX pack.” The live system identifies as the expected aarch64 GX10 host. The project supervisor/program coordinator owns it and has granted the team project-use rights. Its exact marketed hardware identity, approved data boundary, and network policy still require confirmation before the publication pilot.
 
 ### 6.0 Canonical operational access authority
 
@@ -227,7 +228,7 @@ The separation of authority is intentional:
 - experiment records contain sanitized reproducibility evidence such as versions, immutable model digests, quantization, resource snapshots, and timings;
 - private host, user, key, and reachability details remain outside Git.
 
-The skill does not broaden authorization. Model pulls, service changes, firewall changes, reboots, destructive commands, and GPU-consuming experimental runs still require explicit operator or user approval.
+The skill does not broaden authorization. Project use is approved, but model pulls, service changes, firewall changes, reboots, destructive commands, and GPU-consuming experimental runs still require explicit operator or user approval. Never delete, overwrite, move, rename, truncate, or repurpose the owner's existing files or shared resources; ambiguous resources are owner-managed and must remain untouched.
 
 ### 6.1 Current connection mechanisms in the repository
 
@@ -333,7 +334,7 @@ Invoke `$davneet-dgx-access` to collect and refresh the live values. A future `d
 |---|---|
 | Confirmed hardware | Exact DGX/GB10 model |
 | Hostname | Private stable hostname |
-| Owner/administrator | Professor, school lab, or assigned team member |
+| Owner/administrator | Confirmed: project supervisor and program coordinator |
 | SSH username | Stored outside Git |
 | SSH port | Confirm standard or custom port |
 | Network path | Same LAN, VPN, Tailscale, or internet gateway |
@@ -1675,7 +1676,7 @@ No external participant recruitment occurs before this gate.
 
 Required:
 
-- exact hardware and owner confirmed;
+- exact marketed hardware identity confirmed; owner and project-use authorization are already confirmed;
 - `$davneet-dgx-access` current-status check succeeds through the approved key-based path;
 - secure SSH/NVIDIA Sync path and allowed-data policy are institutionally confirmed;
 - backend-to-Ollama path selected and tested;
@@ -1784,7 +1785,8 @@ Exit: clean research branch, no lost work, no tracked secrets, governance owner 
 #### Work package A1: secure inference foundation — July 17–20
 
 - Invoke `$davneet-dgx-access` for all live work; refresh its status baseline when the verified operational state materially changes.
-- Confirm the exact DGX/GX10 hardware, owner, approved access method, Ollama version, model storage, allowed data, and network policy.
+- Treat the project supervisor/program coordinator as the confirmed owner and preserve all existing owner-managed files and resources.
+- Confirm the exact DGX/GX10 hardware identity, approved access method, Ollama version, dedicated project storage location, allowed data, and network policy.
 - Replace direct broadly reachable Ollama access with private networking, firewall allowlisting, SSH tunnelling, or an authenticated gateway.
 - Record the topology in `docs/adr/001-dgx-topology.md` without committing credentials or sensitive host inventory.
 - Add `GET /api/ai/health` with bounded timeout and sanitized readiness details.
@@ -1913,7 +1915,8 @@ Every deviation from this specification records date, decision makers, evidence,
 ### P0: unblock architecture and safety
 
 - [x] Verify key-based access, expected host identity, Ollama health/version, listener state, local model tags, memory, and storage through `$davneet-dgx-access`.
-- [ ] Confirm exact DGX Spark marketed identity, owner, allowed-data policy, supported telemetry path, firewall/external exposure, and institutional network policy.
+- [x] Confirm the project supervisor/program coordinator owns the DGX and authorizes team use for the capstone and related research, subject to a strict no-deletion/no-overwrite boundary for existing resources.
+- [ ] Confirm exact DGX Spark marketed identity, dedicated project workspace, allowed-data policy, supported telemetry path, firewall/external exposure, and institutional network policy.
 - [ ] Ask professor about publication route, authorship, and course-based ethics review.
 - [x] Preserve upload/deletion work on `agent/automatic-upload-flow` and keep it outside the research branch.
 - [x] Create `codex/research-context-aware-metadata` from current `main`.
@@ -2007,8 +2010,9 @@ Primary technical and governance references current at preparation time:
 9. **Making an absolute literature-gap claim.** Document the search and use cautious “limited prior work” language unless a systematic review supports stronger wording.
 10. **Exposing Ollama or operational inventory.** Keep inference private/authenticated and sanitize all committed documentation.
 11. **Bypassing the DGX operational authority.** Invoke `$davneet-dgx-access` for live access and refresh its status baseline; do not create competing connection commands or copy its private profile into Git.
-12. **Mixing team ownership with first-author leadership.** Distinguish pre-existing team software from Franklin-led research additions and publish an agreed CRediT statement.
-13. **Letting publication work break the capstone.** Feature flags, short branches, clean tests, and the two-track schedule are mandatory scope controls.
+12. **Damaging the supervisor's environment.** Never delete, overwrite, relocate, truncate, or repurpose existing DGX files or shared resources. Use a verified dedicated project namespace and treat ambiguous resources as owner-managed.
+13. **Mixing team ownership with first-author leadership.** Distinguish pre-existing team software from Franklin-led research additions and publish an agreed CRediT statement.
+14. **Letting publication work break the capstone.** Feature flags, short branches, clean tests, and the two-track schedule are mandatory scope controls.
 
 The three most important research controls are protocol freeze, immutable raw records, and blinded human annotation. If one is absent, stop and repair the protocol before claiming publication-quality evidence.
 
@@ -2023,7 +2027,7 @@ The next agent executes **Work package A1 only** unless the user explicitly expa
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.
 3. Read and invoke `$davneet-dgx-access`; run its required current-status check before any live-state claim and do not duplicate its connection profile in project files.
-4. Through the skill, confirm the exact DGX/GX10 hardware, administrator, approved authenticated access method, network topology, and allowed research data.
+4. Treat the supervisor/program coordinator as the confirmed owner with project-use authorization; through the skill, confirm exact hardware identity, approved authenticated access method, dedicated project workspace, network topology, and allowed research data while preserving every existing owner-managed resource.
 5. Through the skill, capture Ollama version, installed model tags/digests/quantizations/capabilities, running models, storage, OS/driver/CUDA or supported DGX telemetry, and a non-sensitive smoke result.
 6. Decide and record the private product-to-inference topology in an ADR without operational credentials or private host inventory.
 7. Add sanitized AI health and structured Ollama telemetry behavior with tests.
