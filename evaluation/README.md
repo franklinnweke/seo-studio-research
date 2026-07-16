@@ -8,6 +8,7 @@ Implemented commands:
 python -m seo_studio_eval preflight --config configs/pilot.toml
 python -m seo_studio_eval validate --run-dir runs/<experiment-id>
 python -m seo_studio_eval compatibility-smoke --config configs/pilot.toml --model-id qwen35-9b --image-id healthcare-doctor-consultation-001 --base-url http://127.0.0.1:11435 --output-dir runs/<experiment-id> --timeout-seconds 240
+python -m seo_studio_eval compatibility-pilot --config configs/pilot.toml --criteria configs/compatibility-criteria.toml --base-url http://127.0.0.1:<local-tunnel-port> --output-dir runs/<pilot-block> --run-id <pilot-run-id> --system-snapshot-ref <private-snapshot-reference>
 python -m seo_studio_eval normalize --run-dir runs/<block-a> --run-dir runs/<block-b> --output-dir results/normalized/<experiment-id>
 python -m seo_studio_eval blind --normalized-records results/normalized/<experiment-id>/records.normalization-v1.jsonl --review-dir annotations/released/<experiment-id> --mapping-dir annotations/private/<experiment-id> --seed 20260716
 python -m seo_studio_eval account --config configs/pilot.toml --run-dir runs/<block-a> --run-dir runs/<block-b> --output results/tables/<experiment-id>-run-accounting.json

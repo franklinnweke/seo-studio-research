@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from .accounting import build_run_accounting
 from .blinding import build_blinded_package
 from .normalization import normalize_run_directories
+from .pilot import run_compatibility_pilot
 from .preflight import run_preflight
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
@@ -48,6 +49,17 @@ def build_parser() -> argparse.ArgumentParser:
     smoke.add_argument("--base-url", required=True)
     smoke.add_argument("--output-dir", type=Path, required=True)
     smoke.add_argument("--timeout-seconds", type=float, default=240.0)
+
+    pilot = commands.add_parser(
+        "compatibility-pilot",
+        help="Run the predeclared warm compatibility matrix with append-only checkpoints",
+    )
+    pilot.add_argument("--config", type=Path, required=True)
+    pilot.add_argument("--criteria", type=Path, required=True)
+    pilot.add_argument("--base-url", required=True)
+    pilot.add_argument("--output-dir", type=Path, required=True)
+    pilot.add_argument("--run-id", required=True)
+    pilot.add_argument("--system-snapshot-ref", required=True)
 
     report = commands.add_parser("compatibility-report", help="Render a non-ranking compatibility evidence report")
     report.add_argument("--evidence", type=Path, required=True)
@@ -109,11 +121,28 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps({**summary.model_dump(), "summary_path": str(summary_path)}, sort_keys=True))
             return 0 if summary.status == "compatible" else 1
+        if args.command == "compatibility-pilot":
+            summary, summary_path = run_compatibility_pilot(
+                args.config,
+                args.criteria,
+                args.base_url,
+                args.output_dir,
+                args.run_id,
+                args.system_snapshot_ref,
+                progress=lambda payload: print(json.dumps(payload, sort_keys=True), flush=True),
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(mode="json"), "summary_path": str(summary_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status == "complete" and summary.all_models_meet_threshold else 1
         if args.command == "compatibility-report":
             output_path = build_compatibility_report(args.evidence, args.output)
             print(json.dumps({"status": "written", "report_path": str(output_path)}, sort_keys=True))
             return 0
-    except (OSError, ValueError, ValidationError) as exc:
+    except (OSError, RuntimeError, ValueError, ValidationError) as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
     return 2

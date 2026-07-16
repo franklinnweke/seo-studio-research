@@ -48,7 +48,7 @@ An implementation agent must:
 This snapshot is evidence for handoff, not a permanent claim. Re-check it at the start of every task.
 
 - Active branch: `codex/research-context-aware-metadata`.
-- Latest completed research commit before A5: `fc53aca` (`Implement context-aware metadata review workflow`).
+- Latest completed research commit: `b906a88` (`Implement licensed research pilot harness`).
 - The upload/deletion workflow was preserved separately on `agent/automatic-upload-flow` at commit `5f6d137`; draft PR #33 targets `main`.
 - The research branch was created from the clean `main` baseline so PR #33 is not silently absorbed into the research work.
 - Root `.env` and the private GX10/DGX access note are ignored. A placeholder-only root `.env.example` documents safe Docker Compose substitution.
@@ -199,7 +199,7 @@ flowchart LR
 Verified July 16, 2026 on the research branch:
 
 - backend test suite: 96 passing after the A4 context-workflow slice;
-- offline evaluation harness: 13 passing tests plus successful contract and licensed 20-item pilot preflight;
+- offline evaluation harness: 15 passing tests plus successful contract and licensed 20-item pilot preflight;
 - frontend lint: passing;
 - frontend production build: passing with Next.js 16.2.6;
 - `git diff --check`: passing for the A0 changes;
@@ -213,7 +213,7 @@ Verified July 16, 2026 on the research branch:
 - ordinary `nvidia-smi` did not communicate with the NVIDIA driver in this session. This does not by itself establish a driver fault on a unified-memory DGX Spark; the supported DGX telemetry path still needs confirmation.
 - first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
 - first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested.
-- A5 harness slice: a visually checked and licensed 20-image pilot spans four equal domains and all six declared purposes; materialization preserves license evidence, hashes, dimensions, fictional contexts, reference facts, and forbidden claims. Five one-image cold compatibility attempts were schema-valid with no hidden retry; multi-block accounting was complete; normalization succeeded; the five-condition reviewer package passed model-identity leakage checks; raw records and the private map remain ignored.
+- A5 harness slice: a visually checked and licensed 20-image pilot spans four equal domains and all six declared purposes; materialization preserves license evidence, hashes, dimensions, fictional contexts, reference facts, and forbidden claims. Five one-image cold compatibility attempts were schema-valid with no hidden retry; multi-block accounting was complete; normalization succeeded; the five-condition reviewer package passed model-identity leakage checks; raw records and the private map remain ignored. The warm compatibility runner now verifies live digests, randomizes model blocks and per-model image order from the frozen seed, records one declared synthetic warm-up per active model block, checkpoints every measured attempt append-only, supports evidence-safe resume, and unloads each model after its final pending item.
 - A5 evidence explicitly forbids quality ranking from the one-image smoke. The five-condition 20-image compatibility pilot and writer-compatibility pass still remain before Gate 3 can close.
 - A4 slice: the feature-flagged frontend now collects page context, requires explicit per-image purpose confirmation, exposes optional AI purpose suggestions without conflating them with human decisions, gates generation/approval on contextual readiness, supports direct and dual-stage selection, and presents purpose, warnings, structured facts, and sanitized provenance during review. The workflow is keyboard operable, has responsive no-overflow behavior at 390 px, and preserves legacy metadata mode when the feature flag is disabled.
 
@@ -1861,7 +1861,7 @@ Status: satisfied locally ahead of schedule on July 16, 2026. Backend determinis
 
 Exit: Gate 3 passes and the model/protocol decisions needed for the full study are known.
 
-Status on July 16, 2026: substantially implemented, Gate 3 still open. The CLI now covers preflight, strict schema execution, validation, multi-block normalization, blinding, filtered run accounting, and non-ranking compatibility reporting. The licensed 20-image pilot is materialized and hash-valid. Five installed conditions are digest-pinned and passed one cold schema smoke; MiniCPM was replaced under the runtime-incompatibility rule without upgrading Ollama. Remaining A5 work is the 20-item compatibility run for all five conditions, a structured-facts-to-Qwen3.5 writer compatibility pass, pilot runtime/reviewer-burden estimates, and final freeze of the eligible candidate list. The one-image outputs must not be used to select a winner.
+Status on July 16, 2026: substantially implemented, Gate 3 still open. The CLI now covers preflight, strict schema execution, digest-verified warm compatibility execution with append-only resume, validation, multi-block normalization, blinding, filtered run accounting, and non-ranking compatibility reporting. The licensed 20-image pilot is materialized and hash-valid. Five installed conditions are digest-pinned and passed one cold schema smoke; MiniCPM was replaced under the runtime-incompatibility rule without upgrading Ollama. Remaining A5 work is executing the prepared 20-item compatibility run for all five conditions, a structured-facts-to-Qwen3.5 writer compatibility pass, pilot runtime/reviewer-burden estimates, and final freeze of the eligible candidate list. The one-image outputs must not be used to select a winner.
 
 #### Work package A6: capstone stabilization — August 8–15
 

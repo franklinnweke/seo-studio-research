@@ -16,6 +16,9 @@ class OllamaTransport:
             raise ValueError("Ollama version response is missing version")
         return version
 
+    def tags(self) -> dict[str, Any]:
+        return self._request("/api/tags", method="GET")
+
     def generate(self, request: dict[str, Any]) -> dict[str, Any]:
         return self._request("/api/generate", payload=request)
 
