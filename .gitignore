@@ -13,6 +13,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Environment and local secrets
+.env
 backend/.env
 .env.*
 !.env.example
@@ -22,6 +23,15 @@ frontend/.env
 frontend/.env.*
 !backend/.env.example
 !frontend/.env.example
+
+# Private infrastructure notes
+docs/gx10-ollama-access.md
+docs/runbooks/*.local.md
+
+# Research runtime data and restricted annotation state
+evaluation/runs/
+evaluation/dataset/cache/
+evaluation/annotations/private/
 
 # Python
 backend/.venv/
