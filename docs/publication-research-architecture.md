@@ -41,6 +41,7 @@ An implementation agent must:
 5. Run proportionate tests and document commands, outcomes, changed files, unresolved risks, and the next safe action.
 6. Treat examples containing dates, model names, thresholds, or counts as provisional until the applicable gate freezes them.
 7. Never place passwords, SSH keys, public/private server inventories, reviewer identity maps, client data, or raw restricted research records in Git.
+8. Invoke `$davneet-dgx-access` for every live DGX access, status, inventory, connectivity diagnosis, server command, or experiment handoff. Follow the skill's required current-status check before making a live-state claim; do not reproduce its connection profile in this repository.
 
 ### 1.2 Repository snapshot at version 2.1
 
@@ -52,7 +53,7 @@ This snapshot is evidence for handoff, not a permanent claim. Re-check it at the
 - The research branch was created from the clean `main` baseline so PR #33 is not silently absorbed into the research work.
 - Root `.env` and the private GX10/DGX access note are ignored. A placeholder-only root `.env.example` documents safe Docker Compose substitution.
 - The evaluation package does not yet exist.
-- A local GX10/DGX access note contains operational host and SSH details. It remains ignored and must not be copied into the research protocol or committed runbooks.
+- `$davneet-dgx-access` is the canonical operational authority for live DGX access. Its connection profile and current-status baseline remain outside this repository; committed documents contain only sanitized protocol requirements and research evidence.
 - The current application already has upload, optimization, brand-context, review, export, Ollama integration, and a basic two-stage flow.
 - The current two-stage flow produces a short prose visual description and then metadata. It is not yet the research design's structured visual-facts pipeline.
 - Page context, image-purpose confirmation, purpose-aware empty alt text, digest provenance, native Ollama telemetry, AI health, immutable runs, blinding, and formal analysis remain unimplemented.
@@ -203,17 +204,34 @@ Verified July 16, 2026 on the clean research baseline:
 - `git diff --check`: passing for the A0 changes;
 - research branch: `codex/research-context-aware-metadata` at baseline commit `aabeae3` before A0 edits;
 - upload/deletion work: isolated on `agent/automatic-upload-flow` at `5f6d137` with draft PR #33;
-- live DGX hardware, Ollama version, installed tags, quantizations, and digests: not yet captured through an approved authenticated session.
+- `$davneet-dgx-access` live check at 2026-07-16 04:20 EDT: key-based access succeeded to the expected aarch64 host; Ubuntu 24.04.4 LTS and Ollama 0.24.0 were reported; the Ollama service was active; no model was loaded at check time;
+- read-only A1 inventory: 119 GiB unified system memory, 316 GiB free on the root volume, and research-relevant local tags `qwen2.5vl:3b` (3.8B, Q4_K_M), `qwen2.5vl:32b` (33.5B, Q4_K_M), and `qwen3.5:latest` (9.7B, Q4_K_M, vision/thinking capable); full Ollama tag digests were captured operationally;
+- the provisional MiniCPM-V 4.5, Gemma 3 12B, and Mistral Small 3.1 candidates are not currently installed; no model pull was performed;
+- the listener was reported on all interfaces, but firewall rules and external reachability were not verified. Gate 1 therefore remains open and the deployment must not yet be described as securely private;
+- ordinary `nvidia-smi` did not communicate with the NVIDIA driver in this session. This does not by itself establish a driver fault on a unified-memory DGX Spark; the supported DGX telemetry path still needs confirmation.
 
-Current server reachability, private addresses, usernames, and SSH authentication state are operational data. Keep them in the ignored private runbook, not in this research protocol. The committed protocol records required security and preflight evidence only.
+Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
 
 ## 6. Current DGX Spark and Ollama connection analysis
 
-The user has referred to the machine as a “DJX pack.” This document assumes the intended system is NVIDIA DGX Spark. Confirm the exact hardware name, hostname, owner, login method, and network policy before implementation.
+The user has referred to the machine as a “DJX pack.” The live system identifies as the expected aarch64 GX10 host, but its exact marketed hardware identity, owner, approved data boundary, and network policy still require institutional confirmation.
+
+### 6.0 Canonical operational access authority
+
+All live DGX work must invoke `$davneet-dgx-access`. This includes connection checks, SSH use, Ollama health and model inventory, product-connectivity diagnosis, experiment preflight, smoke tests, and any server command. The skill requires its `scripts/check-status.sh` check before claims about current server state; its `references/current-status.md` is a last-known baseline, not a substitute for that check.
+
+The separation of authority is intentional:
+
+- this master document defines research requirements, evidence fields, security constraints, and gates;
+- `$davneet-dgx-access` defines the approved operational connection workflow and current live baseline;
+- experiment records contain sanitized reproducibility evidence such as versions, immutable model digests, quantization, resource snapshots, and timings;
+- private host, user, key, and reachability details remain outside Git.
+
+The skill does not broaden authorization. Model pulls, service changes, firewall changes, reboots, destructive commands, and GPU-consuming experimental runs still require explicit operator or user approval.
 
 ### 6.1 Current connection mechanisms in the repository
 
-There are three connection assumptions:
+There are four connection assumptions:
 
 | Execution path | Configuration source | Current expected Ollama address |
 |---|---|---|
@@ -288,9 +306,7 @@ Requirements:
 
 Recommended for local development and manual diagnostics:
 
-```bash
-ssh -N -L 11434:127.0.0.1:11434 <dgx-user>@<dgx-host>
-```
+Invoke `$davneet-dgx-access` and use its approved SSH profile to establish an institutionally approved local tunnel. Do not copy the live user, host, port, or key path into this document or a committed script.
 
 Then configure:
 
@@ -304,14 +320,14 @@ NVIDIA Sync can manage SSH connections and port forwarding for DGX Spark. Use it
 
 - Run the product backend close to the DGX inference runtime over a private path.
 - Run the research harness directly on the DGX.
-- Use SSH/NVIDIA Sync for administration and research execution.
+- Invoke `$davneet-dgx-access` for SSH administration, NVIDIA Sync coordination, research preflight, and DGX-side execution.
 - Measure two performance layers separately:
   - pure inference: harness and Ollama on DGX;
   - end-to-end product: browser to API to DGX and back.
 
 ### 6.5 DGX access inventory to complete
 
-Create `docs/runbooks/dgx-inventory.template.md` and fill it without committing secrets:
+Invoke `$davneet-dgx-access` to collect and refresh the live values. A future `docs/runbooks/dgx-inventory.template.md` may contain only sanitized research evidence and unresolved ownership/policy fields; it must not duplicate the skill's private connection profile.
 
 | Field | Required value |
 |---|---|
@@ -331,24 +347,16 @@ Create `docs/runbooks/dgx-inventory.template.md` and fill it without committing 
 
 ### 6.6 Connection verification runbook
 
-Run from the DGX itself:
+Invoke `$davneet-dgx-access`; do not improvise a separate SSH or Ollama access procedure from this repository. Begin with the skill-required current-status script, then use its read-only workflow to capture the sanitized preflight evidence required here:
 
-```bash
-curl -fsS http://127.0.0.1:11434/api/version
-curl -fsS http://127.0.0.1:11434/api/tags
-curl -fsS http://127.0.0.1:11434/api/ps
-ollama -v
-systemctl status ollama --no-pager
-```
+- authenticated connection success and expected host identity;
+- OS/architecture, Ollama service and API version, listener state, and running-model state;
+- installed local tags with full digests, parameter sizes, quantizations, capabilities, and required Ollama version;
+- system memory, storage capacity, and a validated DGX-compatible telemetry snapshot;
+- a controlled smoke generation using a non-sensitive fixture, including HTTP/result status, wall time, exact model digest, and native Ollama metrics;
+- the backend execution environment's reachability through the selected private topology.
 
-Run from the backend execution environment:
-
-```bash
-curl -fsS --connect-timeout 3 --max-time 10 "$SEO_STUDIO_OLLAMA_BASE_URL/api/version"
-curl -fsS --connect-timeout 3 --max-time 10 "$SEO_STUDIO_OLLAMA_BASE_URL/api/tags"
-```
-
-Run a controlled smoke generation using a non-sensitive fixture. Record HTTP status, total wall time, model name, and digest. Never put raw credentials or private IP inventories in screenshots intended for publication.
+Sanitize the committed result. Never put credentials, private addresses, usernames, key paths, or private infrastructure screenshots into publication artifacts. If the live baseline materially changes, update the skill's `references/current-status.md` rather than copying connection details here.
 
 ### 6.7 Product health model
 
@@ -849,6 +857,14 @@ The candidate set is provisional until the compatibility pilot verifies exact Ol
 5. Mistral Small 3.1 24B: larger cross-family quality reference.
 
 This set intentionally spans the current product baseline, an efficient OCR-oriented model, the fixed-writer family, a mid-sized cross-family model, and a larger quality reference. Moondream, Qwen3-VL 4B, Llama 3.2 Vision, Llama 4 Scout, and very large Qwen variants are not primary candidates. They may be documented as excluded or used only as predeclared fallback/diagnostic conditions.
+
+Current installation context, verified read-only through `$davneet-dgx-access` on July 16, 2026:
+
+- `qwen2.5vl:3b`, `qwen2.5vl:32b`, and `qwen3.5:latest` are installed locally;
+- `qwen3.5:latest` reports a 9.7B Q4_K_M model with vision and thinking capabilities, making it a plausible installed equivalent for the proposed 9B condition;
+- MiniCPM-V 4.5, Gemma 3 12B, and Mistral Small 3.1 are not installed;
+- installed status is not candidate eligibility, and `:latest` is not an experiment identity. The compatibility pilot must resolve each chosen tag to its full digest, license, quantization, capabilities, and frozen runtime configuration;
+- no missing model may be pulled merely because it appears in this plan. License, storage, compatibility, and operator approval come first.
 
 Fixed writer:
 
@@ -1600,7 +1616,8 @@ If subagents are used, each gets a bounded worktree/branch and explicit artifact
    - Cannot change prompts or research protocol without a decision record.
 
 2. **Ollama/DGX infrastructure agent**
-   - Owns connectivity, health endpoint, telemetry transport, runbooks, and deployment configuration.
+   - Owns connectivity, health endpoint, telemetry transport, sanitized runbooks, and deployment configuration.
+   - Must invoke `$davneet-dgx-access` for all live DGX access and follow the skill's required current-status check before reporting server state.
    - Cannot expose Ollama publicly or pull large models without operator approval.
 
 3. **Frontend context-review agent**
@@ -1659,7 +1676,8 @@ No external participant recruitment occurs before this gate.
 Required:
 
 - exact hardware and owner confirmed;
-- secure SSH/NVIDIA Sync path works;
+- `$davneet-dgx-access` current-status check succeeds through the approved key-based path;
+- secure SSH/NVIDIA Sync path and allowed-data policy are institutionally confirmed;
 - backend-to-Ollama path selected and tested;
 - Ollama version and system snapshot captured;
 - storage and model-pull permissions confirmed;
@@ -1765,7 +1783,8 @@ Exit: clean research branch, no lost work, no tracked secrets, governance owner 
 
 #### Work package A1: secure inference foundation — July 17–20
 
-- Confirm the exact DGX/GX10 hardware, owner, approved access method, Ollama version, model storage, and network policy.
+- Invoke `$davneet-dgx-access` for all live work; refresh its status baseline when the verified operational state materially changes.
+- Confirm the exact DGX/GX10 hardware, owner, approved access method, Ollama version, model storage, allowed data, and network policy.
 - Replace direct broadly reachable Ollama access with private networking, firewall allowlisting, SSH tunnelling, or an authenticated gateway.
 - Record the topology in `docs/adr/001-dgx-topology.md` without committing credentials or sensitive host inventory.
 - Add `GET /api/ai/health` with bounded timeout and sanitized readiness details.
@@ -1893,7 +1912,8 @@ Every deviation from this specification records date, decision makers, evidence,
 
 ### P0: unblock architecture and safety
 
-- [ ] Confirm DGX Spark identity, owner, host, SSH path, and network policy.
+- [x] Verify key-based access, expected host identity, Ollama health/version, listener state, local model tags, memory, and storage through `$davneet-dgx-access`.
+- [ ] Confirm exact DGX Spark marketed identity, owner, allowed-data policy, supported telemetry path, firewall/external exposure, and institutional network policy.
 - [ ] Ask professor about publication route, authorship, and course-based ethics review.
 - [x] Preserve upload/deletion work on `agent/automatic-upload-flow` and keep it outside the research branch.
 - [x] Create `codex/research-context-aware-metadata` from current `main`.
@@ -1951,6 +1971,7 @@ This project should become a flagship proof point connecting full-stack systems,
 
 Primary technical and governance references current at preparation time:
 
+- Canonical live DGX operational authority: local Codex skill `$davneet-dgx-access`; run its required current-status check before every current-state claim and keep its connection profile outside this repository.
 - Ollama generate API and native telemetry: <https://docs.ollama.com/api/generate>
 - Ollama structured outputs: <https://docs.ollama.com/capabilities/structured-outputs>
 - Ollama vision requests: <https://docs.ollama.com/capabilities/vision>
@@ -1985,8 +2006,9 @@ Primary technical and governance references current at preparation time:
 8. **Overclaiming accessibility.** Evaluate purpose-aware metadata quality; do not claim WCAG compliance or user benefit not directly studied.
 9. **Making an absolute literature-gap claim.** Document the search and use cautious “limited prior work” language unless a systematic review supports stronger wording.
 10. **Exposing Ollama or operational inventory.** Keep inference private/authenticated and sanitize all committed documentation.
-11. **Mixing team ownership with first-author leadership.** Distinguish pre-existing team software from Franklin-led research additions and publish an agreed CRediT statement.
-12. **Letting publication work break the capstone.** Feature flags, short branches, clean tests, and the two-track schedule are mandatory scope controls.
+11. **Bypassing the DGX operational authority.** Invoke `$davneet-dgx-access` for live access and refresh its status baseline; do not create competing connection commands or copy its private profile into Git.
+12. **Mixing team ownership with first-author leadership.** Distinguish pre-existing team software from Franklin-led research additions and publish an agreed CRediT statement.
+13. **Letting publication work break the capstone.** Feature flags, short branches, clean tests, and the two-track schedule are mandatory scope controls.
 
 The three most important research controls are protocol freeze, immutable raw records, and blinded human annotation. If one is absent, stop and repair the protocol before claiming publication-quality evidence.
 
@@ -2000,12 +2022,13 @@ The next agent executes **Work package A1 only** unless the user explicitly expa
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.
-3. Confirm the exact DGX/GX10 hardware, administrator, approved authenticated access method, network topology, and allowed research data.
-4. Capture Ollama version, installed model tags/digests/quantizations, running models, storage, OS/driver/CUDA, and a non-sensitive smoke result.
-5. Decide and record the private product-to-inference topology in an ADR without operational credentials or private host inventory.
-6. Add sanitized AI health and structured Ollama telemetry behavior with tests.
-7. Remove private inference topology from ordinary frontend settings responses.
-8. Run backend tests, frontend lint/build, OpenAPI validation, and `git diff --check`, then hand off whether A2 is unblocked.
+3. Read and invoke `$davneet-dgx-access`; run its required current-status check before any live-state claim and do not duplicate its connection profile in project files.
+4. Through the skill, confirm the exact DGX/GX10 hardware, administrator, approved authenticated access method, network topology, and allowed research data.
+5. Through the skill, capture Ollama version, installed model tags/digests/quantizations/capabilities, running models, storage, OS/driver/CUDA or supported DGX telemetry, and a non-sensitive smoke result.
+6. Decide and record the private product-to-inference topology in an ADR without operational credentials or private host inventory.
+7. Add sanitized AI health and structured Ollama telemetry behavior with tests.
+8. Remove private inference topology from ordinary frontend settings responses.
+9. Run backend tests, frontend lint/build, OpenAPI validation, and `git diff --check`, then hand off whether A2 is unblocked.
 
 Do not pull models, change public-network exposure, begin participant recruitment, or run full experiments without the applicable Gate 0/Gate 1 approvals.
 
