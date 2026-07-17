@@ -494,3 +494,51 @@ def _write_summary(path: Path, summary: WriterCompatibilitySummary) -> None:
     temporary = path.with_suffix(".json.tmp")
     temporary.write_text(json.dumps(summary.model_dump(mode="json"), indent=2, sort_keys=True) + "\n")
     temporary.replace(path)
+
+
+def build_writer_report(
+    summary_path: Path,
+    evidence_path: Path,
+    report_path: Path,
+) -> tuple[Path, Path]:
+    summary = WriterCompatibilitySummary.model_validate_json(summary_path.read_text())
+    if summary.status != "complete":
+        raise ValueError("Writer report requires a complete writer compatibility pass")
+    evidence = {
+        "evidence_version": 1,
+        "stage": "candidate-facts-to-fixed-writer compatibility",
+        "quality_ranking_permitted": False,
+        "pixels_sent_to_writer": False,
+        **summary.model_dump(mode="json"),
+        "limitations": [
+            "This five-call pass establishes schema and purpose-rule compatibility only.",
+            "It does not compare metadata quality or replace the controlled architecture experiment.",
+            "The selected image was determined by a frozen common-validity rule, not output quality inspection.",
+        ],
+    }
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
+    lines = [
+        "# Fixed-writer compatibility report",
+        "",
+        "This report establishes schema and purpose-rule compatibility only. It must not be used to rank output quality.",
+        "",
+        f"- Writer: `{summary.writer_model_id}` / `{summary.writer_digest[:12]}`",
+        f"- Deterministically selected image: `{summary.selected_image_id}`",
+        f"- Valid outcomes: `{summary.valid_outcomes}` / `{summary.expected_outcomes}`",
+        f"- Pixels sent to writer: `no`",
+        f"- Hidden retries: `0`",
+        "",
+        "| Source visual-facts condition | Valid | Writer wall seconds | Failure category |",
+        "|---|---:|---:|---|",
+    ]
+    for source_model_id, result in summary.by_source_model.items():
+        lines.append(
+            f"| `{source_model_id}` | {'yes' if result.valid else 'no'} | "
+            f"{result.wall_duration_ms / 1000:.1f} | {result.failure_category or 'none'} |"
+        )
+    lines.extend(["", "## Limitations", ""])
+    lines.extend(f"- {limitation}" for limitation in evidence["limitations"])
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text("\n".join(lines) + "\n")
+    return evidence_path, report_path

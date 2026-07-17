@@ -14,7 +14,7 @@ from .preflight import run_preflight
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
 from .validation import validate_run_directory
-from .writer_compatibility import run_writer_compatibility
+from .writer_compatibility import build_writer_report, run_writer_compatibility
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -86,6 +86,12 @@ def build_parser() -> argparse.ArgumentParser:
     writer.add_argument("--output-dir", type=Path, required=True)
     writer.add_argument("--run-id", required=True)
     writer.add_argument("--system-snapshot-ref", required=True)
+    writer_report = commands.add_parser(
+        "writer-report", help="Generate sanitized evidence from a complete writer pass"
+    )
+    writer_report.add_argument("--summary", type=Path, required=True)
+    writer_report.add_argument("--evidence", type=Path, required=True)
+    writer_report.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -204,6 +210,23 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0 if summary.status == "complete" and summary.threshold_met else 1
+        if args.command == "writer-report":
+            evidence_path, report_path = build_writer_report(
+                args.summary,
+                args.evidence,
+                args.output,
+            )
+            print(
+                json.dumps(
+                    {
+                        "status": "written",
+                        "evidence_path": str(evidence_path),
+                        "report_path": str(report_path),
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
     except (OSError, RuntimeError, ValueError, ValidationError) as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2

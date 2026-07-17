@@ -1,0 +1,78 @@
+{
+  "by_source_model": {
+    "gemma3-12b": {
+      "failed": 0,
+      "failure_category": "",
+      "observed": 1,
+      "source_fact_attempt_id": "pilot-compatibility-clean6-20260716-02-003-gemma3-12b-education-library-study-017-r1-c1",
+      "valid": 1,
+      "wall_duration_ms": 24679.3112080195
+    },
+    "mistral-small31-24b": {
+      "failed": 0,
+      "failure_category": "",
+      "observed": 1,
+      "source_fact_attempt_id": "pilot-compatibility-clean6-20260716-01-005-mistral-small31-24b-education-library-study-017-r1-c1",
+      "valid": 1,
+      "wall_duration_ms": 25859.40791698522
+    },
+    "qwen25vl-32b-compatibility-fallback": {
+      "failed": 0,
+      "failure_category": "",
+      "observed": 1,
+      "source_fact_attempt_id": "pilot-compatibility-clean6-20260716-04-001-qwen25vl-32b-compatibility-fallback-education-library-study-017-r1-c1",
+      "valid": 1,
+      "wall_duration_ms": 30193.49379101186
+    },
+    "qwen25vl-3b-baseline": {
+      "failed": 0,
+      "failure_category": "",
+      "observed": 1,
+      "source_fact_attempt_id": "pilot-compatibility-clean6-20260716-03-003-qwen25vl-3b-baseline-education-library-study-017-r1-c1",
+      "valid": 1,
+      "wall_duration_ms": 34084.25275000627
+    },
+    "qwen35-9b": {
+      "failed": 0,
+      "failure_category": "",
+      "observed": 1,
+      "source_fact_attempt_id": "pilot-compatibility-clean6-20260716-05-001-qwen35-9b-education-library-study-017-r1-c2",
+      "valid": 1,
+      "wall_duration_ms": 24269.828457996482
+    }
+  },
+  "criteria_id": "writer-compatibility-v1",
+  "criteria_sha256": "728df3add4de1190dad0485f16814180b8504763a70c3331a159b5946ad2a2be",
+  "evidence_version": 1,
+  "expected_outcomes": 5,
+  "failed_outcomes": 0,
+  "git_commits": [
+    "8a2701dfc9fc94218f90da8813cec35746e7237e"
+  ],
+  "limitations": [
+    "This five-call pass establishes schema and purpose-rule compatibility only.",
+    "It does not compare metadata quality or replace the controlled architecture experiment.",
+    "The selected image was determined by a frozen common-validity rule, not output quality inspection."
+  ],
+  "models_config_sha256": "3d468e55b75997fa2fb60d5c87a53bee4e53be2ed9c118359281545679c1d997",
+  "observed_outcomes": 5,
+  "ollama_version": "0.24.0",
+  "pixels_sent_to_writer": false,
+  "prompt_template_sha256": "21e6bc16b4929c5e274354dc4a8148d8b3744e1c24c1b146480790a2776a7ae4",
+  "quality_ranking_permitted": false,
+  "raw_records": 5,
+  "required_valid_rate": 1.0,
+  "run_id": "writer-compatibility-20260717",
+  "schema_sha256": "dd21f55cbe590dad40161470b9707f3f0c6ad94b8be08051385709115209c8a8",
+  "selected_image_id": "education-library-study-017",
+  "source_run_id": "pilot-compatibility-clean6-20260716",
+  "stage": "candidate-facts-to-fixed-writer compatibility",
+  "status": "complete",
+  "study_config_sha256": "0912fb1c27f3c6b3a8ba03b6bf6ef4fff13d9815be83f167562f6ab448b6062a",
+  "superseded_transport_records": 0,
+  "threshold_met": true,
+  "valid_outcomes": 5,
+  "valid_rate": 1.0,
+  "writer_digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+  "writer_model_id": "qwen35-9b"
+}

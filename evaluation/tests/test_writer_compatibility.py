@@ -4,7 +4,7 @@ from typing import Any
 
 from seo_studio_eval.config import load_study
 from seo_studio_eval.pilot import run_compatibility_pilot
-from seo_studio_eval.writer_compatibility import run_writer_compatibility
+from seo_studio_eval.writer_compatibility import build_writer_report, run_writer_compatibility
 
 
 class FullyValidTransport:
@@ -92,3 +92,11 @@ def test_writer_compatibility_uses_common_facts_without_images(tmp_path: Path) -
     assert all("images" not in request for request in writer_transport.requests)
     assert all(request["think"] is False for request in writer_transport.requests)
     assert all(request["options"]["num_ctx"] == 8192 for request in writer_transport.requests)
+
+    evidence_path, report_path = build_writer_report(
+        summary_path,
+        tmp_path / "results" / "writer.json",
+        tmp_path / "results" / "writer.md",
+    )
+    assert json.loads(evidence_path.read_text())["pixels_sent_to_writer"] is False
+    assert "must not be used to rank" in report_path.read_text()
