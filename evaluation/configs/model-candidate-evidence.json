@@ -1,5 +1,5 @@
 {
-  "evidence_version": 2,
+  "evidence_version": 3,
   "last_checked": "2026-07-17",
   "models": [
     {
@@ -43,6 +43,14 @@
       "ollama_source": "https://ollama.com/library/gemma3:12b",
       "pilot_status": "full_matrix_passed_19_of_20",
       "protocol_2_2_pipeline_status": "passed_19_of_20_eligible_challenger"
+    },
+    {
+      "id": "gemma4-12b-amendment",
+      "license": "Apache-2.0",
+      "license_source": "https://ai.google.dev/gemma/docs/core/model_card_4",
+      "ollama_source": "https://ollama.com/library/gemma4/tags",
+      "pilot_status": "selected_pre_freeze_pending_additive_pull_digest_lock_and_compatibility",
+      "selection_basis": "current same-size Gemma generation identified by a catalog audit before final protocol freeze and before comparative quality inspection"
     },
     {
       "id": "mistral-small31-24b",

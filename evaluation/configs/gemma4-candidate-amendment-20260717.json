@@ -1,0 +1,57 @@
+{
+  "amendment_version": 1,
+  "status": "selected_pending_additive_pull_digest_lock_and_compatibility",
+  "date": "2026-07-17",
+  "trigger": {
+    "reason": "A pre-freeze catalog audit found that Gemma 4 was publicly available before the July 2026 candidate set was finalized. The installed-inventory-first selection had therefore treated Gemma 3 as current without a defensible recency justification.",
+    "scientific_consequence": "Pause quality screening and test the current same-size Gemma generation before fixing the finalist set. Preserve all Gemma 3 evidence as historical pilot evidence."
+  },
+  "candidate": {
+    "id": "gemma4-12b-amendment",
+    "ollama_name": "gemma4:12b-it-q4_K_M",
+    "family": "Gemma 4",
+    "parameters": "12B Unified",
+    "quantization": "Q4_K_M",
+    "package_size_reported_by_registry": "7.6 GB",
+    "required_modalities": [
+      "text",
+      "image"
+    ],
+    "license": "Apache-2.0",
+    "selection_basis": [
+      "current Gemma generation available before the original candidate set was finalized",
+      "same nominal 12B scale as the completed Gemma 3 condition, reducing size confounding",
+      "instruction-tuned multimodal Ollama package with an immutable tag rather than latest",
+      "local open-weight package under Apache-2.0",
+      "selected before pulling the package or inspecting any task output"
+    ]
+  },
+  "official_sources": {
+    "model_card": "https://ai.google.dev/gemma/docs/core/model_card_4",
+    "ollama_tags": "https://ollama.com/library/gemma4/tags",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "controls_unchanged": {
+    "dataset": "the same licensed 20-image pilot",
+    "prompt": "vision-facts-v1",
+    "schema": "visual-facts.schema.json",
+    "temperature": 0,
+    "seed": 20260716,
+    "thinking": false,
+    "one_shot_output_token_limit": 384,
+    "truncation_recovery_output_token_limit": 768,
+    "timeout_seconds": 240,
+    "hidden_retries": 0,
+    "minimum_pipeline_valid_rate": 0.95
+  },
+  "execution_rule": [
+    "perform only an additive pull after confirming capacity and current DGX health through $davneet-dgx-access",
+    "record the full installed digest and preflight evidence before measured inference",
+    "collect exactly one one-shot outcome for each of the same 20 pilot images",
+    "if and only if a one-shot invalid outcome ends with done_reason=length at 384 tokens, permit exactly one explicit source-linked 768-token Protocol 2.2 repair",
+    "do not repair timeouts, quality failures, or a failed repair",
+    "report one-shot and pipeline validity separately",
+    "do not inspect comparative metadata quality or select a winner before the amendment is complete and the reviewer package is blinded"
+  ],
+  "advancement_rule": "If Gemma 4 meets the unchanged 95% pipeline-validity gate, it supersedes Gemma 3 as the current-generation Gemma challenger in quality screening. Gemma 3 remains reported as historical compatibility evidence. If Gemma 4 fails, retain that failure and document whether Gemma 3 remains only as a legacy-generation comparator or the protocol requires reassessment."
+}
