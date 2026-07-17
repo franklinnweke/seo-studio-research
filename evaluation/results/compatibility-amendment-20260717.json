@@ -1,0 +1,109 @@
+{
+  "accounting": {
+    "expected_analyzed_outcomes": 40,
+    "failed_outcomes": 12,
+    "legacy_implementation_deviation_records": 0,
+    "missing_outcomes": 0,
+    "observed_analyzed_outcomes": 40,
+    "raw_measured_records": 42,
+    "superseded_transport_records": 2,
+    "unexpected_outcomes": 0,
+    "valid_outcomes": 28
+  },
+  "advancement": {
+    "eligible_challenger_count": 0,
+    "eligible_models": [],
+    "required_eligible_challengers": 2,
+    "status": "candidate_amendment_failed_protocol_reassessment_required"
+  },
+  "collection_window": {
+    "analyzed_attempt_wall_hours": 1.348,
+    "elapsed_hours_including_operational_pauses": 5.004,
+    "ended_at": "2026-07-17T06:42:15.104401+00:00",
+    "raw_attempt_record_bytes": 326461,
+    "started_at": "2026-07-17T01:41:59.494241+00:00"
+  },
+  "criteria_id": "compatibility-v1",
+  "deviation_reference": "",
+  "evidence_version": 1,
+  "experiment_id": "seo-studio-pilot-amendment-v1",
+  "frozen_contract": {
+    "criteria_sha256": "98391d354721fca945a29f06c57ad0773a5c4c7c9baafb9e3c1d8482403b66b3",
+    "dataset_items": 20,
+    "hidden_retries": 0,
+    "minimum_schema_valid_rate": 0.95,
+    "models": 2,
+    "models_config_sha256": "067f291cf874bd09f8da6ad43161a116b28ced2b380863d5a8cda85419d7a89a",
+    "output_token_limit": 384,
+    "seed": 20260716,
+    "study_config_sha256": "fa6a74edaf3878eb13d9819c6f80944b6a37a15a94847e3132eafa99e613fffa",
+    "temperature": 0.0,
+    "thinking_mode": "disabled",
+    "timeout_seconds": 240.0
+  },
+  "limitations": [
+    "Compatibility outcomes do not measure factual quality or establish a model ranking.",
+    "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput.",
+    "Only public licensed images and fictional contexts traversed the temporary approved collection paths.",
+    "The predeclared two-eligible-challenger advancement requirement was not met and must not be relaxed opportunistically."
+  ],
+  "planning_estimates": {
+    "median_visible_fact_claims_per_valid_output": 16.5,
+    "note": "Reviewer time scenarios are planning assumptions, not observed review-time estimates; calibrate before protocol freeze.",
+    "planned_three_condition_outputs_for_one_rated_repeat": 360,
+    "projected_120_item_configured_model_screening_wall_hours_at_pilot_rate": 8.1,
+    "reviewer_burden_scenarios": {
+      "2_minutes_per_output_two_reviewers_hours": 24.0,
+      "3_minutes_per_output_two_reviewers_hours": 36.0,
+      "5_minutes_per_output_two_reviewers_hours": 60.0
+    },
+    "screening_model_count": 2
+  },
+  "protocol_version": "2.1-pilot-amendment",
+  "quality_ranking_permitted": false,
+  "results_in_configured_non_ranked_order": [
+    {
+      "digest": "a50eda8ed977ab48a12431878896b27ffd5cef552c17af3317d9623b939a7f1e",
+      "failed": 5,
+      "failure_categories": {
+        "inference_timeout": 4,
+        "output_truncated": 1
+      },
+      "median_wall_seconds": 151.685,
+      "model_id": "qwen36-27b-amendment",
+      "observed": 20,
+      "ollama_name": "qwen3.6:27b",
+      "p95_wall_seconds_nearest_rank": 240.01,
+      "schema_valid_rate": 0.75,
+      "threshold_met": false,
+      "valid": 15
+    },
+    {
+      "digest": "07d35212591fc27746f0a317c975a6d68754fb38e9053d82e25f06057af28522",
+      "failed": 7,
+      "failure_categories": {
+        "output_truncated": 7
+      },
+      "median_wall_seconds": 65.92,
+      "model_id": "qwen36-35b-a3b-amendment",
+      "observed": 20,
+      "ollama_name": "qwen3.6:latest",
+      "p95_wall_seconds_nearest_rank": 156.995,
+      "schema_valid_rate": 0.65,
+      "threshold_met": false,
+      "valid": 13
+    }
+  ],
+  "run_id": "pilot-amendment-20260717",
+  "runtime": {
+    "access_authority": "$davneet-dgx-access",
+    "git_commits": [
+      "9f89d7bde5cfd0e4e5c487a4acc13139bf10fb0a"
+    ],
+    "ollama_version": "0.24.0",
+    "system_snapshot_ref": "dgx-preflight-20260716t214137-0400",
+    "temporary_collection_path": "direct public-data-only path followed by a temporary localhost-only SSH tunnel under the documented network-verification deferral",
+    "tracked_worktree_clean_for_final_segment": true
+  },
+  "stage": "20-image candidate-amendment compatibility pilot"
+}

@@ -1,0 +1,56 @@
+schema_version = 1
+
+[[models]]
+id = "qwen25vl-3b-baseline"
+ollama_name = "qwen2.5vl:3b"
+expected_digest = "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1"
+family = "Qwen2.5-VL"
+parameters = "3.8B"
+quantization = "Q4_K_M"
+role = "vision_candidate_truncation_repair"
+license = "Qwen Research License (non-commercial research use)"
+frozen = false
+
+[[models]]
+id = "qwen35-9b"
+ollama_name = "qwen3.5:latest"
+expected_digest = "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7"
+family = "Qwen3.5"
+parameters = "9.7B"
+quantization = "Q4_K_M"
+role = "vision_and_writer_truncation_repair"
+license = "Apache-2.0"
+frozen = false
+
+[[models]]
+id = "gemma3-12b"
+ollama_name = "gemma3:12b"
+expected_digest = "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a"
+family = "Gemma 3"
+parameters = "12.2B"
+quantization = "Q4_K_M"
+role = "vision_candidate_truncation_repair"
+license = "Gemma Terms of Use"
+frozen = false
+
+[[models]]
+id = "qwen36-27b-amendment"
+ollama_name = "qwen3.6:27b"
+expected_digest = "a50eda8ed977ab48a12431878896b27ffd5cef552c17af3317d9623b939a7f1e"
+family = "Qwen3.6"
+parameters = "27.8B"
+quantization = "Q4_K_M"
+role = "vision_candidate_amendment_truncation_repair"
+license = "Apache-2.0"
+frozen = false
+
+[[models]]
+id = "qwen36-35b-a3b-amendment"
+ollama_name = "qwen3.6:latest"
+expected_digest = "07d35212591fc27746f0a317c975a6d68754fb38e9053d82e25f06057af28522"
+family = "Qwen3.6 MoE"
+parameters = "36.0B (35B-A3B family)"
+quantization = "Q4_K_M"
+role = "vision_candidate_amendment_truncation_repair"
+license = "Apache-2.0"
+frozen = false

@@ -52,7 +52,7 @@
       "license": "Apache-2.0",
       "license_source": "https://github.com/QwenLM/Qwen3.6",
       "ollama_source": "live installed qwen3.6:27b package; private inventory retained by $davneet-dgx-access",
-      "pilot_status": "amendment_preflight_ready_execution_pending",
+      "pilot_status": "amendment_full_matrix_failed_15_of_20",
       "selection_basis": "already installed, vision-capable, digest-pinned, no pull or runtime change, selected before output inspection"
     },
     {
@@ -60,7 +60,7 @@
       "license": "Apache-2.0",
       "license_source": "https://github.com/QwenLM/Qwen3.6",
       "ollama_source": "live installed qwen3.6:latest package; private inventory retained by $davneet-dgx-access",
-      "pilot_status": "amendment_preflight_ready_execution_pending",
+      "pilot_status": "amendment_full_matrix_failed_13_of_20",
       "selection_basis": "already installed, vision-capable, digest-pinned, no pull or runtime change, selected before output inspection"
     }
   ]

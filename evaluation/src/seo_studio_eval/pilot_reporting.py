@@ -24,6 +24,7 @@ def build_pilot_report(
     study = load_study(config_path)
     criteria = load_compatibility_criteria(criteria_path)
     summary = PilotRunSummary.model_validate_json((run_dir / "pilot-summary.json").read_text())
+    is_candidate_amendment = "amendment" in summary.protocol_version.lower()
     resolution = resolve_attempt_records(run_dir)
     expected = criteria.pilot_items * len(study.config.model_ids)
     if summary.status != "complete" or len(resolution.selected) != expected:
@@ -85,7 +86,11 @@ def build_pilot_report(
     }
     evidence = {
         "evidence_version": 1,
-        "stage": "20-image configuration compatibility pilot",
+        "stage": (
+            "20-image candidate-amendment compatibility pilot"
+            if is_candidate_amendment
+            else "20-image configuration compatibility pilot"
+        ),
         "quality_ranking_permitted": False,
         "run_id": summary.run_id,
         "experiment_id": summary.experiment_id,
@@ -108,7 +113,11 @@ def build_pilot_report(
             "git_commits": sorted({record.git_commit for record in raw_records}),
             "tracked_worktree_clean_for_final_segment": not summary.dirty_worktree,
             "access_authority": "$davneet-dgx-access",
-            "temporary_collection_path": "direct public-data-only path under documented network-verification deferral",
+            "temporary_collection_path": (
+                "direct public-data-only path followed by a temporary localhost-only SSH tunnel under the documented network-verification deferral"
+                if is_candidate_amendment
+                else "direct public-data-only path under documented network-verification deferral"
+            ),
         },
         "frozen_contract": {
             "dataset_items": len(manifest),
@@ -145,11 +154,16 @@ def build_pilot_report(
             "status": (
                 "ready_for_quality_screening"
                 if len([model_id for model_id in eligible_models if model_id != "qwen25vl-3b-baseline"]) >= 2
-                else "candidate_amendment_required_before_quality_screening"
+                else (
+                    "candidate_amendment_failed_protocol_reassessment_required"
+                    if is_candidate_amendment
+                    else "candidate_amendment_required_before_quality_screening"
+                )
             ),
         },
         "planning_estimates": {
-            "projected_120_item_five_model_screening_wall_hours_at_pilot_rate": round(
+            "screening_model_count": len(study.config.model_ids),
+            "projected_120_item_configured_model_screening_wall_hours_at_pilot_rate": round(
                 active_wall_seconds * (120 / len(manifest)) / 3600, 1
             ),
             "median_visible_fact_claims_per_valid_output": round(median(claim_counts), 1),
@@ -161,7 +175,7 @@ def build_pilot_report(
         "limitations": [
             "Compatibility outcomes do not measure factual quality or establish a model ranking.",
             "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput.",
-            "Only public licensed images and fictional contexts traversed the temporarily approved direct path.",
+            "Only public licensed images and fictional contexts traversed the temporary approved collection paths.",
             "The predeclared two-eligible-challenger advancement requirement was not met and must not be relaxed opportunistically.",
         ],
     }
@@ -196,7 +210,11 @@ def _visual_fact_claim_count(payload: dict[str, Any]) -> int:
 
 def _render_markdown(evidence: dict[str, Any]) -> str:
     lines = [
-        "# Compatibility pilot report",
+        (
+            "# Candidate amendment compatibility report"
+            if evidence["advancement"]["status"] == "candidate_amendment_failed_protocol_reassessment_required"
+            else "# Compatibility pilot report"
+        ),
         "",
         "This report establishes configuration compatibility only. It must not be used to rank model quality.",
         "",
@@ -222,14 +240,12 @@ def _render_markdown(evidence: dict[str, Any]) -> str:
             "",
             "## Advancement consequence",
             "",
-            f"Only `{', '.join(evidence['advancement']['eligible_models']) or 'no model'}` met the gate. "
-            "The required two eligible challengers are unavailable, so candidate amendment is required before quality screening. "
-            "The threshold must not be lowered after seeing these outcomes.",
+            _advancement_consequence(evidence),
             "",
             "## Planning estimates",
             "",
-            f"At the pilot's summed analyzed-attempt rate, a 120-item five-model screen is approximately "
-            f"`{evidence['planning_estimates']['projected_120_item_five_model_screening_wall_hours_at_pilot_rate']}` active inference hours, excluding warm-ups, transport recovery, and operational pauses. "
+            f"At the pilot's summed analyzed-attempt rate, a 120-item {evidence['planning_estimates']['screening_model_count']}-model screen is approximately "
+            f"`{evidence['planning_estimates']['projected_120_item_configured_model_screening_wall_hours_at_pilot_rate']}` active inference hours, excluding warm-ups, transport recovery, and operational pauses. "
             f"A three-condition, one-rated-repeat package contains `{evidence['planning_estimates']['planned_three_condition_outputs_for_one_rated_repeat']}` outputs.",
             "",
             "## Limitations",
@@ -238,3 +254,25 @@ def _render_markdown(evidence: dict[str, Any]) -> str:
     )
     lines.extend(f"- {limitation}" for limitation in evidence["limitations"])
     return "\n".join(lines) + "\n"
+
+
+def _advancement_consequence(evidence: dict[str, Any]) -> str:
+    eligible_models = evidence["advancement"]["eligible_models"]
+    eligible = ", ".join(eligible_models)
+    if evidence["advancement"]["status"] == "candidate_amendment_failed_protocol_reassessment_required":
+        opening = (
+            f"Only `{eligible}` met the gate within this amendment."
+            if eligible_models
+            else "No amendment model met the gate."
+        )
+        return (
+            f"{opening} Neither amendment candidate qualified, "
+            "so the candidate amendment did not create the required advancement set. Protocol reassessment "
+            "is required before quality screening; the threshold must not be lowered after seeing these outcomes."
+        )
+    opening = f"Only `{eligible}` met the gate." if eligible_models else "No model met the gate."
+    return (
+        f"{opening} The required two eligible challengers are unavailable, so a "
+        "candidate amendment is required before quality screening. The threshold must not be lowered after "
+        "seeing these outcomes."
+    )

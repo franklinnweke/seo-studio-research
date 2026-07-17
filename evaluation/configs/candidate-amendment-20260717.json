@@ -1,6 +1,6 @@
 {
   "amendment_version": 1,
-  "status": "execution_authorized_supervisor_acknowledgement_pending_before_protocol_freeze",
+  "status": "completed_no_candidate_met_gate_protocol_reassessment_required",
   "date": "2026-07-17",
   "trigger": {
     "evidence": "results/compatibility-pilot-20260717.json",
@@ -46,5 +46,11 @@
     }
   ],
   "official_source": "https://github.com/QwenLM/Qwen3.6",
-  "interpretation": "These conditions supplement rather than overwrite the original matrix. Eligibility is determined only by the unchanged compatibility gate; quality ranking remains prohibited until the advancement set exists."
+  "outcome": {
+    "evidence": "results/compatibility-amendment-20260717.json",
+    "qwen36_27b_schema_valid": "15/20",
+    "qwen36_35b_a3b_schema_valid": "13/20",
+    "eligible_amendment_candidates": 0
+  },
+  "interpretation": "These conditions supplement rather than overwrite the original matrix. Neither candidate met the unchanged compatibility gate. Quality ranking remains prohibited; Protocol 2.2 separately tests one explicit larger-output recovery for length-truncated outcomes without retrying timeouts or lowering the threshold."
 }

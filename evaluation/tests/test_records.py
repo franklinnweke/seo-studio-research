@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 
+from seo_studio_eval.accounting import effective_error_category
 from seo_studio_eval.ollama import OllamaHTTPError, OllamaTimeoutError, OllamaTransport
 from seo_studio_eval.records import read_attempt_record, write_attempt_record
 from seo_studio_eval.runner import AttemptSpec, execute_attempt
@@ -201,3 +202,17 @@ def test_schema_constrained_attempt_records_validation_failure_without_retry() -
     assert record.retry_count == 0
     assert record.error is None
     assert record.parsed_payload is None
+
+
+def test_length_limited_invalid_output_is_classified_as_truncation() -> None:
+    transport = RawStructuredTransport('{"summary":"unfinished"')
+
+    record = execute_attempt(
+        make_spec("schema-truncated"),
+        transport,
+        response_model=VisualFactsPayload,
+    )
+    record = record.model_copy(update={"done_reason": "length"})
+
+    assert record.validation.valid is False
+    assert effective_error_category(record) == "output_truncated"

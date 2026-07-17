@@ -148,6 +148,8 @@ def effective_error_category(record: RunRecord) -> str:
         return "valid"
     if _is_timeout_record(record):
         return "inference_timeout"
+    if record.done_reason == "length":
+        return "output_truncated"
     if record.error is not None:
         return record.error.category
     return "schema_invalid"

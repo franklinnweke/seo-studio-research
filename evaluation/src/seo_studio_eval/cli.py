@@ -13,6 +13,7 @@ from .pilot_reporting import build_pilot_report
 from .preflight import run_preflight
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
+from .truncation_repair import build_truncation_repair_plan, run_truncation_repair
 from .validation import validate_run_directory
 from .writer_compatibility import build_writer_report, run_writer_compatibility
 
@@ -63,6 +64,28 @@ def build_parser() -> argparse.ArgumentParser:
     pilot.add_argument("--run-id", required=True)
     pilot.add_argument("--system-snapshot-ref", required=True)
     pilot.add_argument("--max-new-attempts", type=int)
+
+    repair = commands.add_parser(
+        "truncation-repair",
+        help="Run one explicit larger-output recovery for each frozen length-truncated source outcome",
+    )
+    repair.add_argument("--config", type=Path, required=True)
+    repair.add_argument("--criteria", type=Path, required=True)
+    repair.add_argument("--source-run-dir", type=Path, action="append", required=True)
+    repair.add_argument("--base-url", required=True)
+    repair.add_argument("--output-dir", type=Path, required=True)
+    repair.add_argument("--run-id", required=True)
+    repair.add_argument("--system-snapshot-ref", required=True)
+    repair.add_argument("--max-new-attempts", type=int)
+
+    repair_plan = commands.add_parser(
+        "truncation-repair-plan",
+        help="Freeze the deterministic length-truncation repair population without live inference",
+    )
+    repair_plan.add_argument("--config", type=Path, required=True)
+    repair_plan.add_argument("--criteria", type=Path, required=True)
+    repair_plan.add_argument("--source-run-dir", type=Path, action="append", required=True)
+    repair_plan.add_argument("--output", type=Path, required=True)
 
     report = commands.add_parser("compatibility-report", help="Render a non-ranking compatibility evidence report")
     report.add_argument("--evidence", type=Path, required=True)
@@ -169,6 +192,40 @@ def main(argv: list[str] | None = None) -> int:
             if summary.status == "paused":
                 return 0
             return 0 if summary.status == "complete" and summary.all_models_meet_threshold else 1
+        if args.command == "truncation-repair":
+            summary, summary_path = run_truncation_repair(
+                args.config,
+                args.criteria,
+                args.source_run_dir,
+                args.base_url,
+                args.output_dir,
+                args.run_id,
+                args.system_snapshot_ref,
+                progress=lambda payload: print(json.dumps(payload, sort_keys=True), flush=True),
+                max_new_attempts=args.max_new_attempts,
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(mode="json"), "summary_path": str(summary_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status in {"paused", "complete"} else 1
+        if args.command == "truncation-repair-plan":
+            plan = build_truncation_repair_plan(
+                args.config, args.criteria, args.source_run_dir, args.output
+            )
+            print(
+                json.dumps(
+                    {
+                        "status": "ready",
+                        "expected_repairs": plan["expected_repairs"],
+                        "output_path": str(args.output),
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
         if args.command == "compatibility-report":
             output_path = build_compatibility_report(args.evidence, args.output)
             print(json.dumps({"status": "written", "report_path": str(output_path)}, sort_keys=True))

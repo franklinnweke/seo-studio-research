@@ -1,0 +1,25 @@
+schema_version = 1
+criteria_id = "truncation-repair-v1"
+purpose = "System-level compatibility repair for output truncation only; not a quality retry and not a threshold change."
+source_done_reason = "length"
+source_output_token_limit = 384
+recovery_output_token_limit = 768
+expected_repairs = 15
+per_attempt_timeout_seconds = 240
+hidden_retries_allowed = 0
+explicit_repair_attempts_per_truncation = 1
+abort_on_transport_error = true
+max_transport_attempts_per_item = 3
+temperature = 0
+seed = 20260716
+thinking_mode = "disabled"
+warmup_manifest = "dataset/manifest-contract.jsonl"
+warmup_image_id = "synthetic-solid-blue-001"
+keep_alive = "10m"
+
+[required_repairs_by_model]
+qwen25vl-3b-baseline = 4
+qwen35-9b = 2
+gemma3-12b = 1
+qwen36-27b-amendment = 1
+qwen36-35b-a3b-amendment = 7
