@@ -29,6 +29,8 @@ Live inventory, SSH tunnels, model pulls, and DGX experiments are governed by `$
 
 The compatibility pilot aborts after preserving the first transport-failure record. Resume the same append-only block only when its earlier records remain valid and incomplete; if the transport failure exposed a harness defect or invalidated the block, preserve it as an infrastructure incident and recollect under a new run ID. Never convert connection failures into model-compatibility failures.
 
+The HTTP transport combines the socket timeout with an OS-level absolute wall-clock deadline on supported Unix main-thread execution. This prevents a dead direct or forwarded TCP socket from remaining blocked after the frozen inference window. A deadline expiry is a final `inference_timeout`; a connection reset received before the deadline remains a recoverable `transport_error` under the bounded recovery rule.
+
 `--max-new-attempts` creates an intentional operational pause after the requested number of newly recorded measured attempts. Reinvoke the identical command and run ID to continue; completed attempt keys are verified and skipped, a new session warm-up is recorded, and the active model is unloaded at the end of the segment. The limit does not change randomized order or the expected 100-attempt matrix.
 
 Raw `runs/`, dataset cache files, and private reviewer mappings are ignored by Git.

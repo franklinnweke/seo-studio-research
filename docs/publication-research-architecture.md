@@ -220,6 +220,7 @@ Verified July 16, 2026 on the research branch:
 - Warm-up diagnostics distinguish Ollama HTTP inference rejection from transport loss. The original PPM contract fixture exposed an unsupported-input path and, on Mistral, could consume much of the forwarding-session lifetime before rejection. The warm-up now uses a hash-pinned PNG derivative of the same synthetic blue square; the original PPM remains preserved as historical contract evidence. Warm-up validity does not enter the licensed 20-item denominator, and only a true connection/transport failure triggers immediate run abort.
 - Repeated WAN resets require explicit infrastructure recovery. The compatibility criteria permit at most three separately recorded collection attempts for an item when and only when the preceding attempt ended in a transport error. Each recovery names the superseded attempt, the runner stops between attempts, and raw transport failures remain counted in infrastructure reporting. The first non-transport outcome is the sole compatibility outcome for that model/image key; this is not a hidden validation retry and cannot be used for schema-invalid or low-quality outputs.
 - A request reaching the frozen 240-second limit is an `inference_timeout`, not a recoverable connection failure, and is a final compatibility outcome. Two legacy records for the same Mistral/pharmacy key were created before this distinction was implemented; the first timeout is the analysis outcome, the second remains immutable as a disclosed implementation deviation, and no third timeout attempt is permitted.
+- During bounded recovery of a Qwen3.5 transport reset, one direct TCP request remained blocked locally for approximately 17 minutes even though a `$davneet-dgx-access` status check found the host and Ollama healthy with no model loaded. The project-started controller was stopped without changing the server; no measured record was created for the unresolved socket call. This is a disclosed collection implementation deviation. The transport now adds an OS-level absolute deadline around the existing socket timeout, segmented summaries derive the run start from immutable prior records, and tracked Git changes—not unrelated untracked user material—control the provenance dirty marker.
 - A4 slice: the feature-flagged frontend now collects page context, requires explicit per-image purpose confirmation, exposes optional AI purpose suggestions without conflating them with human decisions, gates generation/approval on contextual readiness, supports direct and dual-stage selection, and presents purpose, warnings, structured facts, and sanitized provenance during review. The workflow is keyboard operable, has responsive no-overflow behavior at 390 px, and preserves legacy metadata mode when the feature flag is disabled.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
@@ -1949,13 +1950,14 @@ Permitted during the deferral:
 - local product, API-contract, evaluation-harness, schema, prompt, test, and CI implementation;
 - fake-transport tests and synthetic or public non-sensitive fixtures;
 - read-only DGX inspection through `$davneet-dgx-access` and approved project-scoped execution through the skill when separately requested.
+- the explicitly authorized July 16–17 compatibility-only pilot over the committed public licensed dataset and fictional contexts, using the direct path as a documented temporary collection limitation. This exception does not approve the target deployment topology or any private/restricted data.
 
 Not permitted during the deferral:
 
 - representing Gate 1 as complete or the current Ollama listener as securely private;
 - sending private client, participant, credential-bearing, or otherwise restricted data through the unverified path;
 - firewall, binding, gateway, service, model-storage, or destructive changes without explicit authorization;
-- publication pilot/full-study execution until the protocol's security and data-boundary requirements are satisfied.
+- full-study execution, participant data, client data, or any private/restricted input until the protocol's security and data-boundary requirements are satisfied.
 
 ## 27. Immediate implementation backlog
 

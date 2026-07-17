@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from seo_studio_eval.ollama import OllamaHTTPError, OllamaTimeoutError
+from seo_studio_eval.ollama import OllamaHTTPError, OllamaTimeoutError, OllamaTransport
 from seo_studio_eval.records import read_attempt_record, write_attempt_record
 from seo_studio_eval.runner import AttemptSpec, execute_attempt
 from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence, VisualFactsPayload
@@ -144,6 +144,19 @@ def test_inference_timeout_is_a_final_non_transport_outcome() -> None:
     assert record.error is not None
     assert record.error.category == "inference_timeout"
     assert record.retry_count == 0
+
+
+def test_ollama_transport_enforces_absolute_deadline(monkeypatch) -> None:
+    import time
+
+    def stalled_urlopen(*_args, **_kwargs):
+        time.sleep(1)
+        raise AssertionError("absolute deadline did not interrupt the stalled socket")
+
+    monkeypatch.setattr("seo_studio_eval.ollama.urlopen", stalled_urlopen)
+
+    with pytest.raises(OllamaTimeoutError, match="timed out after 0.05s"):
+        OllamaTransport("http://127.0.0.1:11435", timeout_seconds=0.05).version()
 
 
 def test_run_validation_fails_when_no_attempt_records_exist(tmp_path: Path) -> None:

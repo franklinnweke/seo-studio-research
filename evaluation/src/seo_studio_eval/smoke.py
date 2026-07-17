@@ -178,7 +178,7 @@ def _git_state(repository_root: Path) -> tuple[str, bool]:
         text=True,
     ).stdout.strip()
     status = subprocess.run(
-        ["git", "status", "--porcelain"],
+        ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=repository_root,
         check=True,
         capture_output=True,

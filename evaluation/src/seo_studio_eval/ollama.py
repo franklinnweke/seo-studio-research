@@ -1,5 +1,8 @@
 import json
+from contextlib import contextmanager
 from http.client import RemoteDisconnected
+import signal
+import threading
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -16,6 +19,10 @@ class OllamaConnectionError(RuntimeError):
 
 
 class OllamaTimeoutError(RuntimeError):
+    pass
+
+
+class _AbsoluteDeadlineExpired(TimeoutError):
     pass
 
 
@@ -51,8 +58,9 @@ class OllamaTransport:
             headers={"Content-Type": "application/json"} if body is not None else {},
         )
         try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
-                decoded = json.loads(response.read())
+            with _absolute_deadline(self.timeout_seconds):
+                with urlopen(request, timeout=self.timeout_seconds) as response:
+                    decoded = json.loads(response.read())
         except HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:500]
             raise OllamaHTTPError(exc.code, detail) from exc
@@ -65,3 +73,29 @@ class OllamaTransport:
         if not isinstance(decoded, dict):
             raise ValueError("Ollama response must be a JSON object")
         return decoded
+
+
+@contextmanager
+def _absolute_deadline(timeout_seconds: float):
+    """Enforce a wall-clock deadline when a dead TCP socket ignores its read timeout."""
+    supported = (
+        hasattr(signal, "SIGALRM")
+        and hasattr(signal, "setitimer")
+        and threading.current_thread() is threading.main_thread()
+    )
+    if not supported or signal.getitimer(signal.ITIMER_REAL)[0] > 0:
+        yield
+        return
+
+    previous_handler = signal.getsignal(signal.SIGALRM)
+
+    def expire(_signum: int, _frame: object) -> None:
+        raise _AbsoluteDeadlineExpired(f"absolute deadline exceeded after {timeout_seconds}s")
+
+    signal.signal(signal.SIGALRM, expire)
+    signal.setitimer(signal.ITIMER_REAL, timeout_seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)

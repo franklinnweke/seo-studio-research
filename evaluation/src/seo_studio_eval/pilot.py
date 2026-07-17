@@ -159,8 +159,9 @@ def run_compatibility_pilot(
     study_config_sha256 = sha256_file(study.config_path)
     models_config_sha256 = sha256_file(resolve_under_root(study.root, study.config.models_config))
     criteria_sha256 = sha256_file(criteria_path.resolve())
-    started_at = datetime.now(timezone.utc)
-    session_id = started_at.strftime("%Y%m%dT%H%M%S%fZ").lower()
+    session_started_at = datetime.now(timezone.utc)
+    started_at = session_started_at
+    session_id = session_started_at.strftime("%Y%m%dT%H%M%S%fZ").lower()
     model_order = [model.id for model in models]
     random.Random(criteria.seed).shuffle(model_order)
     image_order_by_model = {
@@ -173,6 +174,11 @@ def run_compatibility_pilot(
         run_id,
         criteria.max_transport_attempts_per_item,
     )
+    prior_records = list(existing.values()) + [
+        record for records in transport_records.values() for record in records
+    ]
+    if prior_records:
+        started_at = min(record.started_at for record in prior_records)
     expected_keys = {
         _attempt_key(model_id, image_id, repeat)
         for model_id in model_order
