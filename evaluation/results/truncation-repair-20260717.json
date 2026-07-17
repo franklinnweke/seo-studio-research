@@ -1,0 +1,179 @@
+{
+  "advancement": {
+    "baseline_reference": "qwen25vl-3b-baseline",
+    "eligible_challenger_count": 2,
+    "eligible_non_baseline_challengers": [
+      "qwen35-9b",
+      "gemma3-12b"
+    ],
+    "quality_screening_set": [
+      "qwen25vl-3b-baseline",
+      "qwen35-9b",
+      "gemma3-12b"
+    ],
+    "required_eligible_challengers": 2,
+    "status": "ready_for_quality_screening_after_supervisor_acknowledgement"
+  },
+  "collection_window": {
+    "analyzed_repair_wall_hours": 0.536,
+    "elapsed_hours_including_operational_pauses": 0.556,
+    "ended_at": "2026-07-17T07:45:42.157445+00:00",
+    "started_at": "2026-07-17T07:12:19.981961+00:00"
+  },
+  "criteria_id": "truncation-repair-v1",
+  "evidence_version": 1,
+  "frozen_repair_contract": {
+    "criteria_sha256": "623aa2e1b7990e5fc6a445904c036a57245e1536682ff7a6343f636c61a70f1b",
+    "explicit_repair_attempts_per_truncation": 1,
+    "minimum_pipeline_valid_rate": 0.95,
+    "quality_retry_permitted": false,
+    "recovery_output_token_limit": 768,
+    "seed": 20260716,
+    "source_output_token_limit": 384,
+    "temperature": 0.0,
+    "thinking_mode": "disabled",
+    "timeout_repair_permitted": false,
+    "timeout_seconds": 240.0,
+    "trigger": "invalid source outcome with done_reason=length at 384 tokens"
+  },
+  "limitations": [
+    "Pipeline validity is a system-level outcome and must not be presented as one-shot model validity.",
+    "The repair policy was introduced after pilot failure-taxonomy review and before final protocol freeze; both stages must be disclosed.",
+    "Compatibility outcomes do not measure factual quality or rank the eligible challengers.",
+    "Reviewer-time calibration and supervisor acknowledgement remain required before final protocol freeze."
+  ],
+  "one_shot_evidence_preserved": true,
+  "protocol_version": "2.2-pilot-truncation-repair",
+  "quality_ranking_permitted": false,
+  "repair_accounting": {
+    "expected_repairs": 15,
+    "failed_repairs": 9,
+    "missing_repairs": 0,
+    "observed_repairs": 15,
+    "raw_measured_records": 15,
+    "superseded_transport_records": 0,
+    "unexpected_repairs": 0,
+    "valid_repairs": 6
+  },
+  "repair_run_id": "truncation-repair-20260717",
+  "results_in_original_then_amendment_order": [
+    {
+      "digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "model_id": "qwen25vl-3b-baseline",
+      "ollama_name": "qwen2.5vl:3b",
+      "one_shot_rate": 0.8,
+      "one_shot_valid": 16,
+      "pipeline_failure_categories": {
+        "output_truncated": 4
+      },
+      "pipeline_rate": 0.8,
+      "pipeline_threshold_met": false,
+      "pipeline_valid": 16,
+      "planned_truncation_repairs": 4,
+      "successful_truncation_repairs": 0
+    },
+    {
+      "digest": "3edc3a52fe988de3e8ba4f99ac1f21a1bbc35e1af32a74983fe4e1667d6b6188",
+      "model_id": "qwen25vl-32b-compatibility-fallback",
+      "ollama_name": "qwen2.5vl:32b",
+      "one_shot_rate": 0.75,
+      "one_shot_valid": 15,
+      "pipeline_failure_categories": {
+        "inference_timeout": 5
+      },
+      "pipeline_rate": 0.75,
+      "pipeline_threshold_met": false,
+      "pipeline_valid": 15,
+      "planned_truncation_repairs": 0,
+      "successful_truncation_repairs": 0
+    },
+    {
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "model_id": "qwen35-9b",
+      "ollama_name": "qwen3.5:latest",
+      "one_shot_rate": 0.9,
+      "one_shot_valid": 18,
+      "pipeline_failure_categories": {
+        "output_truncated": 1
+      },
+      "pipeline_rate": 0.95,
+      "pipeline_threshold_met": true,
+      "pipeline_valid": 19,
+      "planned_truncation_repairs": 2,
+      "successful_truncation_repairs": 1
+    },
+    {
+      "digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
+      "model_id": "gemma3-12b",
+      "ollama_name": "gemma3:12b",
+      "one_shot_rate": 0.95,
+      "one_shot_valid": 19,
+      "pipeline_failure_categories": {
+        "output_truncated": 1
+      },
+      "pipeline_rate": 0.95,
+      "pipeline_threshold_met": true,
+      "pipeline_valid": 19,
+      "planned_truncation_repairs": 1,
+      "successful_truncation_repairs": 0
+    },
+    {
+      "digest": "b9aaf0c2586a8ed8105feab808c0f034bd4d346203822f048e2366165a13f4ea",
+      "model_id": "mistral-small31-24b",
+      "ollama_name": "mistral-small3.1:24b",
+      "one_shot_rate": 0.85,
+      "one_shot_valid": 17,
+      "pipeline_failure_categories": {
+        "inference_timeout": 3
+      },
+      "pipeline_rate": 0.85,
+      "pipeline_threshold_met": false,
+      "pipeline_valid": 17,
+      "planned_truncation_repairs": 0,
+      "successful_truncation_repairs": 0
+    },
+    {
+      "digest": "a50eda8ed977ab48a12431878896b27ffd5cef552c17af3317d9623b939a7f1e",
+      "model_id": "qwen36-27b-amendment",
+      "ollama_name": "qwen3.6:27b",
+      "one_shot_rate": 0.75,
+      "one_shot_valid": 15,
+      "pipeline_failure_categories": {
+        "inference_timeout": 5
+      },
+      "pipeline_rate": 0.75,
+      "pipeline_threshold_met": false,
+      "pipeline_valid": 15,
+      "planned_truncation_repairs": 1,
+      "successful_truncation_repairs": 0
+    },
+    {
+      "digest": "07d35212591fc27746f0a317c975a6d68754fb38e9053d82e25f06057af28522",
+      "model_id": "qwen36-35b-a3b-amendment",
+      "ollama_name": "qwen3.6:latest",
+      "one_shot_rate": 0.65,
+      "one_shot_valid": 13,
+      "pipeline_failure_categories": {
+        "output_truncated": 2
+      },
+      "pipeline_rate": 0.9,
+      "pipeline_threshold_met": false,
+      "pipeline_valid": 18,
+      "planned_truncation_repairs": 7,
+      "successful_truncation_repairs": 5
+    }
+  ],
+  "runtime": {
+    "access_authority": "$davneet-dgx-access",
+    "git_commit": "1179475157811088aea0d77d44f3768cbd5d8cdd",
+    "ollama_version": "0.24.0",
+    "system_snapshot_ref": "dgx-preflight-20260717t031153-0400",
+    "temporary_collection_path": "localhost-only SSH tunnel; public licensed images and fictional contexts only",
+    "tracked_worktree_clean": true
+  },
+  "source_run_ids": [
+    "pilot-amendment-20260717",
+    "pilot-compatibility-clean6-20260716"
+  ],
+  "stage": "Protocol 2.2 explicit output-truncation repair"
+}

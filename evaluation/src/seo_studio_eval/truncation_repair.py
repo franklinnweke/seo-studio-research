@@ -8,7 +8,7 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
-from .accounting import resolve_attempt_records
+from .accounting import effective_error_category, resolve_attempt_records
 from .config import ModelEntry, load_study, resolve_under_root
 from .dataset import load_manifest
 from .hashing import sha256_file
@@ -373,6 +373,254 @@ def run_truncation_repair(
     )
     _write_summary(summary_path, summary)
     return summary, summary_path
+
+
+def build_truncation_repair_report(
+    source_config_paths: list[Path],
+    source_run_dirs: list[Path],
+    repair_run_dir: Path,
+    criteria_path: Path,
+    evidence_path: Path,
+    report_path: Path,
+) -> tuple[Path, Path]:
+    criteria = load_truncation_repair_criteria(criteria_path)
+    summary = TruncationRepairSummary.model_validate_json(
+        (repair_run_dir / "truncation-repair-summary.json").read_text()
+    )
+    if summary.status != "complete" or summary.expected_repairs != criteria.expected_repairs:
+        raise ValueError("Truncation-repair report requires the complete frozen repair population")
+    source_resolution = resolve_attempt_records(source_run_dirs)
+    repair_resolution = resolve_attempt_records(repair_run_dir)
+    if source_resolution.duplicate_keys or repair_resolution.duplicate_keys:
+        raise ValueError("Cannot report unresolved duplicate outcome keys")
+    if len(repair_resolution.selected) != criteria.expected_repairs:
+        raise ValueError("Repair run does not contain the frozen number of outcomes")
+
+    model_order: list[str] = []
+    configured: dict[str, ModelEntry] = {}
+    for config_path in source_config_paths:
+        study = load_study(config_path)
+        models = {model.id: model for model in study.models.models}
+        for model_id in study.config.model_ids:
+            if model_id in configured:
+                raise ValueError(f"Source configs repeat model id: {model_id}")
+            configured[model_id] = models[model_id]
+            model_order.append(model_id)
+
+    repair_by_source_id: dict[str, RunRecord] = {}
+    for record in repair_resolution.selected.values():
+        source_id = record.sanitized_request.get("repair_source_attempt_id")
+        if not isinstance(source_id, str) or not source_id:
+            raise ValueError(f"Repair record lacks source linkage: {record.attempt_id}")
+        if source_id in repair_by_source_id:
+            raise ValueError(f"Multiple repairs link to source attempt: {source_id}")
+        repair_by_source_id[source_id] = record
+
+    repair_configured = {
+        model_id: configured[model_id] for model_id in criteria.required_repairs_by_model
+    }
+    expected_sources = select_truncation_sources(source_run_dirs, repair_configured, criteria)
+    source_by_attempt_id = {record.attempt_id: record for record in expected_sources.values()}
+    if set(repair_by_source_id) != set(source_by_attempt_id):
+        raise ValueError("Repair records do not match the frozen source-linked population")
+    for source_id, repair in repair_by_source_id.items():
+        source = source_by_attempt_id[source_id]
+        if (
+            repair.model.id != source.model.id
+            or repair.input.image_id != source.input.image_id
+            or repair.generation_options.get("num_predict") != criteria.recovery_output_token_limit
+        ):
+            raise ValueError(f"Repair record does not preserve its frozen source contract: {repair.attempt_id}")
+    if (
+        summary.observed_repairs != len(repair_resolution.selected)
+        or summary.valid_repairs
+        != sum(record.validation.valid for record in repair_resolution.selected.values())
+    ):
+        raise ValueError("Repair summary accounting does not match immutable records")
+
+    model_results: list[dict[str, Any]] = []
+    eligible_challengers: list[str] = []
+    for model_id in model_order:
+        source_records = [
+            record for record in source_resolution.selected.values() if record.model.id == model_id
+        ]
+        if len(source_records) != 20:
+            raise ValueError(f"Expected 20 source outcomes for {model_id}; found {len(source_records)}")
+        one_shot_valid = sum(record.validation.valid for record in source_records)
+        repaired_sources = [
+            record for record in source_records if record.attempt_id in repair_by_source_id
+        ]
+        successful_repairs = sum(
+            repair_by_source_id[record.attempt_id].validation.valid for record in repaired_sources
+        )
+        pipeline_valid = one_shot_valid + successful_repairs
+        pipeline_failures: dict[str, int] = {}
+        for source in source_records:
+            if source.validation.valid:
+                continue
+            effective = repair_by_source_id.get(source.attempt_id, source)
+            if effective.validation.valid:
+                continue
+            category = effective_error_category(effective)
+            pipeline_failures[category] = pipeline_failures.get(category, 0) + 1
+        threshold_met = pipeline_valid / len(source_records) >= 0.95
+        if threshold_met and model_id != "qwen25vl-3b-baseline":
+            eligible_challengers.append(model_id)
+        model = configured[model_id]
+        model_results.append(
+            {
+                "model_id": model_id,
+                "ollama_name": model.ollama_name,
+                "digest": model.expected_digest,
+                "one_shot_valid": one_shot_valid,
+                "one_shot_rate": one_shot_valid / len(source_records),
+                "planned_truncation_repairs": len(repaired_sources),
+                "successful_truncation_repairs": successful_repairs,
+                "pipeline_valid": pipeline_valid,
+                "pipeline_rate": pipeline_valid / len(source_records),
+                "pipeline_threshold_met": threshold_met,
+                "pipeline_failure_categories": dict(sorted(pipeline_failures.items())),
+            }
+        )
+
+    repair_records = list(repair_resolution.selected.values())
+    started_at = min(record.started_at for record in repair_records)
+    ended_at = max(record.ended_at for record in repair_records)
+    baseline_reference = "qwen25vl-3b-baseline"
+    quality_screening_set = [baseline_reference, *eligible_challengers]
+    evidence = {
+        "evidence_version": 1,
+        "stage": "Protocol 2.2 explicit output-truncation repair",
+        "quality_ranking_permitted": False,
+        "one_shot_evidence_preserved": True,
+        "repair_run_id": summary.run_id,
+        "protocol_version": summary.protocol_version,
+        "criteria_id": summary.criteria_id,
+        "source_run_ids": sorted({record.run_id for record in source_resolution.all_records}),
+        "collection_window": {
+            "started_at": started_at.isoformat(),
+            "ended_at": ended_at.isoformat(),
+            "elapsed_hours_including_operational_pauses": round(
+                (ended_at - started_at).total_seconds() / 3600, 3
+            ),
+            "analyzed_repair_wall_hours": round(
+                sum(record.telemetry.wall_duration_ms for record in repair_records) / 3_600_000,
+                3,
+            ),
+        },
+        "runtime": {
+            "ollama_version": summary.ollama_version,
+            "system_snapshot_ref": summary.system_snapshot_ref,
+            "git_commit": summary.git_commit,
+            "tracked_worktree_clean": not summary.dirty_worktree,
+            "access_authority": "$davneet-dgx-access",
+            "temporary_collection_path": "localhost-only SSH tunnel; public licensed images and fictional contexts only",
+        },
+        "frozen_repair_contract": {
+            "trigger": "invalid source outcome with done_reason=length at 384 tokens",
+            "source_output_token_limit": criteria.source_output_token_limit,
+            "recovery_output_token_limit": criteria.recovery_output_token_limit,
+            "explicit_repair_attempts_per_truncation": criteria.explicit_repair_attempts_per_truncation,
+            "timeout_seconds": criteria.per_attempt_timeout_seconds,
+            "temperature": criteria.temperature,
+            "seed": criteria.seed,
+            "thinking_mode": criteria.thinking_mode,
+            "quality_retry_permitted": False,
+            "timeout_repair_permitted": False,
+            "minimum_pipeline_valid_rate": 0.95,
+            "criteria_sha256": sha256_file(criteria_path.resolve()),
+        },
+        "repair_accounting": {
+            "expected_repairs": criteria.expected_repairs,
+            "observed_repairs": len(repair_records),
+            "valid_repairs": sum(record.validation.valid for record in repair_records),
+            "failed_repairs": sum(not record.validation.valid for record in repair_records),
+            "raw_measured_records": len(repair_resolution.all_records),
+            "superseded_transport_records": repair_resolution.superseded_transport_attempts,
+            "missing_repairs": 0,
+            "unexpected_repairs": 0,
+        },
+        "results_in_original_then_amendment_order": model_results,
+        "advancement": {
+            "baseline_reference": baseline_reference,
+            "eligible_non_baseline_challengers": eligible_challengers,
+            "eligible_challenger_count": len(eligible_challengers),
+            "required_eligible_challengers": 2,
+            "quality_screening_set": quality_screening_set if len(eligible_challengers) >= 2 else [],
+            "status": (
+                "ready_for_quality_screening_after_supervisor_acknowledgement"
+                if len(eligible_challengers) >= 2
+                else "protocol_reassessment_required"
+            ),
+        },
+        "limitations": [
+            "Pipeline validity is a system-level outcome and must not be presented as one-shot model validity.",
+            "The repair policy was introduced after pilot failure-taxonomy review and before final protocol freeze; both stages must be disclosed.",
+            "Compatibility outcomes do not measure factual quality or rank the eligible challengers.",
+            "Reviewer-time calibration and supervisor acknowledgement remain required before final protocol freeze.",
+        ],
+    }
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(_render_repair_report(evidence))
+    return evidence_path, report_path
+
+
+def _render_repair_report(evidence: dict[str, Any]) -> str:
+    lines = [
+        "# Protocol 2.2 truncation-repair report",
+        "",
+        "This report evaluates explicit system-level truncation handling. It does not rank factual quality, and it preserves the one-shot results separately.",
+        "",
+        f"- Repairs: `{evidence['repair_accounting']['observed_repairs']}` / `{evidence['repair_accounting']['expected_repairs']}`",
+        f"- Valid repairs: `{evidence['repair_accounting']['valid_repairs']}`",
+        f"- Hidden, quality, or timeout retries: `0`",
+        f"- Pipeline-validity gate: `{evidence['frozen_repair_contract']['minimum_pipeline_valid_rate']:.0%}`",
+        "",
+        "| Model condition | One-shot | Repairs valid | Pipeline valid | Gate | Remaining failures |",
+        "|---|---:|---:|---:|---:|---|",
+    ]
+    for result in evidence["results_in_original_then_amendment_order"]:
+        failures = ", ".join(
+            f"{key}: {value}" for key, value in result["pipeline_failure_categories"].items()
+        ) or "none"
+        lines.append(
+            f"| `{result['model_id']}` | {result['one_shot_valid']}/20 | "
+            f"{result['successful_truncation_repairs']}/{result['planned_truncation_repairs']} | "
+            f"{result['pipeline_valid']}/20 | "
+            f"{'pass' if result['pipeline_threshold_met'] else 'fail'} | {failures} |"
+        )
+    challengers = ", ".join(evidence["advancement"]["eligible_non_baseline_challengers"])
+    screening = ", ".join(evidence["advancement"]["quality_screening_set"])
+    advancement_ready = (
+        evidence["advancement"]["eligible_challenger_count"]
+        >= evidence["advancement"]["required_eligible_challengers"]
+    )
+    if advancement_ready:
+        consequence = (
+            f"Eligible non-baseline challengers: `{challengers}`. The required count is met. "
+            f"The compatibility-screening set is `{screening}`: the baseline reference plus the two eligible challengers. "
+            "This set may enter blinded quality screening only after supervisor acknowledgement; no quality winner has been selected."
+        )
+    else:
+        consequence = (
+            f"Eligible non-baseline challengers: `{challengers or 'none'}`. The required count is not met, "
+            "so no quality-screening set is formed and the protocol requires reassessment before comparative inspection."
+        )
+    lines.extend(
+        [
+            "",
+            "## Advancement consequence",
+            "",
+            consequence,
+            "",
+            "## Limitations",
+            "",
+        ]
+    )
+    lines.extend(f"- {item}" for item in evidence["limitations"])
+    return "\n".join(lines) + "\n"
 
 
 def _key(model_id: str, image_id: str) -> str:

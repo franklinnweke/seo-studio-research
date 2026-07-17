@@ -9,6 +9,7 @@ from seo_studio_eval.runner import AttemptSpec, execute_attempt
 from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence, VisualFactsPayload
 from seo_studio_eval.truncation_repair import (
     TruncationRepairCriteria,
+    _render_repair_report,
     run_truncation_repair,
     select_truncation_sources,
 )
@@ -46,6 +47,27 @@ class SuccessfulRepairTransport:
             ),
             "done_reason": "stop",
         }
+
+
+def test_repair_report_does_not_claim_advancement_when_required_count_is_unmet() -> None:
+    report = _render_repair_report(
+        {
+            "repair_accounting": {"observed_repairs": 1, "expected_repairs": 1, "valid_repairs": 0},
+            "frozen_repair_contract": {"minimum_pipeline_valid_rate": 0.95},
+            "results_in_original_then_amendment_order": [],
+            "advancement": {
+                "eligible_non_baseline_challengers": ["model-a"],
+                "eligible_challenger_count": 1,
+                "required_eligible_challengers": 2,
+                "quality_screening_set": [],
+            },
+            "limitations": [],
+        }
+    )
+
+    assert "required count is not met" in report
+    assert "no quality-screening set is formed" in report
+    assert "required count is met" not in report
 
 
 def test_truncation_repair_population_selects_only_frozen_length_outcomes(tmp_path: Path) -> None:

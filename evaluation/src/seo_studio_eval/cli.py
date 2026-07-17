@@ -13,7 +13,11 @@ from .pilot_reporting import build_pilot_report
 from .preflight import run_preflight
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
-from .truncation_repair import build_truncation_repair_plan, run_truncation_repair
+from .truncation_repair import (
+    build_truncation_repair_plan,
+    build_truncation_repair_report,
+    run_truncation_repair,
+)
 from .validation import validate_run_directory
 from .writer_compatibility import build_writer_report, run_writer_compatibility
 
@@ -86,6 +90,17 @@ def build_parser() -> argparse.ArgumentParser:
     repair_plan.add_argument("--criteria", type=Path, required=True)
     repair_plan.add_argument("--source-run-dir", type=Path, action="append", required=True)
     repair_plan.add_argument("--output", type=Path, required=True)
+
+    repair_report = commands.add_parser(
+        "truncation-repair-report",
+        help="Combine immutable one-shot outcomes with explicit truncation repairs",
+    )
+    repair_report.add_argument("--source-config", type=Path, action="append", required=True)
+    repair_report.add_argument("--source-run-dir", type=Path, action="append", required=True)
+    repair_report.add_argument("--repair-run-dir", type=Path, required=True)
+    repair_report.add_argument("--criteria", type=Path, required=True)
+    repair_report.add_argument("--evidence", type=Path, required=True)
+    repair_report.add_argument("--output", type=Path, required=True)
 
     report = commands.add_parser("compatibility-report", help="Render a non-ranking compatibility evidence report")
     report.add_argument("--evidence", type=Path, required=True)
@@ -221,6 +236,26 @@ def main(argv: list[str] | None = None) -> int:
                         "status": "ready",
                         "expected_repairs": plan["expected_repairs"],
                         "output_path": str(args.output),
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.command == "truncation-repair-report":
+            evidence_path, report_path = build_truncation_repair_report(
+                args.source_config,
+                args.source_run_dir,
+                args.repair_run_dir,
+                args.criteria,
+                args.evidence,
+                args.output,
+            )
+            print(
+                json.dumps(
+                    {
+                        "status": "written",
+                        "evidence_path": str(evidence_path),
+                        "report_path": str(report_path),
                     },
                     sort_keys=True,
                 )
