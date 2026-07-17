@@ -1,0 +1,31 @@
+schema_version = 1
+criteria_id = "compatibility-isolated-gemma4-v1"
+purpose = "Configuration eligibility for the isolated three-condition block; these outputs may later enter blinded quality review, but this stage must not rank their quality."
+pilot_items = 20
+warmup_manifest = "dataset/manifest-contract.jsonl"
+warmup_image_id = "synthetic-solid-blue-001"
+minimum_schema_valid_rate = 0.95
+per_attempt_timeout_seconds = 240
+hidden_retries_allowed = 0
+abort_on_transport_error = true
+max_transport_attempts_per_item = 3
+temperature = 0
+seed = 20260716
+thinking_mode = "disabled"
+output_token_limit = 384
+context_window = 8192
+cold_smoke_keep_alive = 0
+pilot_keep_alive = "10m"
+pilot_warm_up_attempts_per_model = 1
+required_input_modalities = ["text", "image"]
+required_evidence = ["license", "exact_ollama_tag", "full_digest", "parameter_size", "quantization", "ollama_version", "structured_output_validity", "native_timing", "context_window"]
+incompatible_replacement_reasons = ["runtime_version", "arm64_support", "license_restriction", "vision_input_failure", "structured_output_failure", "timeout"]
+replacement_quality_inspection_allowed = false
+
+[advancement]
+baseline_reference = "qwen25vl-3b-baseline"
+required_challengers = ["qwen35-9b", "gemma4-12b-amendment"]
+hard_eligibility_order = ["license", "compatibility", "structured_output_validity", "safety_threshold"]
+ranking_order = ["supported_claim_precision", "hallucinated_claim_performance", "quality_reliability_latency_pareto"]
+tie_break_order = ["failure_rate", "median_warm_latency"]
+finalist_rule = "the reference baseline plus both predeclared challengers when each challenger meets the unchanged 95 percent pipeline-validity gate"

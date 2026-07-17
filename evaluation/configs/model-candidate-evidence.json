@@ -1,5 +1,5 @@
 {
-  "evidence_version": 3,
+  "evidence_version": 4,
   "last_checked": "2026-07-17",
   "models": [
     {
@@ -49,7 +49,8 @@
       "license": "Apache-2.0",
       "license_source": "https://ai.google.dev/gemma/docs/core/model_card_4",
       "ollama_source": "https://ollama.com/library/gemma4/tags",
-      "pilot_status": "runtime_incompatible_manifest_http_412_no_layers_installed_pending_isolated_runtime_decision",
+      "pilot_status": "installed_and_digest_locked_in_project_isolated_ollama_0_32_1_pending_measured_preflight",
+      "expected_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
       "selection_basis": "current same-size Gemma generation identified by a catalog audit before final protocol freeze and before comparative quality inspection"
     },
     {

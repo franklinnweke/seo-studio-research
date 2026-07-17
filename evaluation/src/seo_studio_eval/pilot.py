@@ -45,6 +45,7 @@ class CompatibilityCriteria(BaseModel):
     seed: int
     thinking_mode: Literal["disabled"]
     output_token_limit: int = Field(gt=0)
+    context_window: int | None = Field(default=None, gt=0)
     cold_smoke_keep_alive: int
     pilot_keep_alive: str
     pilot_warm_up_attempts_per_model: Literal[1]
@@ -198,6 +199,8 @@ def run_compatibility_pilot(
         "seed": criteria.seed,
         "num_predict": criteria.output_token_limit,
     }
+    if criteria.context_window is not None:
+        options["num_ctx"] = criteria.context_window
 
     summary = _build_summary(
         study.config.experiment_id,

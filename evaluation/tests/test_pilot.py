@@ -7,6 +7,7 @@ import pytest
 from seo_studio_eval.config import load_study
 from seo_studio_eval.ollama import OllamaHTTPError
 from seo_studio_eval.pilot import run_compatibility_pilot
+from seo_studio_eval.pilot_reporting import _advancement_consequence
 
 
 class FakePilotTransport:
@@ -109,6 +110,7 @@ def test_pilot_runs_warmups_and_complete_deterministic_matrix(tmp_path: Path) ->
     assert len(list((tmp_path / "warmups").glob("*.json"))) == 5
     assert all('"images"' not in path.read_text() for path in tmp_path.glob("*.json"))
     assert sum(request["keep_alive"] == 0 for request in transport.requests) == 5
+    assert all("num_ctx" not in request["options"] for request in transport.requests)
 
     resumed_transport = FakePilotTransport(_live_tags(config_path))
     resumed, _ = run_compatibility_pilot(
@@ -147,6 +149,48 @@ def test_pilot_stops_before_generation_on_live_digest_mismatch(tmp_path: Path) -
         )
 
     assert transport.requests == []
+
+
+def test_isolated_pilot_freezes_common_context_window(tmp_path: Path) -> None:
+    evaluation_root = Path(__file__).resolve().parents[1]
+    config_path = evaluation_root / "configs" / "pilot-isolated-gemma4.toml"
+    criteria_path = evaluation_root / "configs" / "compatibility-isolated-gemma4-criteria.toml"
+    transport = FakePilotTransport(_live_tags(config_path))
+
+    summary, _ = run_compatibility_pilot(
+        config_path,
+        criteria_path,
+        "http://127.0.0.1:11435",
+        tmp_path,
+        "isolated-context-test",
+        "private-test-snapshot",
+        transport=transport,
+        max_new_attempts=1,
+    )
+
+    assert summary.status == "paused"
+    assert len(transport.requests) == 2
+    assert all(request["options"]["num_ctx"] == 8192 for request in transport.requests)
+    assert all(request["think"] is False for request in transport.requests)
+
+
+def test_ready_advancement_language_does_not_claim_a_quality_winner() -> None:
+    consequence = _advancement_consequence(
+        {
+            "advancement": {
+                "status": "ready_for_quality_screening",
+                "eligible_models": [
+                    "qwen25vl-3b-baseline",
+                    "qwen35-9b",
+                    "gemma4-12b-amendment",
+                ],
+            }
+        }
+    )
+
+    assert "may proceed" in consequence
+    assert "does not rank" in consequence
+    assert "select a winner" in consequence
 
 
 def test_pilot_aborts_after_first_recorded_transport_failure(tmp_path: Path) -> None:

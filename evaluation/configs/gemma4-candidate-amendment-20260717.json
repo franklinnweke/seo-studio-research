@@ -1,6 +1,6 @@
 {
   "amendment_version": 1,
-  "status": "isolated_runtime_authorized_pending_install_digest_lock_and_preflight",
+  "status": "isolated_runtime_installed_and_digest_locked_pending_measured_preflight",
   "date": "2026-07-17",
   "trigger": {
     "reason": "A pre-freeze catalog audit found that Gemma 4 was publicly available before the July 2026 candidate set was finalized. The installed-inventory-first selection had therefore treated Gemma 3 as current without a defensible recency justification.",
@@ -64,9 +64,9 @@
     "post_attempt_models_loaded": 0,
     "access_authority": "$davneet-dgx-access"
   },
-  "next_decision": "Either obtain separate authorization for a project-isolated newer Ollama runtime and model store, or retain Gemma 4 as a documented runtime-incompatible exclusion and narrow the paper's model claim to candidates compatible with the deployed Ollama 0.24.0 stack. Do not upgrade the shared service implicitly.",
+  "next_decision": "Reconfirm the project-isolated runtime and locked digests through $davneet-dgx-access, then execute the predeclared 60-output block without inspecting comparative quality. Do not upgrade or restart the shared service.",
   "isolated_runtime_decision": {
-    "status": "authorized_by_project_team",
+    "status": "authorized_and_installed",
     "scope": "project-owned runtime and model store, loopback listener, and the three quality-screening conditions only",
     "models": [
       "qwen2.5vl:3b",
@@ -79,6 +79,17 @@
     "planned_measured_outputs": 60,
     "reuse_rule": "The single isolated-runtime 20-image block per condition supplies both compatibility evidence and the subsequently blinded pilot quality-screening package; do not run a duplicate quality block.",
     "comparative_quality_inspection_before_blinding": false
+  },
+  "isolated_runtime_evidence": {
+    "repository_record": "evaluation/configs/isolated-runtime-evidence-20260717.json",
+    "ollama_version": "0.32.1",
+    "runtime_archive_sha256": "20fb8d14694f73b97dc41519e27ef06166236207e7efe793f1698a43722215f2",
+    "listener_scope": "loopback_only",
+    "model_store_scope": "project_owned_and_separate",
+    "three_model_digests_locked": true,
+    "shared_service_changed": false,
+    "owner_files_changed": false,
+    "context_window_for_isolated_block": 8192
   },
   "advancement_rule": "If Gemma 4 meets the unchanged 95% pipeline-validity gate, it supersedes Gemma 3 as the current-generation Gemma challenger in quality screening. Gemma 3 remains reported as historical compatibility evidence. If Gemma 4 fails, retain that failure and document whether Gemma 3 remains only as a legacy-generation comparator or the protocol requires reassessment."
 }

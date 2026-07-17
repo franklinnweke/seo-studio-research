@@ -49,6 +49,7 @@ class TruncationRepairCriteria(BaseModel):
     temperature: float
     seed: int
     thinking_mode: Literal["disabled"]
+    context_window: int | None = Field(default=None, gt=0)
     warmup_manifest: Path
     warmup_image_id: str
     keep_alive: str
@@ -119,6 +120,11 @@ def select_truncation_sources(
             raise ValueError(f"Truncation source unexpectedly contains an error object: {record.attempt_id}")
         if record.generation_options.get("num_predict") != criteria.source_output_token_limit:
             raise ValueError(f"Truncation source has the wrong output limit: {record.attempt_id}")
+        if (
+            criteria.context_window is not None
+            and record.generation_options.get("num_ctx") != criteria.context_window
+        ):
+            raise ValueError(f"Truncation source has the wrong context window: {record.attempt_id}")
         model = configured[record.model.id]
         if record.model.digest != model.expected_digest:
             raise ValueError(f"Truncation source digest mismatch: {record.attempt_id}")
@@ -275,6 +281,8 @@ def run_truncation_repair(
         "seed": criteria.seed,
         "num_predict": criteria.recovery_output_token_limit,
     }
+    if criteria.context_window is not None:
+        options["num_ctx"] = criteria.context_window
     _write_plan(output_dir, criteria, model_order, repair_order_by_model, source_by_pair)
     summary = _build_summary(
         study.config.experiment_id, study.config.protocol_version, criteria, run_id,

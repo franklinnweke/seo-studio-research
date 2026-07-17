@@ -1,0 +1,50 @@
+{
+  "evidence_version": 1,
+  "date": "2026-07-17",
+  "purpose": "Sanitized installation and identity evidence for the project-owned isolated Gemma 4 screening runtime.",
+  "access_authority": "$davneet-dgx-access",
+  "runtime": {
+    "ollama_version": "0.32.1",
+    "distribution": "official Linux ARM64 archive",
+    "source": "https://ollama.com/download/ollama-linux-arm64.tar.zst",
+    "archive_sha256": "20fb8d14694f73b97dc41519e27ef06166236207e7efe793f1698a43722215f2",
+    "project_owned": true,
+    "loopback_listener_only": true,
+    "separate_model_store": true,
+    "shared_service_changed": false,
+    "shared_model_store_changed": false,
+    "owner_files_changed": false
+  },
+  "models": [
+    {
+      "id": "qwen25vl-3b-baseline",
+      "ollama_name": "qwen2.5vl:3b",
+      "digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "bytes": 3200627168,
+      "parameters": "3.8B",
+      "quantization": "Q4_K_M"
+    },
+    {
+      "id": "qwen35-9b",
+      "ollama_name": "qwen3.5:latest",
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "bytes": 6594474711,
+      "parameters": "9.7B",
+      "quantization": "Q4_K_M"
+    },
+    {
+      "id": "gemma4-12b-amendment",
+      "ollama_name": "gemma4:12b-it-q4_K_M",
+      "digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+      "bytes": 7556508396,
+      "parameters": "11.9B",
+      "quantization": "Q4_K_M"
+    }
+  ],
+  "identity_observation": "The isolated Qwen2.5-VL 3B and Qwen3.5 digests exactly match their original shared-runtime conditions; Gemma 4 is the only new model identity.",
+  "capacity_after_install": {
+    "project_model_store_approximate_gb": 17,
+    "free_disk_approximate_gb": 274
+  },
+  "status": "installed_and_digest_locked_pending_measured_preflight"
+}

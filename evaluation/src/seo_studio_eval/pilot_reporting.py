@@ -84,6 +84,45 @@ def build_pilot_report(
         )
         for minutes in (2, 3, 5)
     }
+    baseline_reference = str(
+        criteria.advancement.get("baseline_reference", "qwen25vl-3b-baseline")
+    )
+    predeclared_challengers = criteria.advancement.get("required_challengers")
+    eligible_challengers = [
+        model_id for model_id in eligible_models if model_id != baseline_reference
+    ]
+    if isinstance(predeclared_challengers, list) and all(
+        isinstance(model_id, str) for model_id in predeclared_challengers
+    ):
+        required_challengers = list(predeclared_challengers)
+        advancement_ready = all(model_id in eligible_models for model_id in required_challengers)
+        required_challenger_count = len(required_challengers)
+    else:
+        required_challengers = []
+        required_challenger_count = 2
+        advancement_ready = len(eligible_challengers) >= required_challenger_count
+    advancement_status = (
+        "ready_for_quality_screening"
+        if advancement_ready
+        else (
+            "candidate_amendment_failed_protocol_reassessment_required"
+            if is_candidate_amendment
+            else "candidate_amendment_required_before_quality_screening"
+        )
+    )
+    limitations = [
+        "Compatibility outcomes do not measure factual quality or establish a model ranking.",
+        "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput.",
+        "Only public licensed images and fictional contexts traversed the temporary approved collection paths.",
+    ]
+    if advancement_ready:
+        limitations.append(
+            "Passing compatibility permits only supervisor acknowledgement, blinding, and the predeclared quality screen; it does not identify a winner."
+        )
+    else:
+        limitations.append(
+            "The predeclared eligible-challenger requirement was not met and must not be relaxed opportunistically."
+        )
     evidence = {
         "evidence_version": 1,
         "stage": (
@@ -126,6 +165,7 @@ def build_pilot_report(
             "seed": criteria.seed,
             "thinking_mode": criteria.thinking_mode,
             "output_token_limit": criteria.output_token_limit,
+            "context_window": criteria.context_window,
             "timeout_seconds": criteria.per_attempt_timeout_seconds,
             "hidden_retries": criteria.hidden_retries_allowed,
             "minimum_schema_valid_rate": criteria.minimum_schema_valid_rate,
@@ -146,20 +186,13 @@ def build_pilot_report(
         },
         "results_in_configured_non_ranked_order": model_results,
         "advancement": {
+            "baseline_reference": baseline_reference,
+            "predeclared_required_challengers": required_challengers,
             "eligible_models": eligible_models,
-            "eligible_challenger_count": len(
-                [model_id for model_id in eligible_models if model_id != "qwen25vl-3b-baseline"]
-            ),
-            "required_eligible_challengers": 2,
-            "status": (
-                "ready_for_quality_screening"
-                if len([model_id for model_id in eligible_models if model_id != "qwen25vl-3b-baseline"]) >= 2
-                else (
-                    "candidate_amendment_failed_protocol_reassessment_required"
-                    if is_candidate_amendment
-                    else "candidate_amendment_required_before_quality_screening"
-                )
-            ),
+            "eligible_challengers": eligible_challengers,
+            "eligible_challenger_count": len(eligible_challengers),
+            "required_eligible_challengers": required_challenger_count,
+            "status": advancement_status,
         },
         "planning_estimates": {
             "screening_model_count": len(study.config.model_ids),
@@ -172,12 +205,7 @@ def build_pilot_report(
             "note": "Reviewer time scenarios are planning assumptions, not observed review-time estimates; calibrate before protocol freeze.",
         },
         "deviation_reference": deviation_reference,
-        "limitations": [
-            "Compatibility outcomes do not measure factual quality or establish a model ranking.",
-            "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput.",
-            "Only public licensed images and fictional contexts traversed the temporary approved collection paths.",
-            "The predeclared two-eligible-challenger advancement requirement was not met and must not be relaxed opportunistically.",
-        ],
+        "limitations": limitations,
     }
     evidence_path.parent.mkdir(parents=True, exist_ok=True)
     evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
@@ -259,6 +287,12 @@ def _render_markdown(evidence: dict[str, Any]) -> str:
 def _advancement_consequence(evidence: dict[str, Any]) -> str:
     eligible_models = evidence["advancement"]["eligible_models"]
     eligible = ", ".join(eligible_models)
+    if evidence["advancement"]["status"] == "ready_for_quality_screening":
+        return (
+            f"`{eligible}` met the frozen compatibility gate. The predeclared challenger requirement is "
+            "satisfied, so the same outputs may proceed to supervisor acknowledgement, identity-safe blinding, "
+            "and the quality screen. This compatibility result does not rank the models or select a winner."
+        )
     if evidence["advancement"]["status"] == "candidate_amendment_failed_protocol_reassessment_required":
         opening = (
             f"Only `{eligible}` met the gate within this amendment."
@@ -266,8 +300,7 @@ def _advancement_consequence(evidence: dict[str, Any]) -> str:
             else "No amendment model met the gate."
         )
         return (
-            f"{opening} Neither amendment candidate qualified, "
-            "so the candidate amendment did not create the required advancement set. Protocol reassessment "
+            f"{opening} The amendment did not create the predeclared advancement set. Protocol reassessment "
             "is required before quality screening; the threshold must not be lowered after seeing these outcomes."
         )
     opening = f"Only `{eligible}` met the gate." if eligible_models else "No model met the gate."
