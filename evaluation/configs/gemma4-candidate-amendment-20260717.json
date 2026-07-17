@@ -1,6 +1,6 @@
 {
   "amendment_version": 1,
-  "status": "blocked_by_current_shared_ollama_runtime_no_model_layers_installed",
+  "status": "isolated_runtime_authorized_pending_install_digest_lock_and_preflight",
   "date": "2026-07-17",
   "trigger": {
     "reason": "A pre-freeze catalog audit found that Gemma 4 was publicly available before the July 2026 candidate set was finalized. The installed-inventory-first selection had therefore treated Gemma 3 as current without a defensible recency justification.",
@@ -65,5 +65,20 @@
     "access_authority": "$davneet-dgx-access"
   },
   "next_decision": "Either obtain separate authorization for a project-isolated newer Ollama runtime and model store, or retain Gemma 4 as a documented runtime-incompatible exclusion and narrow the paper's model claim to candidates compatible with the deployed Ollama 0.24.0 stack. Do not upgrade the shared service implicitly.",
+  "isolated_runtime_decision": {
+    "status": "authorized_by_project_team",
+    "scope": "project-owned runtime and model store, loopback listener, and the three quality-screening conditions only",
+    "models": [
+      "qwen2.5vl:3b",
+      "qwen3.5:latest",
+      "gemma4:12b-it-q4_K_M"
+    ],
+    "shared_service_restart_or_upgrade_permitted": false,
+    "existing_model_store_mutation_permitted": false,
+    "owner_file_mutation_permitted": false,
+    "planned_measured_outputs": 60,
+    "reuse_rule": "The single isolated-runtime 20-image block per condition supplies both compatibility evidence and the subsequently blinded pilot quality-screening package; do not run a duplicate quality block.",
+    "comparative_quality_inspection_before_blinding": false
+  },
   "advancement_rule": "If Gemma 4 meets the unchanged 95% pipeline-validity gate, it supersedes Gemma 3 as the current-generation Gemma challenger in quality screening. Gemma 3 remains reported as historical compatibility evidence. If Gemma 4 fails, retain that failure and document whether Gemma 3 remains only as a legacy-generation comparator or the protocol requires reassessment."
 }
