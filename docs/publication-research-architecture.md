@@ -48,7 +48,7 @@ An implementation agent must:
 This snapshot is evidence for handoff, not a permanent claim. Re-check it at the start of every task.
 
 - Active branch: `codex/research-context-aware-metadata`.
-- Latest completed research commit: `b906a88` (`Implement licensed research pilot harness`).
+- Latest completed research commit before the finalized compatibility evidence: `20e33e8` (`Enforce absolute pilot request deadline`).
 - The upload/deletion workflow was preserved separately on `agent/automatic-upload-flow` at commit `5f6d137`; draft PR #33 targets `main`.
 - The research branch was created from the clean `main` baseline so PR #33 is not silently absorbed into the research work.
 - Root `.env` and the private GX10/DGX access note are ignored. A placeholder-only root `.env.example` documents safe Docker Compose substitution.
@@ -56,7 +56,7 @@ This snapshot is evidence for handoff, not a permanent claim. Re-check it at the
 - `$davneet-dgx-access` is the canonical operational authority for live DGX access. Its connection profile and current-status baseline remain outside this repository; committed documents contain only sanitized protocol requirements and research evidence.
 - The application has upload, optimization, page/brand context, human-confirmed purpose, purpose-aware review/export, structured visual facts, direct/dual routing, sanitized provenance, and Ollama telemetry behind the research feature flag.
 - The research harness is separate from the product path and sends raw image bytes only at execution time while persisting image hashes in sanitized request evidence.
-- Full 20-item compatibility execution, protocol freeze, the approximately 120-item final dataset, full experiments, human annotation, statistical analysis, and the manuscript remain outstanding.
+- The full 20-item compatibility matrix is complete and sanitized evidence is committed under `evaluation/results/`; writer compatibility, candidate amendment, protocol freeze, the approximately 120-item final dataset, full experiments, human annotation, statistical analysis, and the manuscript remain outstanding.
 
 ### 1.3 Authority hierarchy
 
@@ -199,7 +199,7 @@ flowchart LR
 Verified July 16, 2026 on the research branch:
 
 - backend test suite: 96 passing after the A4 context-workflow slice;
-- offline evaluation harness: 20 passing tests plus successful contract and licensed 20-item pilot preflight;
+- offline evaluation harness: 22 passing tests plus successful contract and licensed 20-item pilot preflight;
 - frontend lint: passing;
 - frontend production build: passing with Next.js 16.2.6;
 - `git diff --check`: passing for the A0 changes;
@@ -214,13 +214,15 @@ Verified July 16, 2026 on the research branch:
 - first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
 - first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested.
 - A5 harness slice: a visually checked and licensed 20-image pilot spans four equal domains and all six declared purposes; materialization preserves license evidence, hashes, dimensions, fictional contexts, reference facts, and forbidden claims. Five one-image cold compatibility attempts were schema-valid with no hidden retry; multi-block accounting was complete; normalization succeeded; the five-condition reviewer package passed model-identity leakage checks; raw records and the private map remain ignored. The warm compatibility runner now verifies live digests, randomizes model blocks and per-model image order from the frozen seed, records one declared synthetic warm-up per active model block, checkpoints every measured attempt append-only, supports evidence-safe resume, and unloads each model after its final pending item.
-- A5 evidence explicitly forbids quality ranking from the one-image smoke. The five-condition 20-image compatibility pilot and writer-compatibility pass still remain before Gate 3 can close.
+- A5 evidence explicitly forbids quality ranking from both the one-image smoke and the completed five-condition compatibility matrix. The writer-compatibility pass and candidate amendment still remain before Gate 3 can close.
 - The first full-matrix collection attempt on July 16, 2026 is classified as infrastructure-aborted and excluded from compatibility estimates. A localhost-only SSH tunnel reset during the ninth Mistral measured request while the host and Ollama service remained continuously active; the original runner then incorrectly recorded all remaining planned calls as immediate connection failures. All raw records are preserved, none are attributed to model incompatibility, and the corrected runner now aborts after the first recorded transport failure. Recollection must use a new run ID, a keepalive-protected tunnel, and the committed corrected criteria hash.
 - Because the first forwarding session reset after approximately 50 minutes, clean recollection may use predeclared operational segments via `--max-new-attempts`. Each segment preserves the same model/image order and generation contract, checkpoints measured attempts append-only, records a separate session warm-up, unloads the active model at the boundary, and resumes the same run ID without duplicating completed keys. Operational segmentation is not an experimental condition and must be reported when interpreting latency.
 - Warm-up diagnostics distinguish Ollama HTTP inference rejection from transport loss. The original PPM contract fixture exposed an unsupported-input path and, on Mistral, could consume much of the forwarding-session lifetime before rejection. The warm-up now uses a hash-pinned PNG derivative of the same synthetic blue square; the original PPM remains preserved as historical contract evidence. Warm-up validity does not enter the licensed 20-item denominator, and only a true connection/transport failure triggers immediate run abort.
 - Repeated WAN resets require explicit infrastructure recovery. The compatibility criteria permit at most three separately recorded collection attempts for an item when and only when the preceding attempt ended in a transport error. Each recovery names the superseded attempt, the runner stops between attempts, and raw transport failures remain counted in infrastructure reporting. The first non-transport outcome is the sole compatibility outcome for that model/image key; this is not a hidden validation retry and cannot be used for schema-invalid or low-quality outputs.
 - A request reaching the frozen 240-second limit is an `inference_timeout`, not a recoverable connection failure, and is a final compatibility outcome. Two legacy records for the same Mistral/pharmacy key were created before this distinction was implemented; the first timeout is the analysis outcome, the second remains immutable as a disclosed implementation deviation, and no third timeout attempt is permitted.
 - During bounded recovery of a Qwen3.5 transport reset, one direct TCP request remained blocked locally for approximately 17 minutes even though a `$davneet-dgx-access` status check found the host and Ollama healthy with no model loaded. The project-started controller was stopped without changing the server; no measured record was created for the unresolved socket call. This is a disclosed collection implementation deviation. The transport now adds an OS-level absolute deadline around the existing socket timeout, segmented summaries derive the run start from immutable prior records, and tracked Git changes—not unrelated untracked user material—control the provenance dirty marker.
+- The clean recollection completed 100/100 analyzed outcomes with 105 immutable measured records: 100 selected outcomes, four superseded transport failures, and one legacy duplicate-timeout deviation. Schema-validity was Gemma 3 12B 19/20 (95%, pass), Qwen3.5 9B 18/20 (90%, fail), Mistral Small 3.1 24B 17/20 (85%, fail), Qwen2.5-VL 3B baseline 16/20 (80%, fail), and Qwen2.5-VL 32B fallback 15/20 (75%, fail). These results establish only compatibility under the frozen contract and do not rank factual quality.
+- Because only Gemma met the 95% gate, the predeclared requirement for two eligible non-baseline challengers is unsatisfied. Do not lower the threshold or advance ineligible models after seeing the results. Gate 3 remains open pending the fixed Qwen3.5 writer pass and a documented candidate amendment with new compatibility evidence for at least one additional challenger.
 - A4 slice: the feature-flagged frontend now collects page context, requires explicit per-image purpose confirmation, exposes optional AI purpose suggestions without conflating them with human decisions, gates generation/approval on contextual readiness, supports direct and dual-stage selection, and presents purpose, warnings, structured facts, and sanitized provenance during review. The workflow is keyboard operable, has responsive no-overflow behavior at 390 px, and preserves legacy metadata mode when the feature flag is disabled.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
@@ -884,7 +886,7 @@ Compatibility status, verified through `$davneet-dgx-access` on July 16, 2026:
 - the preferred MiniCPM-V 4.5 package was rejected by the registry before download because it requires a newer Ollama version than the shared 0.24.0 runtime;
 - the shared runtime was not upgraded. Under the predeclared runtime-incompatibility replacement rule, the installed Qwen2.5-VL 32B Q4_K_M model occupies the fifth compatibility condition;
 - the operational five are Qwen2.5-VL 3B, Qwen2.5-VL 32B, Qwen3.5 9B-equivalent, Gemma 3 12B, and Mistral Small 3.1 24B;
-- all five accepted the same image and `visual-facts` JSON schema in a single cold, no-retry smoke attempt. This establishes only initial compatibility, not the required 20-item compatibility rate or a quality ranking;
+- all five accepted the same image and `visual-facts` JSON schema in a single cold, no-retry smoke attempt. The subsequent 20-item matrix supersedes that smoke for configuration eligibility and still does not establish a quality ranking;
 - full digests, parameters, quantizations, package licenses, and source evidence are recorded in `evaluation/configs/models.toml` and `evaluation/configs/model-candidate-evidence.json`;
 - the Qwen2.5-VL 3B baseline uses the Qwen Research License for non-commercial research; Qwen2.5-VL 32B, Qwen3.5 9B, and Mistral Small 3.1 use Apache 2.0; Gemma 3 uses the Gemma Terms of Use; MiniCPM has research-specific model-weight terms. License names must not be generalized across a model family.
 
@@ -1867,7 +1869,7 @@ Status: satisfied locally ahead of schedule on July 16, 2026. Backend determinis
 
 Exit: Gate 3 passes and the model/protocol decisions needed for the full study are known.
 
-Status on July 16, 2026: substantially implemented, Gate 3 still open. The CLI now covers preflight, strict schema execution, digest-verified warm compatibility execution with append-only resume, validation, multi-block normalization, blinding, filtered run accounting, and non-ranking compatibility reporting. The licensed 20-image pilot is materialized and hash-valid. Five installed conditions are digest-pinned and passed one cold schema smoke; MiniCPM was replaced under the runtime-incompatibility rule without upgrading Ollama. Remaining A5 work is executing the prepared 20-item compatibility run for all five conditions, a structured-facts-to-Qwen3.5 writer compatibility pass, pilot runtime/reviewer-burden estimates, and final freeze of the eligible candidate list. The one-image outputs must not be used to select a winner.
+Status on July 17, 2026: substantially implemented, Gate 3 still open. The CLI now covers preflight, strict schema execution, digest-verified warm compatibility execution with append-only resume and an absolute request deadline, validation, recovery-aware accounting, multi-block normalization, blinding, and generated non-ranking pilot reporting. The licensed 20-image matrix is complete: only Gemma 3 12B met the frozen 95% gate, so no quality winner was selected and the required two-challenger advancement set cannot yet be formed. Pilot evidence projects approximately 17.4 active inference hours for a 120-item five-model screen at the observed rate and a three-condition single-rated-repeat package of 360 outputs; the two-reviewer burden is 24/36/60 hours at explicit 2/3/5-minute planning scenarios and still requires observed calibration. Remaining A5 work is the structured-facts-to-Qwen3.5 writer compatibility pass and a candidate amendment/new compatibility check for at least one additional challenger.
 
 #### Work package A6: capstone stabilization — August 8–15
 
@@ -1990,13 +1992,13 @@ Not permitted during the deferral:
 ### P1: research harness minimum
 
 - [x] Create the offline evaluation package and initial `preflight`/`validate` CLI commands.
-- [x] Extend offline preflight into the first live system/model smoke and digest locking through `$davneet-dgx-access`; the 20-item compatibility rate remains pending.
+- [x] Extend offline preflight into live system/model smoke, digest locking, and the completed 20-item compatibility matrix through `$davneet-dgx-access`.
 - [x] Implement append-only immutable attempt records and schema validation.
 - [x] Implement canonical prompt/image/context/config hashing utilities and dataset hash verification.
 - [x] Expand the validated synthetic contract fixture into a separate licensed 20-image pilot set with license evidence and visual QA.
 - [x] Implement blinded reviewer packages with a separately ignored private map and identity-leakage stop.
 - [x] Implement multi-block normalization, filtered run accounting, anchored annotation schema/rubric, and compatibility reporting.
-- [ ] Run all five conditions across all 20 pilot images and verify the predeclared 95% structured-validity threshold.
+- [x] Run all five conditions across all 20 pilot images and verify the predeclared 95% structured-validity threshold; only Gemma 3 12B passed, so record a candidate amendment rather than lowering the gate.
 - [ ] Verify the fixed Qwen3.5 writer against structured facts from every candidate and estimate full-run/reviewer burden.
 
 ### P2: full research and paper
@@ -2080,12 +2082,13 @@ The next agent completes A5 without treating the one-image smoke as a quality re
 2. Re-check branch, status, tests, and A0 handoff evidence.
 3. Read and invoke `$davneet-dgx-access`; run its required current-status check before any live-state claim and do not duplicate its connection profile in project files.
 4. Re-run the licensed pilot preflight and confirm the five full digests against the live inventory without changing the shared runtime.
-5. Execute the 20-item compatibility block under `compatibility-criteria.toml`; preserve every failure and do not inspect comparative quality to alter membership.
+5. Treat the completed 20-item compatibility evidence as configuration screening only; do not lower the 95% threshold or infer factual quality from it.
 6. Verify that structured facts from every candidate pass through the pinned Qwen3.5 writer and common metadata schema.
-7. Normalize all run blocks, complete accounting, generate the single five-condition blinded package, and keep its mapping private.
-8. Estimate full-run duration, storage, repeat count cost, claim count, and reviewer burden from the pilot without using pilot quality effects to choose a significance-friendly sample size.
-9. Keep live DGX addresses, credentials, transient reachability, raw run directories, and private reviewer maps out of Git; commit only sanitized evidence and approved locked digests.
-10. Run backend/evaluation tests, schema and dataset validation, pilot preflight, and `git diff --check`, then hand off Gate 3 evidence and remaining blockers.
+7. Draft and approve a candidate amendment because only one challenger passed; run any new challenger through the same compatibility contract before comparative quality inspection.
+8. Normalize eligible run blocks, complete accounting, generate the appropriate blinded package, and keep its mapping private.
+9. Use the generated runtime, storage, claim-count, and reviewer-burden scenarios for planning, then collect observed reviewer calibration time before protocol freeze; never use pilot quality effects to choose a significance-friendly sample size.
+10. Keep live DGX addresses, credentials, transient reachability, raw run directories, and private reviewer maps out of Git; commit only sanitized evidence and approved locked digests.
+11. Run backend/evaluation tests, schema and dataset validation, pilot preflight, and `git diff --check`, then hand off Gate 3 evidence and remaining blockers.
 
 Do not pull models, change public-network exposure, begin participant recruitment, or run full experiments without the applicable Gate 0/Gate 1 approvals.
 

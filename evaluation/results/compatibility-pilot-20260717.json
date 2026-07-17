@@ -1,0 +1,156 @@
+{
+  "accounting": {
+    "expected_analyzed_outcomes": 100,
+    "failed_outcomes": 15,
+    "legacy_implementation_deviation_records": 1,
+    "missing_outcomes": 0,
+    "observed_analyzed_outcomes": 100,
+    "raw_measured_records": 105,
+    "superseded_transport_records": 4,
+    "unexpected_outcomes": 0,
+    "valid_outcomes": 85
+  },
+  "advancement": {
+    "eligible_challenger_count": 1,
+    "eligible_models": [
+      "gemma3-12b"
+    ],
+    "required_eligible_challengers": 2,
+    "status": "candidate_amendment_required_before_quality_screening"
+  },
+  "collection_window": {
+    "analyzed_attempt_wall_hours": 2.904,
+    "elapsed_hours_including_operational_pauses": 4.025,
+    "ended_at": "2026-07-17T01:19:12.670964+00:00",
+    "raw_attempt_record_bytes": 781549,
+    "started_at": "2026-07-16T21:17:42.201033+00:00"
+  },
+  "criteria_id": "compatibility-v1",
+  "deviation_reference": "results/pilot-collection-deviations-20260717.json",
+  "evidence_version": 1,
+  "experiment_id": "seo-studio-pilot-v1",
+  "frozen_contract": {
+    "criteria_sha256": "98391d354721fca945a29f06c57ad0773a5c4c7c9baafb9e3c1d8482403b66b3",
+    "dataset_items": 20,
+    "hidden_retries": 0,
+    "minimum_schema_valid_rate": 0.95,
+    "models": 5,
+    "models_config_sha256": "3d468e55b75997fa2fb60d5c87a53bee4e53be2ed9c118359281545679c1d997",
+    "output_token_limit": 384,
+    "seed": 20260716,
+    "study_config_sha256": "0912fb1c27f3c6b3a8ba03b6bf6ef4fff13d9815be83f167562f6ab448b6062a",
+    "temperature": 0.0,
+    "thinking_mode": "disabled",
+    "timeout_seconds": 240.0
+  },
+  "limitations": [
+    "Compatibility outcomes do not measure factual quality or establish a model ranking.",
+    "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput.",
+    "Only public licensed images and fictional contexts traversed the temporarily approved direct path.",
+    "The predeclared two-eligible-challenger advancement requirement was not met and must not be relaxed opportunistically."
+  ],
+  "planning_estimates": {
+    "median_visible_fact_claims_per_valid_output": 10,
+    "note": "Reviewer time scenarios are planning assumptions, not observed review-time estimates; calibrate before protocol freeze.",
+    "planned_three_condition_outputs_for_one_rated_repeat": 360,
+    "projected_120_item_five_model_screening_wall_hours_at_pilot_rate": 17.4,
+    "reviewer_burden_scenarios": {
+      "2_minutes_per_output_two_reviewers_hours": 24.0,
+      "3_minutes_per_output_two_reviewers_hours": 36.0,
+      "5_minutes_per_output_two_reviewers_hours": 60.0
+    }
+  },
+  "protocol_version": "2.1-pilot",
+  "quality_ranking_permitted": false,
+  "results_in_configured_non_ranked_order": [
+    {
+      "digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "failed": 4,
+      "failure_categories": {
+        "schema_invalid": 4
+      },
+      "median_wall_seconds": 49.395,
+      "model_id": "qwen25vl-3b-baseline",
+      "observed": 20,
+      "ollama_name": "qwen2.5vl:3b",
+      "p95_wall_seconds_nearest_rank": 137.887,
+      "schema_valid_rate": 0.8,
+      "threshold_met": false,
+      "valid": 16
+    },
+    {
+      "digest": "3edc3a52fe988de3e8ba4f99ac1f21a1bbc35e1af32a74983fe4e1667d6b6188",
+      "failed": 5,
+      "failure_categories": {
+        "inference_timeout": 5
+      },
+      "median_wall_seconds": 180.63,
+      "model_id": "qwen25vl-32b-compatibility-fallback",
+      "observed": 20,
+      "ollama_name": "qwen2.5vl:32b",
+      "p95_wall_seconds_nearest_rank": 240.256,
+      "schema_valid_rate": 0.75,
+      "threshold_met": false,
+      "valid": 15
+    },
+    {
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "failed": 2,
+      "failure_categories": {
+        "schema_invalid": 2
+      },
+      "median_wall_seconds": 62.039,
+      "model_id": "qwen35-9b",
+      "observed": 20,
+      "ollama_name": "qwen3.5:latest",
+      "p95_wall_seconds_nearest_rank": 178.415,
+      "schema_valid_rate": 0.9,
+      "threshold_met": false,
+      "valid": 18
+    },
+    {
+      "digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
+      "failed": 1,
+      "failure_categories": {
+        "schema_invalid": 1
+      },
+      "median_wall_seconds": 40.439,
+      "model_id": "gemma3-12b",
+      "observed": 20,
+      "ollama_name": "gemma3:12b",
+      "p95_wall_seconds_nearest_rank": 45.199,
+      "schema_valid_rate": 0.95,
+      "threshold_met": true,
+      "valid": 19
+    },
+    {
+      "digest": "b9aaf0c2586a8ed8105feab808c0f034bd4d346203822f048e2366165a13f4ea",
+      "failed": 3,
+      "failure_categories": {
+        "inference_timeout": 3
+      },
+      "median_wall_seconds": 159.83,
+      "model_id": "mistral-small31-24b",
+      "observed": 20,
+      "ollama_name": "mistral-small3.1:24b",
+      "p95_wall_seconds_nearest_rank": 240.226,
+      "schema_valid_rate": 0.85,
+      "threshold_met": false,
+      "valid": 17
+    }
+  ],
+  "run_id": "pilot-compatibility-clean6-20260716",
+  "runtime": {
+    "access_authority": "$davneet-dgx-access",
+    "git_commits": [
+      "20e33e817dfbbd2820155cd88dfc17ad6bc416b1",
+      "7c088675591c81bc098b2b8cf21e017a00e2c1a2",
+      "cb98235883d42d9052622a1ebf41f0bcbe7fb9f5"
+    ],
+    "ollama_version": "0.24.0",
+    "system_snapshot_ref": "dgx-preflight-20260716t135442-0400",
+    "temporary_collection_path": "direct public-data-only path under documented network-verification deferral",
+    "tracked_worktree_clean_for_final_segment": true
+  },
+  "stage": "20-image configuration compatibility pilot"
+}

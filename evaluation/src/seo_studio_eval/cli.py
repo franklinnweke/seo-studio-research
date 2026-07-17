@@ -9,6 +9,7 @@ from .accounting import build_run_accounting
 from .blinding import build_blinded_package
 from .normalization import normalize_run_directories
 from .pilot import run_compatibility_pilot
+from .pilot_reporting import build_pilot_report
 from .preflight import run_preflight
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
@@ -65,6 +66,15 @@ def build_parser() -> argparse.ArgumentParser:
     report = commands.add_parser("compatibility-report", help="Render a non-ranking compatibility evidence report")
     report.add_argument("--evidence", type=Path, required=True)
     report.add_argument("--output", type=Path, required=True)
+    pilot_report = commands.add_parser(
+        "pilot-report", help="Generate sanitized non-ranking evidence from a complete pilot block"
+    )
+    pilot_report.add_argument("--config", type=Path, required=True)
+    pilot_report.add_argument("--criteria", type=Path, required=True)
+    pilot_report.add_argument("--run-dir", type=Path, required=True)
+    pilot_report.add_argument("--evidence", type=Path, required=True)
+    pilot_report.add_argument("--output", type=Path, required=True)
+    pilot_report.add_argument("--deviation-reference", default="")
     return parser
 
 
@@ -145,6 +155,26 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "compatibility-report":
             output_path = build_compatibility_report(args.evidence, args.output)
             print(json.dumps({"status": "written", "report_path": str(output_path)}, sort_keys=True))
+            return 0
+        if args.command == "pilot-report":
+            evidence_path, report_path = build_pilot_report(
+                args.config,
+                args.criteria,
+                args.run_dir,
+                args.evidence,
+                args.output,
+                args.deviation_reference,
+            )
+            print(
+                json.dumps(
+                    {
+                        "status": "written",
+                        "evidence_path": str(evidence_path),
+                        "report_path": str(report_path),
+                    },
+                    sort_keys=True,
+                )
+            )
             return 0
     except (OSError, RuntimeError, ValueError, ValidationError) as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}, sort_keys=True), file=sys.stderr)

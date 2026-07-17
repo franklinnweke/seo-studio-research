@@ -19,6 +19,11 @@ class OutputTransport:
         return {"parsed_payload": self.payload, "done_reason": "stop"}
 
 
+class ResetTransport:
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        raise ConnectionResetError("synthetic reset")
+
+
 def make_spec(
     attempt_id: str,
     model_id: str = "qwen35-9b",
@@ -150,3 +155,44 @@ def test_multi_directory_normalization_and_filtered_accounting(tmp_path: Path) -
     assert accounting.status == "complete"
     assert accounting.expected_attempts == 5
     assert accounting.observed_attempts == 5
+    assert accounting.raw_attempts == 5
+
+
+def test_accounting_resolves_recorded_transport_recovery(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    image_id = "healthcare-doctor-consultation-001"
+    failed = execute_attempt(
+        make_spec("attempt-c1", image_id=image_id).model_copy(
+            update={"collection_attempt": 1}
+        ),
+        ResetTransport(),
+    )
+    recovered = execute_attempt(
+        make_spec("attempt-c2", image_id=image_id).model_copy(
+            update={
+                "collection_attempt": 2,
+                "supersedes_attempt_id": failed.attempt_id,
+            }
+        ),
+        OutputTransport({"alt_text": "A clinician meets a patient."}),
+    )
+    write_attempt_record(run_dir, failed)
+    write_attempt_record(run_dir, recovered)
+
+    evaluation_root = Path(__file__).resolve().parents[1]
+    shutil.copytree(evaluation_root / "configs", tmp_path / "configs")
+    shutil.copytree(evaluation_root / "dataset", tmp_path / "dataset")
+    accounting = build_run_accounting(
+        tmp_path / "configs" / "pilot.toml",
+        run_dir,
+        tmp_path / "accounting.json",
+        model_ids=["qwen35-9b"],
+        image_ids=[image_id],
+    )
+
+    assert accounting.status == "complete"
+    assert accounting.observed_attempts == 1
+    assert accounting.raw_attempts == 2
+    assert accounting.valid_attempts == 1
+    assert accounting.superseded_transport_attempts == 1
+    assert accounting.duplicate_attempts == []

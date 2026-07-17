@@ -1,0 +1,28 @@
+{
+  "evidence_version": 1,
+  "quality_ranking_permitted": false,
+  "run_id": "pilot-compatibility-clean6-20260716",
+  "incidents": [
+    {
+      "classification": "legacy_timeout_duplicate_preserved",
+      "effect_on_analysis": "The first Mistral pharmacy timeout is the analyzed outcome; the second immutable timeout record is excluded as one implementation-deviation record.",
+      "measured_records_created": 2,
+      "analyzed_outcomes": 1
+    },
+    {
+      "classification": "unrecorded_local_socket_stall_controller_interrupted",
+      "duration": "approximately 17 minutes",
+      "diagnosis": "A required read-only DGX status check found the host and Ollama healthy with no model loaded, while the local HTTP client remained blocked waiting for response headers.",
+      "effect_on_analysis": "No attempt record was created for the unresolved socket call. The existing preceding transport failure remained immutable and the same pending recovery key resumed after the client deadline repair.",
+      "remediation_commit": "20e33e817dfbbd2820155cd88dfc17ad6bc416b1"
+    },
+    {
+      "classification": "temporary_direct_public_data_collection_path",
+      "effect_on_analysis": "The compatibility matrix used only committed public licensed images, fictional contexts, and non-sensitive prompts. Direct-path instability is reported as an infrastructure limitation and the path is not accepted as the target production topology."
+    },
+    {
+      "classification": "legacy_dirty_marker_scope",
+      "effect_on_analysis": "Early records marked the worktree dirty because Git status included an unrelated untracked user directory. Tracked research files matched the recorded commit; later provenance checks ignore untracked files and the final segment is marked clean."
+    }
+  ]
+}
