@@ -14,6 +14,7 @@ from .preflight import run_preflight
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
 from .validation import validate_run_directory
+from .writer_compatibility import run_writer_compatibility
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -75,6 +76,16 @@ def build_parser() -> argparse.ArgumentParser:
     pilot_report.add_argument("--evidence", type=Path, required=True)
     pilot_report.add_argument("--output", type=Path, required=True)
     pilot_report.add_argument("--deviation-reference", default="")
+    writer = commands.add_parser(
+        "writer-compatibility", help="Pass deterministic candidate facts through the pinned writer"
+    )
+    writer.add_argument("--config", type=Path, required=True)
+    writer.add_argument("--criteria", type=Path, required=True)
+    writer.add_argument("--source-run-dir", type=Path, required=True)
+    writer.add_argument("--base-url", required=True)
+    writer.add_argument("--output-dir", type=Path, required=True)
+    writer.add_argument("--run-id", required=True)
+    writer.add_argument("--system-snapshot-ref", required=True)
     return parser
 
 
@@ -176,6 +187,23 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0
+        if args.command == "writer-compatibility":
+            summary, summary_path = run_writer_compatibility(
+                args.config,
+                args.criteria,
+                args.source_run_dir,
+                args.base_url,
+                args.output_dir,
+                args.run_id,
+                args.system_snapshot_ref,
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(mode="json"), "summary_path": str(summary_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status == "complete" and summary.threshold_met else 1
     except (OSError, RuntimeError, ValueError, ValidationError) as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
