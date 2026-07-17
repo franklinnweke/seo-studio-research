@@ -1,6 +1,6 @@
 {
   "amendment_version": 1,
-  "status": "selected_pending_additive_pull_digest_lock_and_compatibility",
+  "status": "blocked_by_current_shared_ollama_runtime_no_model_layers_installed",
   "date": "2026-07-17",
   "trigger": {
     "reason": "A pre-freeze catalog audit found that Gemma 4 was publicly available before the July 2026 candidate set was finalized. The installed-inventory-first selection had therefore treated Gemma 3 as current without a defensible recency justification.",
@@ -53,5 +53,17 @@
     "report one-shot and pipeline validity separately",
     "do not inspect comparative metadata quality or select a winner before the amendment is complete and the reviewer package is blinded"
   ],
+  "pull_attempt": {
+    "result": "registry_manifest_rejected_http_412",
+    "runtime_version": "0.24.0",
+    "registry_message": "The selected package requires a newer Ollama version.",
+    "model_layers_installed": false,
+    "shared_runtime_changed": false,
+    "existing_models_changed": false,
+    "post_attempt_service_healthy": true,
+    "post_attempt_models_loaded": 0,
+    "access_authority": "$davneet-dgx-access"
+  },
+  "next_decision": "Either obtain separate authorization for a project-isolated newer Ollama runtime and model store, or retain Gemma 4 as a documented runtime-incompatible exclusion and narrow the paper's model claim to candidates compatible with the deployed Ollama 0.24.0 stack. Do not upgrade the shared service implicitly.",
   "advancement_rule": "If Gemma 4 meets the unchanged 95% pipeline-validity gate, it supersedes Gemma 3 as the current-generation Gemma challenger in quality screening. Gemma 3 remains reported as historical compatibility evidence. If Gemma 4 fails, retain that failure and document whether Gemma 3 remains only as a legacy-generation comparator or the protocol requires reassessment."
 }

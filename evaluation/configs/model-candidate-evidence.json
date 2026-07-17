@@ -49,7 +49,7 @@
       "license": "Apache-2.0",
       "license_source": "https://ai.google.dev/gemma/docs/core/model_card_4",
       "ollama_source": "https://ollama.com/library/gemma4/tags",
-      "pilot_status": "selected_pre_freeze_pending_additive_pull_digest_lock_and_compatibility",
+      "pilot_status": "runtime_incompatible_manifest_http_412_no_layers_installed_pending_isolated_runtime_decision",
       "selection_basis": "current same-size Gemma generation identified by a catalog audit before final protocol freeze and before comparative quality inspection"
     },
     {
