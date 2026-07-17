@@ -1,13 +1,13 @@
 {
-  "evidence_version": 1,
-  "last_checked": "2026-07-16",
+  "evidence_version": 2,
+  "last_checked": "2026-07-17",
   "models": [
     {
       "id": "qwen25vl-3b-baseline",
       "license": "Qwen Research License (non-commercial research use)",
       "license_source": "https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/main/LICENSE",
       "ollama_source": "https://ollama.com/library/qwen2.5vl:3b",
-      "pilot_status": "installed_and_single_image_schema_compatible"
+      "pilot_status": "full_matrix_failed_16_of_20"
     },
     {
       "id": "minicpm-v45-8b",
@@ -22,7 +22,7 @@
       "license": "Apache-2.0",
       "license_source": "https://huggingface.co/Qwen/Qwen2.5-VL-32B-Instruct",
       "ollama_source": "https://ollama.com/library/qwen2.5vl:32b",
-      "pilot_status": "installed_and_single_image_schema_compatible",
+      "pilot_status": "full_matrix_failed_15_of_20",
       "replacement_for": "minicpm-v45-8b",
       "replacement_basis": "predeclared runtime-version incompatibility; selected before comparative quality analysis"
     },
@@ -31,21 +31,37 @@
       "license": "Apache-2.0",
       "license_source": "https://huggingface.co/Qwen/Qwen3.5-9B",
       "ollama_source": "https://ollama.com/library/qwen3.5",
-      "pilot_status": "installed_and_single_image_schema_compatible"
+      "pilot_status": "full_matrix_failed_18_of_20_writer_role_retained"
     },
     {
       "id": "gemma3-12b",
       "license": "Gemma Terms of Use",
       "license_source": "https://ai.google.dev/gemma/terms",
       "ollama_source": "https://ollama.com/library/gemma3:12b",
-      "pilot_status": "installed_and_single_image_schema_compatible"
+      "pilot_status": "full_matrix_passed_19_of_20"
     },
     {
       "id": "mistral-small31-24b",
       "license": "Apache-2.0",
       "license_source": "https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503",
       "ollama_source": "https://ollama.com/library/mistral-small3.1:24b",
-      "pilot_status": "installed_and_single_image_schema_compatible"
+      "pilot_status": "full_matrix_failed_17_of_20"
+    },
+    {
+      "id": "qwen36-27b-amendment",
+      "license": "Apache-2.0",
+      "license_source": "https://github.com/QwenLM/Qwen3.6",
+      "ollama_source": "live installed qwen3.6:27b package; private inventory retained by $davneet-dgx-access",
+      "pilot_status": "amendment_preflight_ready_execution_pending",
+      "selection_basis": "already installed, vision-capable, digest-pinned, no pull or runtime change, selected before output inspection"
+    },
+    {
+      "id": "qwen36-35b-a3b-amendment",
+      "license": "Apache-2.0",
+      "license_source": "https://github.com/QwenLM/Qwen3.6",
+      "ollama_source": "live installed qwen3.6:latest package; private inventory retained by $davneet-dgx-access",
+      "pilot_status": "amendment_preflight_ready_execution_pending",
+      "selection_basis": "already installed, vision-capable, digest-pinned, no pull or runtime change, selected before output inspection"
     }
   ]
 }

@@ -1,0 +1,16 @@
+schema_version = 1
+experiment_id = "seo-studio-pilot-amendment-v1"
+protocol_version = "2.1-pilot-amendment"
+study_mode = "pilot"
+dataset_split = "pilot"
+dataset_manifest = "dataset/manifest.jsonl"
+expected_dataset_items = 20
+required_domains = ["healthcare", "retail_product", "hospitality_local_service", "education_professional_service"]
+required_purposes = ["informative", "decorative", "functional", "text", "complex", "redundant"]
+models_config = "configs/models-amendment.toml"
+output_dir = "runs/seo-studio-pilot-amendment-v1"
+model_ids = ["qwen36-27b-amendment", "qwen36-35b-a3b-amendment"]
+repeats = 1
+seed = 20260716
+require_frozen_models = false
+allow_dirty_worktree = true

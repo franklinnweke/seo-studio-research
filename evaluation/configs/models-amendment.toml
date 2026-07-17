@@ -1,0 +1,23 @@
+schema_version = 1
+
+[[models]]
+id = "qwen36-27b-amendment"
+ollama_name = "qwen3.6:27b"
+expected_digest = "a50eda8ed977ab48a12431878896b27ffd5cef552c17af3317d9623b939a7f1e"
+family = "Qwen3.6"
+parameters = "27.8B"
+quantization = "Q4_K_M"
+role = "vision_candidate_amendment"
+license = "Apache-2.0"
+frozen = false
+
+[[models]]
+id = "qwen36-35b-a3b-amendment"
+ollama_name = "qwen3.6:latest"
+expected_digest = "07d35212591fc27746f0a317c975a6d68754fb38e9053d82e25f06057af28522"
+family = "Qwen3.6 MoE"
+parameters = "36.0B (35B-A3B family)"
+quantization = "Q4_K_M"
+role = "vision_candidate_amendment"
+license = "Apache-2.0"
+frozen = false

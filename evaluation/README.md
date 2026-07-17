@@ -6,6 +6,7 @@ Implemented commands:
 
 ```bash
 python -m seo_studio_eval preflight --config configs/pilot.toml
+python -m seo_studio_eval preflight --config configs/pilot-amendment.toml
 python -m seo_studio_eval validate --run-dir runs/<experiment-id>
 python -m seo_studio_eval compatibility-smoke --config configs/pilot.toml --model-id qwen35-9b --image-id healthcare-doctor-consultation-001 --base-url http://127.0.0.1:11435 --output-dir runs/<experiment-id> --timeout-seconds 240
 python -m seo_studio_eval compatibility-pilot --config configs/pilot.toml --criteria configs/compatibility-criteria.toml --base-url http://127.0.0.1:<local-tunnel-port> --output-dir runs/<pilot-block> --run-id <pilot-run-id> --system-snapshot-ref <private-snapshot-reference> --max-new-attempts 10
@@ -43,3 +44,5 @@ The completed July 16–17 compatibility block is summarized in `results/compati
 `configs/writer-compatibility-criteria.toml` freezes the separate Qwen3.5 writer check. It deterministically chooses the lexicographically first image with schema-valid facts from every candidate, sends no pixels to the writer, labels visual facts/page context/brand context/confirmed purpose separately, disables thinking, fixes the context/output limits, allows no hidden validation retry, and requires valid purpose-aware metadata for all five source-fact conditions.
 
 The completed writer pass is summarized in `results/writer-compatibility-20260717.json` and `.md`. The pinned Qwen3.5 writer produced valid purpose-aware metadata for all five candidate-fact inputs (5/5), with no image bytes and no hidden retries. This is compatibility evidence, not a metadata-quality comparison.
+
+The Qwen3.6 candidate amendment is isolated in `configs/candidate-amendment-20260717.json`, `configs/models-amendment.toml`, and `configs/pilot-amendment.toml`. It supplements rather than rewrites the original five-model matrix. The same dataset, prompt, schema, seed, decoding controls, timeout, no-hidden-retry rule, and 95% compatibility gate remain in force. Both amendment packages were already installed and digest-pinned through `$davneet-dgx-access` before output inspection; the amendment requires no model pull or shared-runtime change. Comparative quality inspection remains prohibited until the compatibility outcomes are accounted and the advancement set exists.

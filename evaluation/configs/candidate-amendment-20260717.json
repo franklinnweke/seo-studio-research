@@ -1,0 +1,50 @@
+{
+  "amendment_version": 1,
+  "status": "execution_authorized_supervisor_acknowledgement_pending_before_protocol_freeze",
+  "date": "2026-07-17",
+  "trigger": {
+    "evidence": "results/compatibility-pilot-20260717.json",
+    "reason": "Only one non-baseline challenger met the predeclared 95% compatibility gate, so the required two-eligible-challenger advancement set could not be formed."
+  },
+  "controls_unchanged": {
+    "dataset": "the same licensed 20-image pilot",
+    "prompt": "vision-facts-v1",
+    "schema": "visual-facts.schema.json",
+    "temperature": 0,
+    "seed": 20260716,
+    "thinking": false,
+    "output_token_limit": 384,
+    "timeout_seconds": 240,
+    "hidden_retries": 0,
+    "minimum_schema_valid_rate": 0.95
+  },
+  "selection_rule": [
+    "already installed before amendment execution",
+    "local open-weight package rather than a cloud model",
+    "vision capability confirmed by the live Ollama package",
+    "Apache-2.0 license confirmed by the live package and official Qwen repository",
+    "full immutable digest available",
+    "fits current DGX capacity without a pull or runtime upgrade",
+    "selected without comparative output-quality inspection"
+  ],
+  "candidates": [
+    {
+      "id": "qwen36-27b-amendment",
+      "ollama_name": "qwen3.6:27b",
+      "digest": "a50eda8ed977ab48a12431878896b27ffd5cef552c17af3317d9623b939a7f1e",
+      "parameters": "27.8B dense",
+      "quantization": "Q4_K_M",
+      "package_bytes": 17420432739
+    },
+    {
+      "id": "qwen36-35b-a3b-amendment",
+      "ollama_name": "qwen3.6:latest",
+      "digest": "07d35212591fc27746f0a317c975a6d68754fb38e9053d82e25f06057af28522",
+      "parameters": "36.0B MoE (35B-A3B family)",
+      "quantization": "Q4_K_M",
+      "package_bytes": 23938333577
+    }
+  ],
+  "official_source": "https://github.com/QwenLM/Qwen3.6",
+  "interpretation": "These conditions supplement rather than overwrite the original matrix. Eligibility is determined only by the unchanged compatibility gate; quality ranking remains prohibited until the advancement set exists."
+}
