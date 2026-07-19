@@ -1,0 +1,67 @@
+{
+  "by_source_model": {
+    "gemma3-12b": {
+      "source_cells": 20,
+      "upstream_failures": 1,
+      "upstream_valid_facts": 19,
+      "writer_failed": 3,
+      "writer_outcomes": 19,
+      "writer_valid": 16
+    },
+    "qwen25vl-3b-baseline": {
+      "source_cells": 20,
+      "upstream_failures": 4,
+      "upstream_valid_facts": 16,
+      "writer_failed": 2,
+      "writer_outcomes": 16,
+      "writer_valid": 14
+    },
+    "qwen35-9b": {
+      "source_cells": 20,
+      "upstream_failures": 1,
+      "upstream_valid_facts": 19,
+      "writer_failed": 3,
+      "writer_outcomes": 19,
+      "writer_valid": 16
+    }
+  },
+  "comparative_quality_inspected": false,
+  "criteria_id": "writer-matrix-v1",
+  "criteria_sha256": "f3d23ce921be3aa61cdbf8358f28bc3f7398da4b56e3e45d95865d9f03fea77c",
+  "evidence_version": 1,
+  "expected_source_cells": 60,
+  "expected_writer_calls": 54,
+  "failed_writer_outcomes": 8,
+  "git_commits": [
+    "08e71275a691713f9c365735d0648d329c5dc593"
+  ],
+  "limitations": [
+    "This report describes population construction and structural reliability only.",
+    "It does not score factual quality, select a winner, or reveal the blinded condition map.",
+    "Human quality conclusions require the frozen rubric, calibration, blinded annotation, and adjudication."
+  ],
+  "models_config_sha256": "3d468e55b75997fa2fb60d5c87a53bee4e53be2ed9c118359281545679c1d997",
+  "observed_source_cells": 60,
+  "observed_writer_outcomes": 54,
+  "ollama_version": "0.24.0",
+  "pending_writer_calls": 0,
+  "pixels_sent_to_writer": false,
+  "prompt_template_sha256": "21e6bc16b4929c5e274354dc4a8148d8b3744e1c24c1b146480790a2776a7ae4",
+  "quality_ranking_permitted": false,
+  "raw_writer_records": 54,
+  "repair_run_id": "truncation-repair-20260717",
+  "run_id": "writer-matrix-20260718",
+  "schema_sha256": "dd21f55cbe590dad40161470b9707f3f0c6ad94b8be08051385709115209c8a8",
+  "source_run_id": "pilot-compatibility-clean6-20260716",
+  "stage": "fixed-writer metadata quality-screening population construction",
+  "status": "complete",
+  "study_config_sha256": "0912fb1c27f3c6b3a8ba03b6bf6ef4fff13d9815be83f167562f6ab448b6062a",
+  "superseded_transport_records": 0,
+  "total_pipeline_cells": 60,
+  "total_pipeline_failures": 14,
+  "total_pipeline_valid": 46,
+  "upstream_failures": 6,
+  "valid_writer_outcomes": 46,
+  "writer_digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+  "writer_model_id": "qwen35-9b"
+}

@@ -3,13 +3,14 @@ from pathlib import Path
 from typing import Any
 
 from seo_studio_eval.blinding import build_blinded_package
+from seo_studio_eval.calibration import build_calibration_package
 from seo_studio_eval.config import load_study
 from seo_studio_eval.dataset import load_manifest
 from seo_studio_eval.normalization import normalize_metadata_pipeline
 from seo_studio_eval.records import write_attempt_record
 from seo_studio_eval.runner import AttemptSpec, execute_attempt
 from seo_studio_eval.schemas import InputEvidence, ModelIdentity, PromptEvidence, VisualFactsPayload
-from seo_studio_eval.writer_matrix import run_writer_matrix
+from seo_studio_eval.writer_matrix import build_writer_matrix_report, run_writer_matrix
 
 
 class MatrixTransport:
@@ -190,6 +191,13 @@ def test_writer_matrix_preserves_upstream_failure_and_builds_balanced_blind_pack
     assert summary.upstream_failures == 1
     assert len(transport.requests) == 5
     assert all("images" not in request for request in transport.requests)
+    evidence_path, report_path = build_writer_matrix_report(
+        writer_dir / "writer-matrix-summary.json",
+        tmp_path / "results" / "writer-matrix.json",
+        tmp_path / "results" / "writer-matrix.md",
+    )
+    assert json.loads(evidence_path.read_text())["quality_ranking_permitted"] is False
+    assert "Do not use this report to rank" in report_path.read_text()
 
     normalized_summary, normalized_path = normalize_metadata_pipeline(
         [source_dir],
@@ -218,3 +226,15 @@ def test_writer_matrix_preserves_upstream_failure_and_builds_balanced_blind_pack
     assert blind_summary.invalid_items == 1
     assert "qwen35-9b" not in package_path.read_text()
     assert "writer_attempt_id" in mapping_path.read_text()
+
+    calibration_summary, calibration_path, timing_path = build_calibration_package(
+        package_path,
+        tmp_path / "calibration",
+        seed=20260716,
+        image_count=1,
+        expected_conditions=3,
+    )
+    assert calibration_summary.status == "ready"
+    assert calibration_summary.items_written == 3
+    assert len(calibration_path.read_text().splitlines()) == 3
+    assert len(json.loads(timing_path.read_text())["items"]) == 3

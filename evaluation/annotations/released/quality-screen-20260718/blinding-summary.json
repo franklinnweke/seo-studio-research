@@ -1,0 +1,13 @@
+{
+  "conditions_blinded": 3,
+  "errors": [],
+  "invalid_items": 14,
+  "items_per_condition": {
+    "C001": 20,
+    "C002": 20,
+    "C003": 20
+  },
+  "items_written": 60,
+  "status": "ready",
+  "valid_items": 46
+}

@@ -1,0 +1,36 @@
+{
+  "release_version": 1,
+  "created_date": "2026-07-18",
+  "blinding_seed": 20260716,
+  "status": "ready",
+  "population": {
+    "conditions": 3,
+    "images": 20,
+    "items": 60,
+    "items_per_condition": 20,
+    "valid_items": 46,
+    "invalid_items": 14
+  },
+  "checks": {
+    "balanced_population": true,
+    "unique_review_item_ids": true,
+    "built_in_identity_leakage_scan": "clean",
+    "independent_identity_string_scan": "clean",
+    "comparative_quality_inspected_before_blinding": false
+  },
+  "sha256": {
+    "blinding_summary": "534f7cc3614c912f20532dbbeb2b3ea85736f64bdad29a22ba8fa5405baa276c",
+    "review_items": "296761a85962202b9bf2905202cbe3046be98c2bbb78dbd142bd306e29f3ba1c",
+    "calibration_items": "2e485e1294d47abd53042dc22d96c311c05d9beb355fe9affe802ee7f64247db",
+    "calibration_summary": "bb1d59aa2cd9ebcbc3d400566f0ac430165d039901e04d5c1fddc3cbc4ed3489",
+    "reviewer_timing_template": "8f0b80f5ec27b438e1892b532d045475c04286b6d12d326cd12e75115199b58f",
+    "private_reviewer_map": "f5f937672022aaa9bb2f5afac0ac3c7e5f07ced8abba354041a6ff9b61e87969",
+    "private_normalized_metadata": "25f667de703836f60e74364e39ea67355df094bdd29fa9ee37773ae8d4663cce",
+    "private_writer_summary": "baf040d4be573ba957c592fd8286192434d79d880b36d27be8ac9aa70af3acfb"
+  },
+  "privacy": {
+    "condition_map_committed": false,
+    "raw_writer_records_committed": false,
+    "private_paths_ignored": true
+  }
+}

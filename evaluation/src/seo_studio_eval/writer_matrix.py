@@ -566,3 +566,54 @@ def _write_summary(path: Path, summary: WriterMatrixSummary) -> None:
     temporary = path.with_suffix(".json.tmp")
     temporary.write_text(json.dumps(summary.model_dump(mode="json"), indent=2, sort_keys=True) + "\n")
     temporary.replace(path)
+
+
+def build_writer_matrix_report(
+    summary_path: Path,
+    evidence_path: Path,
+    report_path: Path,
+) -> tuple[Path, Path]:
+    summary = WriterMatrixSummary.model_validate_json(summary_path.read_text())
+    if summary.status != "complete":
+        raise ValueError("Writer matrix report requires a complete run")
+    total_pipeline_failures = summary.upstream_failures + summary.failed_writer_outcomes
+    total_pipeline_valid = summary.valid_writer_outcomes
+    evidence = {
+        "evidence_version": 1,
+        "stage": "fixed-writer metadata quality-screening population construction",
+        "quality_ranking_permitted": False,
+        "pixels_sent_to_writer": False,
+        **summary.model_dump(mode="json"),
+        "total_pipeline_cells": summary.expected_source_cells,
+        "total_pipeline_valid": total_pipeline_valid,
+        "total_pipeline_failures": total_pipeline_failures,
+        "limitations": [
+            "This report describes population construction and structural reliability only.",
+            "It does not score factual quality, select a winner, or reveal the blinded condition map.",
+            "Human quality conclusions require the frozen rubric, calibration, blinded annotation, and adjudication.",
+        ],
+    }
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
+    lines = [
+        "# Fixed-writer metadata matrix",
+        "",
+        "This is structural, non-ranking evidence for the blinded quality-screening population.",
+        "",
+        f"- Source cells: {summary.expected_source_cells}",
+        f"- Planned and observed writer calls: {summary.expected_writer_calls}/{summary.observed_writer_outcomes}",
+        f"- Writer-valid outcomes: {summary.valid_writer_outcomes}",
+        f"- Writer-invalid outcomes: {summary.failed_writer_outcomes}",
+        f"- Preserved upstream failures: {summary.upstream_failures}",
+        f"- Total valid pipeline cells: {total_pipeline_valid}/{summary.expected_source_cells}",
+        f"- Total explicit pipeline failures: {total_pipeline_failures}/{summary.expected_source_cells}",
+        f"- Transport recoveries: {summary.superseded_transport_records}",
+        "- Pixels sent to writer: no",
+        "- Comparative quality inspected: no",
+        "",
+        "Do not use this report to rank metadata quality. Use the leakage-checked blinded package and frozen human-review protocol.",
+        "",
+    ]
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text("\n".join(lines))
+    return evidence_path, report_path

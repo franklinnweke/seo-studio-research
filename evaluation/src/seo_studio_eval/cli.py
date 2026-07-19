@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from .accounting import build_run_accounting
 from .blinding import build_blinded_package
+from .calibration import build_calibration_package
 from .normalization import normalize_metadata_pipeline, normalize_run_directories
 from .pilot import run_compatibility_pilot
 from .pilot_reporting import build_pilot_report
@@ -20,7 +21,7 @@ from .truncation_repair import (
 )
 from .validation import validate_run_directory
 from .writer_compatibility import build_writer_report, run_writer_compatibility
-from .writer_matrix import run_writer_matrix
+from .writer_matrix import build_writer_matrix_report, run_writer_matrix
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,6 +57,16 @@ def build_parser() -> argparse.ArgumentParser:
     blind.add_argument("--review-dir", type=Path, required=True)
     blind.add_argument("--mapping-dir", type=Path, required=True)
     blind.add_argument("--seed", type=int, required=True)
+
+    calibration = commands.add_parser(
+        "calibration-package",
+        help="Select a deterministic all-condition subset from an already blinded reviewer package",
+    )
+    calibration.add_argument("--review-items", type=Path, required=True)
+    calibration.add_argument("--output-dir", type=Path, required=True)
+    calibration.add_argument("--seed", type=int, required=True)
+    calibration.add_argument("--image-count", type=int, required=True)
+    calibration.add_argument("--expected-conditions", type=int, required=True)
 
     account = commands.add_parser("account", help="Account for every planned model, image, and repeat")
     account.add_argument("--config", type=Path, required=True)
@@ -158,6 +169,13 @@ def build_parser() -> argparse.ArgumentParser:
     writer_matrix.add_argument("--run-id", required=True)
     writer_matrix.add_argument("--system-snapshot-ref", required=True)
     writer_matrix.add_argument("--max-new-attempts", type=int)
+    writer_matrix_report = commands.add_parser(
+        "writer-matrix-report",
+        help="Generate sanitized non-ranking structural evidence for a complete writer matrix",
+    )
+    writer_matrix_report.add_argument("--summary", type=Path, required=True)
+    writer_matrix_report.add_argument("--evidence", type=Path, required=True)
+    writer_matrix_report.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -206,6 +224,25 @@ def main(argv: list[str] | None = None) -> int:
                         **summary.model_dump(),
                         "package_path": str(package_path),
                         "mapping_path": str(mapping_path),
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status == "ready" else 1
+        if args.command == "calibration-package":
+            summary, package_path, timing_path = build_calibration_package(
+                args.review_items,
+                args.output_dir,
+                seed=args.seed,
+                image_count=args.image_count,
+                expected_conditions=args.expected_conditions,
+            )
+            print(
+                json.dumps(
+                    {
+                        **summary.model_dump(),
+                        "package_path": str(package_path),
+                        "timing_template_path": str(timing_path),
                     },
                     sort_keys=True,
                 )
@@ -384,6 +421,21 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0 if summary.status in {"paused", "complete"} else 1
+        if args.command == "writer-matrix-report":
+            evidence_path, report_path = build_writer_matrix_report(
+                args.summary, args.evidence, args.output
+            )
+            print(
+                json.dumps(
+                    {
+                        "status": "written",
+                        "evidence_path": str(evidence_path),
+                        "report_path": str(report_path),
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
     except (OSError, RuntimeError, ValueError, ValidationError) as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2

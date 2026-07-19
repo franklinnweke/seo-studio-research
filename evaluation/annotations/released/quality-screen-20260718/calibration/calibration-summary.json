@@ -1,0 +1,17 @@
+{
+  "conditions_per_image": 3,
+  "errors": [],
+  "images_selected": 5,
+  "invalid_items": 3,
+  "items_written": 15,
+  "seed": 20260716,
+  "selected_image_ids": [
+    "education-history-infographic-020",
+    "education-library-study-017",
+    "healthcare-telehealth-004",
+    "hospitality-patio-dining-014",
+    "retail-checkout-queue-010"
+  ],
+  "status": "ready",
+  "valid_items": 12
+}

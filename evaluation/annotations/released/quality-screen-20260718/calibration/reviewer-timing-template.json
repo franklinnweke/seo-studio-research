@@ -1,0 +1,114 @@
+{
+  "instructions": "Record wall-clock start/end times for the shared calibration session and elapsed seconds per item. Do not enter a model guess or consult the private condition map.",
+  "items": [
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "ad5eb8fc796bf354",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "03937082e4dac5b0",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "3e13c4926852f3ae",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "ff38e82e9470035d",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "4b993d54d37d71c3",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "9a176d2f2dc5f63f",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "4d535593fc8c223c",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "d6707549877e826c",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "305fdca7de47db21",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "45bc53efd5cc2489",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "9a80c168a6b756cd",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "de75b85799721a46",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "5a3f9ca22d377843",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "96ab9eacbdddf94c",
+      "started_at": ""
+    },
+    {
+      "elapsed_seconds": null,
+      "ended_at": "",
+      "notes": "",
+      "review_item_id": "367cb61dcf4e481f",
+      "started_at": ""
+    }
+  ],
+  "reviewer_alias": "",
+  "session_ended_at": "",
+  "session_started_at": "",
+  "template_version": 1
+}
