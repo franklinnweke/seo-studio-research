@@ -1,6 +1,6 @@
 {
   "amendment_version": 1,
-  "status": "isolated_one_shot_complete_protocol_2_2_repair_plan_frozen",
+  "status": "isolated_amendment_complete_gemma4_failed_gate_deployed_stack_scope_retained",
   "date": "2026-07-17",
   "trigger": {
     "reason": "A pre-freeze catalog audit found that Gemma 4 was publicly available before the July 2026 candidate set was finalized. The installed-inventory-first selection had therefore treated Gemma 3 as current without a defensible recency justification.",
@@ -64,7 +64,7 @@
     "post_attempt_models_loaded": 0,
     "access_authority": "$davneet-dgx-access"
   },
-  "next_decision": "Reconfirm the project-isolated runtime and locked digests through $davneet-dgx-access, then execute the predeclared 60-output block without inspecting comparative quality. Do not upgrade or restart the shared service.",
+  "next_decision": "Obtain supervisor acknowledgement of the deployed-stack scope resolution, then blind the already collected original-runtime Qwen2.5-VL 3B reference, Qwen3.5, and Gemma 3 outputs. Do not inspect comparative quality before acknowledgement and blinding.",
   "isolated_runtime_decision": {
     "status": "authorized_and_installed",
     "scope": "project-owned runtime and model store, loopback listener, and the three quality-screening conditions only",
@@ -102,6 +102,30 @@
     "final_nonrepairable_timeouts": 1,
     "repair_plan": "evaluation/results/truncation-repair-isolated-gemma4-plan-20260718.json",
     "quality_ranking_performed": false
+  },
+  "isolated_protocol_2_2_outcome": {
+    "repairs_completed": 4,
+    "repairs_schema_valid": 2,
+    "qwen35_9b_pipeline_valid": "19/20",
+    "gemma4_12b_pipeline_valid": "18/20",
+    "qwen35_gate_met": true,
+    "gemma4_gate_met": false,
+    "threshold_changed": false,
+    "quality_ranking_performed": false,
+    "sanitized_report": "evaluation/results/truncation-repair-isolated-gemma4-20260718.json"
+  },
+  "protocol_reassessment_resolution": {
+    "paper_scope": "selection for the deployed SEO Studio DGX/Ollama system rather than an exhaustive newest-model benchmark",
+    "quality_screening_set": [
+      "qwen25vl-3b-baseline",
+      "qwen35-9b",
+      "gemma3-12b"
+    ],
+    "gemma3_role": "legacy-generation, deployed-stack-compatible cross-family challenger that met the unchanged 95 percent pipeline-validity gate",
+    "gemma4_role": "prospectively tested current-generation exclusion that failed the unchanged compatibility gate on the authorized isolated current runtime",
+    "claim_boundary": "Do not call Gemma 3 current, newest, or globally best; do not claim the screened set exhausts all open multimodal models.",
+    "duplicate_generation_allowed": false,
+    "comparative_quality_inspection_before_supervisor_acknowledgement_and_blinding": false
   },
   "advancement_rule": "If Gemma 4 meets the unchanged 95% pipeline-validity gate, it supersedes Gemma 3 as the current-generation Gemma challenger in quality screening. Gemma 3 remains reported as historical compatibility evidence. If Gemma 4 fails, retain that failure and document whether Gemma 3 remains only as a legacy-generation comparator or the protocol requires reassessment."
 }

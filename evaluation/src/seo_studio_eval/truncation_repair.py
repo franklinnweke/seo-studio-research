@@ -533,6 +533,7 @@ def build_truncation_repair_report(
             "temperature": criteria.temperature,
             "seed": criteria.seed,
             "thinking_mode": criteria.thinking_mode,
+            "context_window": criteria.context_window,
             "quality_retry_permitted": False,
             "timeout_repair_permitted": False,
             "minimum_pipeline_valid_rate": 0.95,
@@ -563,7 +564,11 @@ def build_truncation_repair_report(
         },
         "limitations": [
             "Pipeline validity is a system-level outcome and must not be presented as one-shot model validity.",
-            "The repair policy was introduced after pilot failure-taxonomy review and before final protocol freeze; both stages must be disclosed.",
+            (
+                "The repair policy was predeclared before isolated collection; the exact repair population was frozen after one-shot failure classification and before any repair call."
+                if criteria.context_window is not None
+                else "The repair policy was introduced after pilot failure-taxonomy review and before final protocol freeze; both stages must be disclosed."
+            ),
             "Compatibility outcomes do not measure factual quality or rank the eligible challengers.",
             "Reviewer-time calibration and supervisor acknowledgement remain required before final protocol freeze.",
         ],

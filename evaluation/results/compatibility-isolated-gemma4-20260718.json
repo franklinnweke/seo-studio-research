@@ -1,0 +1,131 @@
+{
+  "accounting": {
+    "expected_analyzed_outcomes": 60,
+    "failed_outcomes": 5,
+    "legacy_implementation_deviation_records": 0,
+    "missing_outcomes": 0,
+    "observed_analyzed_outcomes": 60,
+    "raw_measured_records": 62,
+    "superseded_transport_records": 2,
+    "unexpected_outcomes": 0,
+    "valid_outcomes": 55
+  },
+  "advancement": {
+    "baseline_reference": "qwen25vl-3b-baseline",
+    "eligible_challenger_count": 0,
+    "eligible_challengers": [],
+    "eligible_models": [
+      "qwen25vl-3b-baseline"
+    ],
+    "predeclared_required_challengers": [
+      "qwen35-9b",
+      "gemma4-12b-amendment"
+    ],
+    "required_eligible_challengers": 2,
+    "status": "candidate_amendment_failed_protocol_reassessment_required"
+  },
+  "collection_window": {
+    "analyzed_attempt_wall_hours": 0.793,
+    "elapsed_hours_including_operational_pauses": 35.138,
+    "ended_at": "2026-07-19T00:42:48.477913+00:00",
+    "raw_attempt_record_bytes": 405154,
+    "started_at": "2026-07-17T13:34:32.985703+00:00"
+  },
+  "criteria_id": "compatibility-isolated-gemma4-v1",
+  "deviation_reference": "results/truncation-repair-isolated-gemma4-plan-20260718.json",
+  "evidence_version": 1,
+  "experiment_id": "seo-studio-isolated-finalist-pilot-v1",
+  "frozen_contract": {
+    "context_window": 8192,
+    "criteria_sha256": "12a5eda7672d9373ddd68014c6b96fd8fb2ee348309f6b5c7e09d09bc03fad34",
+    "dataset_items": 20,
+    "hidden_retries": 0,
+    "minimum_schema_valid_rate": 0.95,
+    "models": 3,
+    "models_config_sha256": "9babb3ed5e1fbd22208cef9c20babc37f64351e10bdd64a431842694466fc959",
+    "output_token_limit": 384,
+    "seed": 20260716,
+    "study_config_sha256": "84e460450e401380dda2092c238dde8bd48f5f21e6c813145a6eee9229ab43c7",
+    "temperature": 0.0,
+    "thinking_mode": "disabled",
+    "timeout_seconds": 240.0
+  },
+  "limitations": [
+    "Compatibility outcomes do not measure factual quality or establish a model ranking.",
+    "Operational segmentation and tunnel interruptions limit interpretation of latency as production throughput.",
+    "Only public licensed images and fictional contexts traversed the temporary approved collection paths.",
+    "The predeclared eligible-challenger requirement was not met and must not be relaxed opportunistically."
+  ],
+  "planning_estimates": {
+    "median_visible_fact_claims_per_valid_output": 8,
+    "note": "Reviewer time scenarios are planning assumptions, not observed review-time estimates; calibrate before protocol freeze.",
+    "planned_three_condition_outputs_for_one_rated_repeat": 360,
+    "projected_120_item_configured_model_screening_wall_hours_at_pilot_rate": 4.8,
+    "reviewer_burden_scenarios": {
+      "2_minutes_per_output_two_reviewers_hours": 24.0,
+      "3_minutes_per_output_two_reviewers_hours": 36.0,
+      "5_minutes_per_output_two_reviewers_hours": 60.0
+    },
+    "screening_model_count": 3
+  },
+  "protocol_version": "2.3-isolated-gemma4-amendment",
+  "quality_ranking_permitted": false,
+  "results_in_configured_non_ranked_order": [
+    {
+      "digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "failed": 0,
+      "failure_categories": {},
+      "median_wall_seconds": 31.255,
+      "model_id": "qwen25vl-3b-baseline",
+      "observed": 20,
+      "ollama_name": "qwen2.5vl:3b",
+      "p95_wall_seconds_nearest_rank": 86.216,
+      "schema_valid_rate": 1.0,
+      "threshold_met": true,
+      "valid": 20
+    },
+    {
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "failed": 2,
+      "failure_categories": {
+        "inference_timeout": 1,
+        "output_truncated": 1
+      },
+      "median_wall_seconds": 49.009,
+      "model_id": "qwen35-9b",
+      "observed": 20,
+      "ollama_name": "qwen3.5:latest",
+      "p95_wall_seconds_nearest_rank": 239.086,
+      "schema_valid_rate": 0.9,
+      "threshold_met": false,
+      "valid": 18
+    },
+    {
+      "digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+      "failed": 3,
+      "failure_categories": {
+        "output_truncated": 3
+      },
+      "median_wall_seconds": 14.778,
+      "model_id": "gemma4-12b-amendment",
+      "observed": 20,
+      "ollama_name": "gemma4:12b-it-q4_K_M",
+      "p95_wall_seconds_nearest_rank": 35.598,
+      "schema_valid_rate": 0.85,
+      "threshold_met": false,
+      "valid": 17
+    }
+  ],
+  "run_id": "pilot-isolated-gemma4-20260717",
+  "runtime": {
+    "access_authority": "$davneet-dgx-access",
+    "git_commits": [
+      "e15817bd30cffe98fc4ed40190fe7fd9afbeb035"
+    ],
+    "ollama_version": "0.32.1",
+    "system_snapshot_ref": "private-dgx-isolated-preflight-20260717t0933",
+    "temporary_collection_path": "project-isolated loopback Ollama through a temporary localhost-only SSH tunnel; public licensed images and fictional contexts only",
+    "tracked_worktree_clean_for_final_segment": true
+  },
+  "stage": "20-image candidate-amendment compatibility pilot"
+}

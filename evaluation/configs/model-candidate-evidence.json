@@ -7,8 +7,8 @@
       "license": "Qwen Research License (non-commercial research use)",
       "license_source": "https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/main/LICENSE",
       "ollama_source": "https://ollama.com/library/qwen2.5vl:3b",
-      "pilot_status": "full_matrix_failed_16_of_20",
-      "protocol_2_2_pipeline_status": "reference_only_failed_16_of_20"
+      "pilot_status": "original_shared_runtime_16_of_20_and_isolated_runtime_20_of_20",
+      "protocol_2_2_pipeline_status": "reference_only_original_16_of_20_isolated_20_of_20"
     },
     {
       "id": "minicpm-v45-8b",
@@ -34,7 +34,7 @@
       "license_source": "https://huggingface.co/Qwen/Qwen3.5-9B",
       "ollama_source": "https://ollama.com/library/qwen3.5",
       "pilot_status": "original_shared_runtime_18_of_20_and_isolated_runtime_18_of_20_writer_role_retained",
-      "protocol_2_2_pipeline_status": "passed_19_of_20_eligible_challenger"
+      "protocol_2_2_pipeline_status": "passed_19_of_20_on_both_original_and_isolated_runtime_blocks_eligible_challenger"
     },
     {
       "id": "gemma3-12b",
@@ -42,14 +42,14 @@
       "license_source": "https://ai.google.dev/gemma/terms",
       "ollama_source": "https://ollama.com/library/gemma3:12b",
       "pilot_status": "full_matrix_passed_19_of_20",
-      "protocol_2_2_pipeline_status": "passed_19_of_20_eligible_challenger"
+      "protocol_2_2_pipeline_status": "passed_19_of_20_deployed_stack_eligible_challenger_retained_after_gemma4_exclusion"
     },
     {
       "id": "gemma4-12b-amendment",
       "license": "Apache-2.0",
       "license_source": "https://ai.google.dev/gemma/docs/core/model_card_4",
       "ollama_source": "https://ollama.com/library/gemma4/tags",
-      "pilot_status": "isolated_runtime_one_shot_17_of_20_with_three_length_truncations_pending_frozen_protocol_2_2_repairs",
+      "pilot_status": "isolated_runtime_one_shot_17_of_20_pipeline_18_of_20_failed_unchanged_gate",
       "expected_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
       "selection_basis": "current same-size Gemma generation identified by a catalog audit before final protocol freeze and before comparative quality inspection"
     },

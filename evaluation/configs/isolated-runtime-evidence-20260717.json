@@ -46,5 +46,21 @@
     "project_model_store_approximate_gb": 17,
     "free_disk_approximate_gb": 274
   },
-  "status": "installed_digest_locked_and_one_shot_matrix_complete"
+  "collection_outcome": {
+    "one_shot_outcomes": 60,
+    "protocol_2_2_repairs": 4,
+    "qwen25vl_3b_pipeline_valid": "20/20",
+    "qwen35_9b_pipeline_valid": "19/20",
+    "gemma4_12b_pipeline_valid": "18/20",
+    "gemma4_gate_met": false,
+    "comparative_quality_inspection_performed": false
+  },
+  "shutdown": {
+    "isolated_runtime_stopped": true,
+    "loopback_listener_stopped": true,
+    "temporary_local_tunnel_closed": true,
+    "shared_service_healthy_afterward": true,
+    "shared_model_loaded_afterward": false
+  },
+  "status": "collection_complete_isolated_runtime_stopped"
 }

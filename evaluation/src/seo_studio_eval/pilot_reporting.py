@@ -112,7 +112,11 @@ def build_pilot_report(
     )
     limitations = [
         "Compatibility outcomes do not measure factual quality or establish a model ranking.",
-        "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput.",
+        (
+            "Operational segmentation and tunnel interruptions limit interpretation of latency as production throughput."
+            if criteria.context_window is not None
+            else "Operational segmentation and unstable direct connectivity limit interpretation of latency as production throughput."
+        ),
         "Only public licensed images and fictional contexts traversed the temporary approved collection paths.",
     ]
     if advancement_ready:
@@ -153,7 +157,9 @@ def build_pilot_report(
             "tracked_worktree_clean_for_final_segment": not summary.dirty_worktree,
             "access_authority": "$davneet-dgx-access",
             "temporary_collection_path": (
-                "direct public-data-only path followed by a temporary localhost-only SSH tunnel under the documented network-verification deferral"
+                "project-isolated loopback Ollama through a temporary localhost-only SSH tunnel; public licensed images and fictional contexts only"
+                if criteria.context_window is not None
+                else "direct public-data-only path followed by a temporary localhost-only SSH tunnel under the documented network-verification deferral"
                 if is_candidate_amendment
                 else "direct public-data-only path under documented network-verification deferral"
             ),
