@@ -396,6 +396,9 @@ def _validate_decision_record(
     errors: list[str],
 ) -> None:
     decision_path = (root / protocol.dataset.sample_size_decision_path).resolve()
+    if root != decision_path and root not in decision_path.parents:
+        errors.append("sample-size decision path escapes evaluation root")
+        return
     if not decision_path.is_file():
         return
     if sha256_file(decision_path) != protocol.dataset.sample_size_decision_sha256:

@@ -94,6 +94,19 @@ def test_protocol_audit_rejects_sample_size_decision_hash_drift(tmp_path: Path) 
     assert "sample-size decision record SHA-256 mismatch" in summary.errors
 
 
+def test_protocol_audit_rejects_sample_size_decision_path_escape(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    payload["dataset"]["sample_size_decision_path"] = "../../outside-decision.json"
+    invalid = write_protocol_fixture(tmp_path, payload)
+    outside = invalid.parents[2] / "outside-decision.json"
+    shutil.copyfile(SAMPLE_SIZE_DECISION, outside)
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "sample-size decision path escapes evaluation root" in summary.errors
+
+
 def test_protocol_audit_rejects_prompt_hash_drift(tmp_path: Path) -> None:
     payload = json.loads(PROTOCOL.read_text())
     payload["prompts"][0]["sha256"] = "0" * 64
