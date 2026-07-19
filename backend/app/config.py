@@ -6,9 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_FRONTEND_ORIGINS = (
     "http://localhost:3000,http://127.0.0.1:3000,"
-    "http://localhost:11501,http://127.0.0.1:11501,"
-    "https://seo-studio2.axivaq.com,http://seo-studio2.axivaq.com,"
-    "https://seo-studio.axivaq.com,http://seo-studio.axivaq.com"
+    "http://localhost:11501,http://127.0.0.1:11501"
 )
 
 

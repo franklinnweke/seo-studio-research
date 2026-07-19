@@ -1,12 +1,19 @@
 # SEO Studio Research
 
-Research edition of an AI-powered image and website optimization platform, with a reproducible evaluation harness for context-aware web image metadata on self-hosted multimodal models.
+SEO Studio Research is a standalone public research edition of a team-built image and website optimization application. It adds a reproducible evaluation system for grounded, context-aware web image metadata generated with self-hosted multimodal models.
 
-This standalone research repository preserves the complete development history of the original team capstone application and the subsequent publication-oriented research work. The original shared application is maintained at [`iobami/seo-studio`](https://github.com/iobami/seo-studio); republication of that shared foundation was approved by the project team. See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for attribution.
+The project originated in a private PROG8751 team capstone repository. This public repository preserves the team-approved shared development history and the subsequent publication-oriented research work; the private source repository is intentionally not linked as a public dependency. See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for attribution.
 
 The source is publicly available for review and research transparency. No open-source reuse license has been selected yet, so no permission to copy, modify, or redistribute is granted beyond rights provided by applicable law.
 
 Research and publication documentation starts at [`docs/README.md`](docs/README.md). The compact handoff is [`docs/research-context.md`](docs/research-context.md), and the ordered continuation checklist is [`docs/research-next-steps.md`](docs/research-next-steps.md).
+
+## Repository scope
+
+- **Inherited application:** Next.js and FastAPI workflows for image preparation, AI-assisted metadata, human review, exports, crop/resize tooling, and website checks.
+- **Research system:** versioned context and purpose contracts, structured direct/decomposed generation, an offline evaluation harness, licensed benchmark evidence, immutable run accounting, blinding, and calibrated human review.
+- **Primary paper boundary:** image metadata generation only. AI crop targeting and the broader website tools remain product capabilities and possible future studies, not outcomes in the current paper.
+- **Current evidence boundary:** compatibility and reviewer feasibility are established, but no model-quality winner has been selected. The full-study protocol remains a blocked draft until its recorded Gate 4 requirements are cleared.
 
 ## Local Development
 
@@ -76,12 +83,13 @@ docker build --target backend -t seo-studio-backend .
 docker build --target frontend -t seo-studio-frontend .
 ```
 
-### Optional AI Metadata
+### Local AI metadata (optional)
 
-Phase 5+ can use Ollama with a dual-model setup:
+The default decomposed metadata path uses Qwen2.5-VL 3B for visual facts and Qwen3.5 9B for metadata writing. Install both models before enabling local Ollama inference:
 
 ```bash
 ollama pull qwen2.5vl:3b
+ollama pull qwen3.5:9b
 ollama serve
 ```
 
@@ -90,16 +98,16 @@ The backend reads these optional environment variables:
 ```text
 SEO_STUDIO_AI_PROVIDER=ollama
 SEO_STUDIO_OLLAMA_BASE_URL=http://localhost:11434
-SEO_STUDIO_OLLAMA_MODEL=qwen2.5vl:3b
+SEO_STUDIO_OLLAMA_MODEL=qwen3.5:9b
 SEO_STUDIO_VISION_MODEL=qwen2.5vl:3b
-SEO_STUDIO_LANGUAGE_MODEL=qwen2.5vl:3b
+SEO_STUDIO_LANGUAGE_MODEL=qwen3.5:9b
 SEO_STUDIO_OLLAMA_TIMEOUT_SECONDS=600
 SEO_STUDIO_AI_LANGUAGE_TIMEOUT_SECONDS=120
 SEO_STUDIO_AI_CROP_TIMEOUT_SECONDS=120
 SEO_STUDIO_AI_PREVIEW_MAX_WIDTH=1024
 ```
 
-The vision model inspects image content and crop targets. The language model turns verified visual facts and optional brand context into filenames, alt text, and captions.
+The vision model extracts grounded visual facts. The language model combines those facts with permitted page context, brand terminology, and a human-confirmed purpose to propose filenames, alt text, captions, and descriptions. Crop targeting is a separate product workflow and is not evaluated in the current paper.
 
 ### Supabase Auth
 
@@ -186,7 +194,4 @@ Implemented phases:
 - Structured visual-fact and direct/decomposed metadata routing
 - Offline evaluation harness, immutable evidence, blinding, and calibrated human-review protocol
 
-Next phases:
-
-- Product/capstone track: continue focus-aware crop/resize hardening, review, export, and course-delivery stabilization.
-- Publication track: close administrative/security prerequisites, freeze the exact full-study protocol and workload, complete the licensed dataset, then execute blinded primary evaluation. AI cropping remains outside the primary paper.
+Current research next step: resolve the sample-size, dataset, infrastructure, and remaining protocol-audit blockers documented in [`docs/publication/protocol-freeze-v1.md`](docs/publication/protocol-freeze-v1.md). Only after the audit reports `freeze_ready` may the team execute the full study, complete blinded primary analysis, select a deployment configuration, and finalize the manuscript.

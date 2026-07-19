@@ -19,7 +19,7 @@ EVALUATION_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = EVALUATION_ROOT.parent
 CATALOG_PATH = EVALUATION_ROOT / "dataset" / "pilot-catalog.json"
 MANIFEST_PATH = EVALUATION_ROOT / "dataset" / "manifest.jsonl"
-USER_AGENT = "SEO-Studio-Research/0.1 (https://github.com/iobami/seo-studio; educational capstone)"
+USER_AGENT = "SEO-Studio-Research/0.1 (https://github.com/franklinnweke/seo-studio-research)"
 ALLOWED_LICENSES = {
     "CC0",
     "CC BY 2.0",

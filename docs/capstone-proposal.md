@@ -84,4 +84,4 @@ Conflict resolution: The team will first discuss disagreements in WhatsApp and c
 
 ## 7. Links
 
-GitHub repository: https://github.com/iobami/seo-studio
+Original team GitHub repository: private; URL omitted from the public research edition.

@@ -6,7 +6,7 @@ Prepared: July 13, 2026
 Updated: July 19, 2026
 Project: PROG8751 SEO Studio Capstone
 Research repository: `https://github.com/franklinnweke/seo-studio-research`
-Original team capstone repository: `https://github.com/iobami/seo-studio`
+Original team capstone repository: private; URL intentionally omitted from the public research edition
 Target outcome: capstone delivery, institutional publication, and a reproducible applied-AI research artifact
 Working article: [`docs/publication/seo-studio-manuscript.html`](publication/seo-studio-manuscript.html)
 Documentation index: [`docs/README.md`](README.md)
@@ -199,7 +199,7 @@ flowchart LR
 | Language stage | Writes metadata from visual facts and brand context | Current default `qwen3.5`; retries malformed JSON once |
 | Review workflow | Edits and approvals | Requires filename, alt text, and caption to be non-empty |
 | Docker Compose | Deploys frontend and backend | Backend points to `host.docker.internal:11434` unless overridden |
-| GitHub Actions | Staging deployment | Copies repository to `axivaq.com` and runs Docker Compose; does not run test gates first |
+| GitHub Actions | No active public-repository deployment workflow | The inherited staging workflow was removed; CI and hosting remain explicit future work |
 
 ### 5.3 Current quality status
 
@@ -282,13 +282,13 @@ There are four connection assumptions:
 | FastAPI started manually from `backend/` | `backend/.env` through Pydantic settings | Defaults to `http://localhost:11434` |
 | `scripts/dev.sh` | Starts FastAPI from `backend/`; inherits exported shell variables and reads `backend/.env` | Defaults to `http://localhost:11434` unless variables are exported |
 | Docker Compose from repository root | Ignored root `.env` copied from safe `.env.example`, or Compose defaults | Defaults to `http://host.docker.internal:11434`; private overrides remain local |
-| Staging GitHub Action | Repository files copied to server; root `.env` is not created by the workflow | Compose default `http://host.docker.internal:11434` |
+| Future hosted environment | Deployment-specific secrets and environment variables | Must use an approved private inference path; no public-repository deployment is configured |
 
 The environment source is intentionally explicit by execution mode:
 
 - manual backend and `scripts/dev.sh`: `backend/.env` plus exported shell variables;
 - Docker Compose: ignored root `.env`, created from the safe root `.env.example`;
-- staging: deployment-managed environment or documented Compose defaults, never a committed private `.env`;
+- future hosting: deployment-managed secrets and environment variables, never committed private values;
 - research harness: a frozen evaluation TOML plus process environment for approved private connectivity, never product `.env` discovery.
 
 The root `.env` does not configure `scripts/dev.sh`. Operators must not assume that manual and Compose execution use the same inference host.
@@ -298,7 +298,7 @@ The root `.env` does not configure `scripts/dev.sh`. Operators must not assume t
 1. Root `.env` and the private DGX access note are now explicitly ignored; the placeholder-only root `.env.example` is the committed Compose template.
 2. Ollama's local API does not require authentication. It must not be exposed directly to the public internet.
 3. Ollama binds to `127.0.0.1:11434` by default. A backend container using `host.docker.internal` cannot assume the host service is reachable unless Ollama is bound to an address accessible from the Docker bridge.
-4. The staging health check validates FastAPI only. The deployment can report healthy while AI generation is unavailable.
+4. No hosted health gate is currently configured. A future deployment must validate AI readiness separately from the basic FastAPI health endpoint.
 5. The authenticated `/api/settings` response includes the raw Ollama base URL and storage path. The frontend needs model labels, but it does not need internal topology details.
 6. AI generation is synchronous and sequential. A long model call occupies a web worker and may exceed upstream proxy timeouts.
 7. The client has no connection pool, circuit breaker, bounded transient retry policy, request correlation ID, or structured telemetry object.

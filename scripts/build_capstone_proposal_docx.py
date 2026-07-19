@@ -151,7 +151,7 @@ def document_xml() -> str:
     parts.append(paragraph("Conflict Resolution: The team will first discuss disagreements in WhatsApp and compare options against project scope, sprint goals, technical risk, and user value. If a decision is still unresolved, the team will use majority agreement and document the rationale in the relevant GitHub issue or task."))
 
     parts.append(paragraph("7. Links", style="Heading1"))
-    parts.append(paragraph("GitHub Repository: https://github.com/iobami/seo-studio"))
+    parts.append(paragraph("Original team GitHub repository: private; URL omitted from the public research edition."))
 
     sect = (
         '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/>'
