@@ -7,7 +7,7 @@
     "The 0.60 feasibility marker was not numerically frozen before these ratings and is descriptive, not a post-hoc pass/fail rule.",
     "Kappa can be unstable or undefined under near-perfect prevalence; report exact agreement and score distributions alongside it.",
     "Adjudication duration was not supplied, so workload projections exclude reconciliation overhead.",
-    "Reviewer timings were recorded before reducing the claim inventory, so the 120-minute projection is conservative and does not measure the final workload exactly."
+    "Reviewer timings were recorded before reducing the human-check inventory, so the 120-minute projection is conservative and does not measure the final workload exactly."
   ],
   "claim_counts": {
     "R1": 76,

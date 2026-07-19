@@ -36,16 +36,18 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Separate isolated Gemma 4 amendment and repair stage without changing the supervisor's shared runtime or model store.
 - Fixed-writer matrix: 60 balanced source cells, 46 schema-valid metadata outputs, and 14 explicit failures after upstream and writer failures are retained.
 - Identity-safe three-condition blinded package with the private map kept outside Git.
-- Human calibration: 15 blinded items, including 12 valid outputs and 3 explicit system failures.
-- Final rubric-v1.1 recalibration: identical 76-claim inventories for R1, R2, and adjudication; 98.7% exact claim-label agreement; nominal Cohen's kappa 0.923; 91.7% exact valid-output disposition agreement; linear-weighted kappa 0.860; median 120 seconds per item for each reviewer.
-- Analysis version 2 distinguishes nominal claim-label kappa from linear-weighted ordinal kappa and returns safe invalid/non-isomorphic reports.
+- Human-check calibration: 15 blinded items, including 12 valid outputs and 3 explicit system failures.
+- Final rubric-v1.1 recalibration: identical 76-item human-check inventories for R1, R2, and adjudication; 98.7% exact human-check label agreement; nominal Cohen's kappa 0.923; 91.7% exact valid-output disposition agreement; linear-weighted kappa 0.860; median 120 seconds per item for each reviewer.
+- Analysis version 2 distinguishes nominal human-check label kappa from linear-weighted ordinal kappa and returns safe invalid/non-isomorphic reports.
 - Working article scaffold at `docs/publication/seo-studio-manuscript.html`, with primary results explicitly pending.
 - Structurally validated Gate 4 draft at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and blocker-reporting audit command. It is not frozen and does not authorize execution.
 - All governance approvals were relayed on July 19, 2026 and preserved in a sanitized public record. Exact model digests and Ollama 0.24.0 were reverified read-only through `$davneet-dgx-access`; no mutation occurred.
 - The pre-data sample-size sensitivity found that the original 60-image RQ1 subset could not support the approved five-point target under the displayed scenarios. Before primary output inspection, the project lead selected a practical estimation-first design: 128 licensed images balanced 32 per domain, all 128 in RQ1 and the controlled Qwen3.5 comparison, 64 in the other production metadata comparisons, and 36 in the context ablation.
 - The approved design entails 3,012 model calls and 876 unique human-review items. With three independently calibrated reviewers, 25% RQ1 overlap and 20% metadata overlap produce 1,071 assignments: 357 assignments or 714 active minutes per reviewer, excluding adjudication, breaks, and administration.
 
-The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-claim recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
+The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-item human-check recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
+
+Terminology rule for all future code comments, reports, documentation, and manuscript prose: call the manual reviewer action a **human check** and its agreement result **human-check label agreement**. Reserve **claim** only for an atomic proposition produced by a model and evaluated during grounding analysis. Do not use “human claim,” “human-check claim,” or similar mixed wording. Legacy schema keys and immutable evidence identifiers may retain `claim` where changing them would break reproducibility or data compatibility.
 
 ## Verification snapshot
 

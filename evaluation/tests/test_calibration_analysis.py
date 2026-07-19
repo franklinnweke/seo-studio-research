@@ -99,4 +99,6 @@ def test_calibration_analysis_invalid_rendering() -> None:
     )
     report = _render_report(analysis)
     assert "do not contain a complete, valid" in report
+    assert "Human-check label feasibility" in report
+    assert "claim-label agreement" not in report
     assert "Metrics must not be interpreted until the listed population and input errors are corrected." in report

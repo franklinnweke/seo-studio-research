@@ -87,7 +87,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     calibration_analysis = commands.add_parser(
         "calibration-analysis",
-        help="Validate two blinded human calibration passes and generate agreement/workload evidence",
+        help="Validate two blinded human-check calibration passes and generate agreement/workload evidence",
     )
     calibration_analysis.add_argument("--review-items", type=Path, required=True)
     calibration_analysis.add_argument("--reviewer", action="append", nargs=2, metavar=("ALIAS", "PATH"), required=True)

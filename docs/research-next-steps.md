@@ -8,7 +8,7 @@ This is the short operational view of the canonical master plan. It does not rep
 
 ## 0. Consolidate the accepted state
 
-- [x] Synchronize every public document and manuscript occurrence to the final accepted 76-claim/98.7% calibration figures.
+- [x] Synchronize every public document and manuscript occurrence to the final accepted 76-item human-check/98.7% calibration figures.
 - [x] Keep the final calibration JSON and Markdown together and verify their hashes and byte-for-byte regeneration.
 - [x] Run evaluation tests, backend tests, frontend lint/build, OpenAPI drift checks, schema validation, dataset validation, and `git diff --check`.
 - [ ] Review the working tree carefully and commit only the intended research/calibration/documentation changes. Do not stage `submissions/`, browser output, screenshots, caches, or unrelated teammate files.

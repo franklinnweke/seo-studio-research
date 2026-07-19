@@ -1,4 +1,4 @@
-# Human calibration analysis results
+# Human-check calibration analysis results
 
 Status: **recalibration_required**.
 
@@ -9,7 +9,7 @@ The two independent reviewer files and adjudicated file each contain the complet
 - Calibration items: 15
 - Valid metadata outputs: 12
 - Explicit system failures: 3
-- Claims segmented by R1/R2/adjudicator: 64/103/79
+- Human-check units evaluated by R1/R2/adjudicator: 64/103/79
 
 ## Rating agreement on valid outputs
 
@@ -30,9 +30,9 @@ The two independent reviewer files and adjudicated file each contain the complet
 - Twelve valid outputs only: 41.7% exact; κw=0.263.
 - The all-item value is raised by deterministic agreement on the three null-output rejects; use the valid-output result when judging quality-rubric feasibility.
 
-## Claim-label feasibility
+## Human-check label feasibility
 
-Claim-label agreement is not estimable from this pass because R1 and R2 did not label the same claim units. Rubric v1.1 therefore freezes atomic, deduplicated claim segmentation and requires a common blinded claim inventory before label-agreement analysis.
+Human-check label agreement is not estimable from this pass because R1 and R2 did not check the same atomic units. Rubric v1.1 therefore freezes atomic, deduplicated segmentation and requires a common blinded human-check inventory before label-agreement analysis.
 
 ## Reviewer time
 
@@ -43,7 +43,7 @@ Claim-label agreement is not estimable from this pass because R1 and R2 did not 
 
 ## Blocking findings
 
-- Independent reviewers produced non-isomorphic claim inventories; claim-label agreement is not estimable until both label the same frozen claim units.
+- Independent reviewers completed non-isomorphic human-check inventories; label agreement is not estimable until both check the same frozen atomic units.
 - Agreement below the provisional 0.60 feasibility marker: salient_coverage_score, contextual_usefulness_score, redundancy_control_score, purpose_appropriateness_score, disposition_valid_outputs
 
 ## Cautions
@@ -55,4 +55,4 @@ Claim-label agreement is not estimable from this pass because R1 and R2 did not 
 
 ## Decision
 
-Human timing feasibility is established, and the completed individual/adjudicated records are valid calibration evidence. Primary annotation should not begin yet. First, have R1 and R2 independently label the same adjudicated claim inventory under rubric v1.1, verify claim-label agreement, and resolve the low salient-coverage, redundancy, and valid-output disposition agreement. Preserve this first pass unchanged.
+Human-check timing feasibility is established, and the completed individual/adjudicated records are valid calibration evidence. Primary annotation should not begin yet. First, have R1 and R2 independently evaluate the same adjudicated human-check inventory under rubric v1.1, verify label agreement, and resolve the low salient-coverage, redundancy, and valid-output disposition agreement. Preserve this first pass unchanged.

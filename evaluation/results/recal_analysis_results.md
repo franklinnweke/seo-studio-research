@@ -1,4 +1,4 @@
-# Human calibration analysis results
+# Human-check calibration analysis results
 
 Status: **ready**.
 
@@ -9,7 +9,7 @@ The two independent reviewer files and adjudicated file each contain the complet
 - Calibration items: 15
 - Valid metadata outputs: 12
 - Explicit system failures: 3
-- Claims segmented by R1/R2/adjudicator: 76/76/76
+- Human-check units evaluated by R1/R2/adjudicator: 76/76/76
 
 ## Rating agreement on valid outputs
 
@@ -30,10 +30,10 @@ The two independent reviewer files and adjudicated file each contain the complet
 - Twelve valid outputs only: 91.7% exact; κw=0.860.
 - The all-item value is raised by deterministic agreement on the three null-output rejects; use the valid-output result when judging quality-rubric feasibility.
 
-## Claim-label feasibility
+## Human-check label feasibility
 
-Claim-label agreement is estimable from this pass because R1 and R2 evaluated the identical 76-claim inventory.
-Exact claim-label agreement: **98.7%**.
+Human-check label agreement is estimable from this pass because R1 and R2 evaluated the identical 76-item human-check inventory.
+Exact human-check label agreement: **98.7%**.
 Cohen's kappa: **0.923**.
 
 ## Reviewer time
@@ -51,8 +51,8 @@ Cohen's kappa: **0.923**.
 - The 0.60 feasibility marker was not numerically frozen before these ratings and is descriptive, not a post-hoc pass/fail rule.
 - Kappa can be unstable or undefined under near-perfect prevalence; report exact agreement and score distributions alongside it.
 - Adjudication duration was not supplied, so workload projections exclude reconciliation overhead.
-- Reviewer timings were recorded before reducing the claim inventory, so the 120-minute projection is conservative and does not measure the final workload exactly.
+- Reviewer timings were recorded before reducing the human-check inventory, so the 120-minute projection is conservative and does not measure the final workload exactly.
 
 ## Decision
 
-Human timing feasibility, rating agreement, and claim-label agreement are established. The calibration status is ready, and primary quality annotation is now authorized to begin under rubric v1.1.
+Human-check timing feasibility, rating agreement, and label agreement are established. The calibration status is ready, and primary quality annotation is now authorized to begin under rubric v1.1.

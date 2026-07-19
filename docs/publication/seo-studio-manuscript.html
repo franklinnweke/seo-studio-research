@@ -750,7 +750,7 @@
         <div class="evidence-cell">
           <span class="label">Calibration agreement</span>
           <strong>98.7%</strong>
-          <p>Exact agreement across the frozen 76-claim human calibration inventory.</p>
+          <p>Exact agreement across the frozen 76-item human-check calibration inventory.</p>
         </div>
         <div class="evidence-cell pending">
           <span class="label">Primary quality study</span>
@@ -787,7 +787,7 @@
         <section class="section reveal" id="abstract">
           <span class="section-number">ABSTRACT</span>
           <h2>Pixels describe a scene. They do not determine its role.</h2>
-          <p class="abstract-text">Web image metadata must communicate not only what an image depicts, but why the image appears on a particular page. This working paper presents SEO Studio, a human-reviewed system for generating web image metadata with self-hosted multimodal models, page context, approved terminology, and a human-confirmed image purpose. The study separates visual-fact extraction from contextual writing and evaluates that decomposed pipeline against direct multimodal generation under controlled local-inference constraints. Completed compatibility evidence includes 100 outcomes across five deployed-stack model conditions and a separate 60-outcome current-generation amendment. Under the predeclared repair policy, Qwen3.5 9B and Gemma 3 12B reached the 95% pipeline-validity gate; the tested Gemma 4 12B condition reached 90% and was excluded from the primary quality screen. Human recalibration on 15 blinded items achieved 98.7% exact claim-label agreement (Cohen’s κ = 0.923) and 91.7% exact valid-output disposition agreement (linear-weighted κ = 0.860). These findings establish protocol feasibility rather than a quality winner. The primary grounding comparison, architecture ablation, context ablation, and final deployment decision remain pending.</p>
+          <p class="abstract-text">Web image metadata must communicate not only what an image depicts, but why the image appears on a particular page. This working paper presents SEO Studio, a human-reviewed system for generating web image metadata with self-hosted multimodal models, page context, approved terminology, and a human-confirmed image purpose. The study separates visual-fact extraction from contextual writing and evaluates that decomposed pipeline against direct multimodal generation under controlled local-inference constraints. Completed compatibility evidence includes 100 outcomes across five deployed-stack model conditions and a separate 60-outcome current-generation amendment. Under the predeclared repair policy, Qwen3.5 9B and Gemma 3 12B reached the 95% pipeline-validity gate; the tested Gemma 4 12B condition reached 90% and was excluded from the primary quality screen. Human-check recalibration on 15 blinded items achieved 98.7% exact label agreement (Cohen’s κ = 0.923) and 91.7% exact valid-output disposition agreement (linear-weighted κ = 0.860). These findings establish protocol feasibility rather than a quality winner. The primary grounding comparison, architecture ablation, context ablation, and final deployment decision remain pending.</p>
           <p class="keywords"><strong>Keywords:</strong> alternative text; multimodal models; local inference; image metadata; hallucination; human-in-the-loop evaluation</p>
           <div class="status-note pending"><strong>Drafting rule.</strong> The abstract will be rewritten after the primary analysis is frozen. Compatibility and calibration figures are reported now because they are complete; no missing quality result is estimated or implied.</div>
         </section>
@@ -1019,10 +1019,10 @@
           <h3>Gemma generation boundary</h3>
           <p>The Gemma 4 amendment corrected an initial candidate-selection limitation. Its output failures were genuine under the frozen contract, but the amendment does not establish that Gemma 4 is generally inferior to Gemma 3. The generations ran in different Ollama runtime blocks, the visual-facts schema did not cap array length, and the prompt did not prohibit coordinate-style grounding strings or repeated object enumeration. The defensible conclusion is narrower: the tested Gemma 4 package failed this pipeline’s compatibility threshold and therefore did not enter the primary quality screen.</p>
 
-          <h3>Human calibration</h3>
-          <p>Two reviewers independently labelled the same 76-claim inventory across 15 blinded calibration items; an adjudicated record was preserved separately. Twelve items contained metadata and three were explicit system failures. The recalibration established reviewer feasibility without opening the private model map.</p>
+          <h3>Human-check calibration</h3>
+          <p>Two reviewers independently completed the same 76-item human-check inventory across 15 blinded calibration items; an adjudicated record was preserved separately. Twelve items contained metadata and three were explicit system failures. The recalibration established reviewer feasibility without opening the private model map.</p>
           <div class="metric-band">
-            <div class="metric"><strong>98.7%</strong><span>Exact claim-label agreement<br>Cohen’s κ = 0.923</span></div>
+            <div class="metric"><strong>98.7%</strong><span>Exact human-check label agreement<br>Cohen’s κ = 0.923</span></div>
             <div class="metric"><strong>91.7%</strong><span>Valid-output disposition agreement<br>κw = 0.860</span></div>
             <div class="metric"><strong>120 s</strong><span>Median review time per item<br>for both reviewers</span></div>
           </div>
@@ -1134,7 +1134,7 @@
             <div class="end-row"><b>Evaluation guide</b><p><a href="../../evaluation/README.md">evaluation/README.md</a></p></div>
             <div class="end-row"><b>Compatibility</b><p><a href="../../evaluation/results/compatibility-pilot-20260717.md">Deployed-stack pilot</a> · <a href="../../evaluation/results/truncation-repair-20260717.md">repair evidence</a></p></div>
             <div class="end-row"><b>Gemma 4</b><p><a href="../../evaluation/results/compatibility-isolated-gemma4-20260718.md">Isolated amendment</a> · <a href="../../evaluation/results/truncation-repair-isolated-gemma4-20260718.md">repair evidence</a></p></div>
-            <div class="end-row"><b>Calibration</b><p><a href="../../evaluation/results/recal_analysis_results.md">Human calibration report</a> · <a href="../../evaluation/annotations/templates/rubric-v1.1.md">rubric v1.1</a></p></div>
+            <div class="end-row"><b>Calibration</b><p><a href="../../evaluation/results/recal_analysis_results.md">Human-check calibration report</a> · <a href="../../evaluation/annotations/templates/rubric-v1.1.md">rubric v1.1</a></p></div>
             <div class="end-row"><b>Dataset</b><p><a href="../../evaluation/dataset/manifest.jsonl">Licensed manifest</a> · hashes, contexts, purpose, attribution, and forbidden claims</p></div>
           </div>
         </section>

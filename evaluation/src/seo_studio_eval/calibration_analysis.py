@@ -216,7 +216,7 @@ def build_calibration_analysis(
     blocking = []
     if not isomorphic or len(aliases) != 2:
         blocking.append(
-            "Independent reviewers produced non-isomorphic claim inventories; claim-label agreement is not estimable until both label the same frozen claim units."
+            "Independent reviewers completed non-isomorphic human-check inventories; label agreement is not estimable until both check the same frozen atomic units."
         )
     low_metrics = [
         field
@@ -253,7 +253,7 @@ def build_calibration_analysis(
             "The 0.60 feasibility marker was not numerically frozen before these ratings and is descriptive, not a post-hoc pass/fail rule.",
             "Kappa can be unstable or undefined under near-perfect prevalence; report exact agreement and score distributions alongside it.",
             "Adjudication duration was not supplied, so workload projections exclude reconciliation overhead.",
-            "Reviewer timings were recorded before reducing the claim inventory, so the 120-minute projection is conservative and does not measure the final workload exactly.",
+            "Reviewer timings were recorded before reducing the human-check inventory, so the 120-minute projection is conservative and does not measure the final workload exactly.",
         ]
     )
     projected = {
@@ -455,7 +455,7 @@ def _number(value: float | None) -> str:
 
 def _render_report(analysis: CalibrationAnalysis) -> str:
     lines = [
-        "# Human calibration analysis results",
+        "# Human-check calibration analysis results",
         "",
         f"Status: **{analysis.status}**.",
         "",
@@ -481,7 +481,7 @@ def _render_report(analysis: CalibrationAnalysis) -> str:
             f"- Calibration items: {analysis.calibration_items}",
             f"- Valid metadata outputs: {analysis.valid_output_items}",
             f"- Explicit system failures: {analysis.system_failure_items}",
-            f"- Claims segmented by R1/R2/adjudicator: {analysis.claim_counts.get('R1', 0)}/{analysis.claim_counts.get('R2', 0)}/{analysis.claim_counts.get('adjudicated', 0)}",
+            f"- Human-check units evaluated by R1/R2/adjudicator: {analysis.claim_counts.get('R1', 0)}/{analysis.claim_counts.get('R2', 0)}/{analysis.claim_counts.get('adjudicated', 0)}",
             "",
             "## Rating agreement on valid outputs",
             "",
@@ -502,21 +502,21 @@ def _render_report(analysis: CalibrationAnalysis) -> str:
             f"- Twelve valid outputs only: {_percent(analysis.disposition_agreement_valid_outputs.exact_agreement)} exact; κw={_number(analysis.disposition_agreement_valid_outputs.kappa)}.",
             "- The all-item value is raised by deterministic agreement on the three null-output rejects; use the valid-output result when judging quality-rubric feasibility.",
             "",
-            "## Claim-label feasibility",
+            "## Human-check label feasibility",
             "",
         ]
     )
     if analysis.claim_label_agreement_estimable and analysis.claim_label_agreement is not None:
         lines.extend(
             [
-                f"Claim-label agreement is estimable from this pass because R1 and R2 evaluated the identical {analysis.claim_counts.get('R1', 0)}-claim inventory.",
-                f"Exact claim-label agreement: **{analysis.claim_label_agreement.exact_agreement * 100:.1f}%**.",
+                f"Human-check label agreement is estimable from this pass because R1 and R2 evaluated the identical {analysis.claim_counts.get('R1', 0)}-item human-check inventory.",
+                f"Exact human-check label agreement: **{analysis.claim_label_agreement.exact_agreement * 100:.1f}%**.",
                 f"Cohen's kappa: **{_number(analysis.claim_label_agreement.kappa)}**.",
             ]
         )
     else:
         lines.append(
-            "Claim-label agreement is not estimable from this pass because R1 and R2 did not label the same claim units. Rubric v1.1 therefore freezes atomic, deduplicated claim segmentation and requires a common blinded claim inventory before label-agreement analysis."
+            "Human-check label agreement is not estimable from this pass because R1 and R2 did not check the same atomic units. Rubric v1.1 therefore freezes atomic, deduplicated segmentation and requires a common blinded human-check inventory before label-agreement analysis."
         )
     lines.extend(
         [
@@ -545,7 +545,7 @@ def _render_report(analysis: CalibrationAnalysis) -> str:
     if analysis.status == "ready":
         lines.extend(
             [
-                "Human timing feasibility, rating agreement, and claim-label agreement are established. The calibration status is ready, and primary quality annotation is now authorized to begin under rubric v1.1.",
+                "Human-check timing feasibility, rating agreement, and label agreement are established. The calibration status is ready, and primary quality annotation is now authorized to begin under rubric v1.1.",
                 "",
             ]
         )
@@ -559,7 +559,7 @@ def _render_report(analysis: CalibrationAnalysis) -> str:
     else:
         lines.extend(
             [
-                "Human timing feasibility is established, and the completed individual/adjudicated records are valid calibration evidence. Primary annotation should not begin yet. First, have R1 and R2 independently label the same adjudicated claim inventory under rubric v1.1, verify claim-label agreement, and resolve the low salient-coverage, redundancy, and valid-output disposition agreement. Preserve this first pass unchanged.",
+                "Human-check timing feasibility is established, and the completed individual/adjudicated records are valid calibration evidence. Primary annotation should not begin yet. First, have R1 and R2 independently evaluate the same adjudicated human-check inventory under rubric v1.1, verify label agreement, and resolve the low salient-coverage, redundancy, and valid-output disposition agreement. Preserve this first pass unchanged.",
                 "",
             ]
         )

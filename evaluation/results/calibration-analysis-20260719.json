@@ -2,7 +2,7 @@
   "adjudicated_records": 15,
   "analysis_version": 1,
   "blocking_findings": [
-    "Independent reviewers produced non-isomorphic claim inventories; claim-label agreement is not estimable until both label the same frozen claim units.",
+    "Independent reviewers completed non-isomorphic human-check inventories; label agreement is not estimable until both check the same frozen atomic units.",
     "Agreement below the provisional 0.60 feasibility marker: salient_coverage_score, contextual_usefulness_score, redundancy_control_score, purpose_appropriateness_score, disposition_valid_outputs"
   ],
   "calibration_items": 15,
