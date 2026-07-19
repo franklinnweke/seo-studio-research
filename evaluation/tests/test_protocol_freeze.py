@@ -25,7 +25,7 @@ def test_current_protocol_draft_is_structurally_valid_but_blocked(tmp_path: Path
     assert summary.errors == []
     assert summary.verified_prompt_hashes == 3
     assert "final dataset size is not set" in summary.blockers
-    assert "full study execution approved is pending" in summary.blockers
+    assert "listener security verification is pending" in summary.blockers
     assert output_path.is_file()
 
 

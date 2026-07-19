@@ -74,6 +74,17 @@ class ApprovalState(BaseModel):
     full_study_execution_approved: bool
 
 
+class InfrastructureState(BaseModel):
+    runtime_version: str = Field(min_length=1)
+    runtime_reverified: bool
+    approved_access_path: Literal["ssh_tunnel"]
+    listener_binding: str = Field(min_length=1)
+    listener_security_verified: bool
+    dedicated_workspace_verified: bool
+    telemetry_path_verified: bool
+    evidence_path: Path
+
+
 class RunAccounting(BaseModel):
     provisional_final_images: int = Field(gt=0)
     primary_claim_images: int = Field(gt=0)
@@ -103,6 +114,7 @@ class ProtocolFreezeContract(BaseModel):
     execution: ExecutionPlan
     meaningful_effects: list[MeaningfulEffect] = Field(min_length=3)
     approvals: ApprovalState
+    infrastructure: InfrastructureState
     run_accounting: RunAccounting
     condition_ids: list[str] = Field(min_length=1)
     primary_outcomes: dict[str, str]
@@ -211,6 +223,15 @@ def _collect_blockers(
     for field_name, approved in protocol.approvals.model_dump().items():
         if not approved:
             blockers.append(field_name.replace("_", " ") + " is pending")
+    infrastructure_checks = {
+        "runtime reverification": protocol.infrastructure.runtime_reverified,
+        "listener security verification": protocol.infrastructure.listener_security_verified,
+        "dedicated project workspace verification": protocol.infrastructure.dedicated_workspace_verified,
+        "supported telemetry path verification": protocol.infrastructure.telemetry_path_verified,
+    }
+    for label, complete in infrastructure_checks.items():
+        if not complete:
+            blockers.append(label + " is pending")
 
 
 def _validate_accounting(protocol: ProtocolFreezeContract, errors: list[str]) -> None:

@@ -41,6 +41,8 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Analysis version 2 distinguishes nominal claim-label kappa from linear-weighted ordinal kappa and returns safe invalid/non-isomorphic reports.
 - Working article scaffold at `docs/publication/seo-studio-manuscript.html`, with primary results explicitly pending.
 - Structurally validated Gate 4 draft at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and blocker-reporting audit command. It is not frozen and does not authorize execution.
+- All governance approvals were relayed on July 19, 2026 and preserved in a sanitized public record. Exact model digests and Ollama 0.24.0 were reverified read-only through `$davneet-dgx-access`; no mutation occurred.
+- The pre-data sample-size sensitivity found that the 60-image RQ1 subset cannot support the approved five-point target under the displayed scenarios. The final population therefore remains a scientific design decision, not an administrative approval gap.
 
 The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-claim recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
 
@@ -48,13 +50,13 @@ The first non-common-inventory calibration remains preserved as diagnostic histo
 
 Verified locally on July 19, 2026:
 
-- evaluation suite: 42 tests passed;
+- evaluation suite: 43 tests passed;
 - backend suite: 96 tests passed;
 - frontend ESLint and production build: passed;
 - checked-in OpenAPI contract: matches the generated FastAPI schema;
 - deployed-stack and isolated-amendment preflights: ready on all 20 licensed pilot items;
 - final calibration JSON and Markdown: regenerate byte-for-byte from the accepted inputs;
-- Gate 4 draft audit: structurally valid with three verified prompt hashes, zero errors, and 22 explicit blockers;
+- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; governance and model-identity blockers are closed, while dataset/sample-size and infrastructure evidence remain;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
 
@@ -64,16 +66,15 @@ The deployed-stack preflight still warns that the five legacy screening model id
 
 Technical calibration has passed, and the review protocol is feasible. Full-study execution has not been authorized by protocol freeze. Before opening or scoring remaining comparative outputs as primary evidence, the team must close the administrative/security items and freeze the final design.
 
-Outstanding decisions and approvals:
+Outstanding technical freeze work:
 
-- complete the private supervisor identity and communication-evidence record;
-- confirm the institutional publication route, authorship/CRediT roles, and course-based ethics requirements;
-- confirm the DGX data policy, dedicated project workspace, network/firewall posture, and final same-host versus separate-host topology;
-- define the minimum scientifically meaningful effects independently of pilot effect estimates;
-- freeze the final dataset size, RQ1 claim-level population, model/condition matrix, repeats, output limits, prompts, thresholds, statistical methods, and reviewer burden;
-- approve the draft decision that the existing 60-cell blinded package remains pilot/calibration evidence and is excluded from primary inference.
+- choose the sample-size option after reviewing the pre-data sensitivity results;
+- freeze final item/domain counts and the RQ1/context populations;
+- materialize and validate the new full-study manifest;
+- verify the dedicated DGX project workspace, supported telemetry, and listener/firewall posture;
+- regenerate the audit and freeze only when it reports no blockers.
 
-The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the proposed primary quality comparison. RQ1 has one proposed primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. These decisions remain proposed until the protocol audit is cleared and the team/supervisor approve the frozen contract.
+The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. These decisions are approved, but the contract remains a draft until its technical blockers are cleared.
 
 ## Safety, privacy, and ownership
 

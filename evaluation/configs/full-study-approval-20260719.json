@@ -1,0 +1,23 @@
+{
+  "approval_version": 1,
+  "date": "2026-07-19",
+  "status": "all_protocol_approvals_granted_by_project_team_relay",
+  "approver_scope": [
+    "project supervisor and program coordinator",
+    "capstone research team"
+  ],
+  "approved_decisions": [
+    "private supervisor evidence record complete",
+    "provisional authorship and CRediT arrangement",
+    "institutional publication route",
+    "course-based ethics determination with no external participant recruitment",
+    "project data and network policy",
+    "proposed reviewer burden",
+    "RQ1-RQ3 minimum scientifically meaningful effects",
+    "non-destructive full-study execution after all technical freeze checks pass"
+  ],
+  "communication_method": "relayed by the project lead in the Codex task",
+  "private_evidence_reference": "project-team-all-approvals-relay-20260719",
+  "public_record_boundary": "Names, signatures, private communications, and contact details remain outside Git.",
+  "technical_boundary": "Approval does not substitute for dataset materialization, sample-size justification, listener-security evidence, dedicated-workspace verification, telemetry verification, or a valid protocol audit."
+}

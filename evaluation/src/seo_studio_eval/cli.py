@@ -15,6 +15,7 @@ from .pilot_reporting import build_pilot_report
 from .preflight import run_preflight
 from .protocol_freeze import audit_protocol_freeze
 from .reporting import build_compatibility_report
+from .sample_size import build_sample_size_sensitivity
 from .smoke import run_compatibility_smoke
 from .truncation_repair import (
     build_truncation_repair_plan,
@@ -39,6 +40,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     protocol_audit.add_argument("--protocol", type=Path, required=True)
     protocol_audit.add_argument("--output", type=Path, required=True)
+
+    sample_size = commands.add_parser(
+        "sample-size-plan",
+        help="Generate pre-data sample-size sensitivity evidence from the approved meaningful effects",
+    )
+    sample_size.add_argument("--protocol", type=Path, required=True)
+    sample_size.add_argument("--output", type=Path, required=True)
 
     validate = commands.add_parser("validate", help="Validate immutable attempt records in a run directory")
     validate.add_argument("--run-dir", type=Path, required=True)
@@ -213,6 +221,10 @@ def main(argv: list[str] | None = None) -> int:
             summary, output_path = audit_protocol_freeze(args.protocol, args.output)
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))
             return 0 if summary.status == "freeze_ready" else 1
+        if args.command == "sample-size-plan":
+            summary, output_path = build_sample_size_sensitivity(args.protocol, args.output)
+            print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))
+            return 0
         if args.command == "validate":
             summary, output_path = validate_run_directory(args.run_dir)
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))

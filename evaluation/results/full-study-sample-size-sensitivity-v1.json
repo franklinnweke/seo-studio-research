@@ -1,0 +1,74 @@
+{
+  "alpha_two_sided": 0.05,
+  "average_claims_per_output_assumption": 6.0,
+  "conclusions": [
+    "The proposed 60-image RQ1 claim population is below every displayed five-point sensitivity scenario.",
+    "A 120-image RQ1 population reaches only the low-rate, ICC 0.10 scenario; moderate rates or stronger clustering require more images.",
+    "The most favorable displayed RQ2 scenario requires 127 paired images after reserve, slightly above 120.",
+    "The proposed 30-image RQ3 subset is below the 35-pair planning value under a one-point paired standard deviation.",
+    "These are design sensitivities, not post-hoc power calculations and not evidence of a model effect."
+  ],
+  "decision_options": [
+    "Increase the final and human-annotated populations and resource the additional reviewer burden.",
+    "Retain the feasible population but approve a larger minimum meaningful effect before primary output inspection.",
+    "Retain the five-point target as estimation-only and explicitly label the study underpowered for confirmatory detection."
+  ],
+  "protocol_id": "seo-studio-full-study-v1",
+  "protocol_sha256": "1ac0028d6b55297a282ddcdaf56dafb417d2913adc92ee6d4cf0ddd966278745",
+  "reserve_rate": 0.1,
+  "rq1": [
+    {
+      "comparison_rate": 0.05,
+      "images_by_icc": {
+        "0.05": 100,
+        "0.10": 120,
+        "0.20": 160
+      },
+      "independent_claims_per_condition": 435,
+      "reference_rate": 0.1
+    },
+    {
+      "comparison_rate": 0.09999999999999999,
+      "images_by_icc": {
+        "0.05": 158,
+        "0.10": 189,
+        "0.20": 252
+      },
+      "independent_claims_per_condition": 686,
+      "reference_rate": 0.15
+    },
+    {
+      "comparison_rate": 0.15000000000000002,
+      "images_by_icc": {
+        "0.05": 208,
+        "0.10": 250,
+        "0.20": 333
+      },
+      "independent_claims_per_condition": 906,
+      "reference_rate": 0.2
+    }
+  ],
+  "rq2": [
+    {
+      "discordant_pair_rate": 0.15,
+      "paired_images_before_reserve": 116,
+      "paired_images_with_reserve": 127
+    },
+    {
+      "discordant_pair_rate": 0.25,
+      "paired_images_before_reserve": 194,
+      "paired_images_with_reserve": 214
+    },
+    {
+      "discordant_pair_rate": 0.35,
+      "paired_images_before_reserve": 273,
+      "paired_images_with_reserve": 300
+    }
+  ],
+  "rq3": {
+    "paired_images_with_reserve": 35,
+    "standardized_effect": 0.5
+  },
+  "status": "decision_required",
+  "target_power": 0.8
+}

@@ -36,13 +36,13 @@ This design therefore does not claim that five models received full human qualit
 
 Supported-claim precision is a key RQ1 secondary outcome and remains part of the selection rule. Salient coverage, schema validity, failure rate, redundancy, brand alignment, safety, concision, latency, throughput, token counts, package size, memory, and cost components are secondary outcomes.
 
-Proposed minimum scientifically meaningful effects, defined without inspecting primary quality results, are:
+Approved minimum scientifically meaningful effects, defined without inspecting primary quality results, are:
 
 - RQ1: 5 percentage points absolute hallucinated-claim rate;
 - RQ2: 10 percentage points absolute acceptable-disposition rate;
 - RQ3: 0.5 points on the five-point contextual-usefulness scale.
 
-These values are explicit proposals, not frozen thresholds, until the team and supervisor approve them and the sample-size simulation is completed.
+The team and supervisor approved these values on July 19, 2026. The resulting pre-data sensitivity calculation is recorded in `docs/publication/sample-size-sensitivity-v1.md`. It shows that the provisional population is not adequate under every reasonable planning scenario, so final sample size remains blocked on an explicit design choice rather than being inferred from approval alone.
 
 ## 3. Dataset design
 
@@ -108,9 +108,9 @@ The combined brand/page/purpose condition is the predeclared product candidate. 
 | Attempt timeout | 240 seconds |
 | Keep alive | 10 minutes within a model block |
 | Hidden retries | 0 |
-| Randomization seed | Pending before freeze |
+| Randomization seed | 1721844270, deterministically derived from SHA-256(`seo-studio-full-study-v1`) |
 
-Prompt candidates are already hash-pinned in the machine-readable contract. Model digests preserve the observed pilot identities but require one live, non-destructive reverification on the approved full-study runtime before they can be marked frozen.
+Prompt candidates are hash-pinned in the machine-readable contract. A read-only `$davneet-dgx-access` check on July 19, 2026 reverified Ollama 0.24.0 and exact full digests for all three models; the sanitized evidence is `evaluation/configs/full-study-runtime-reverification-20260719.json`. No model was loaded and no server mutation occurred.
 
 ## 6. Provisional run accounting
 
@@ -142,7 +142,7 @@ Reviewer allocation proposal:
 - projected load: 378 items or 756 active minutes per reviewer at the calibrated 120 seconds per item;
 - adjudication, breaks, and administration are additional.
 
-Reviewer burden is therefore not yet approved. If it is reduced, the complete double-coded RQ1 population is protected first; reductions must use a predeclared balanced rule for secondary metadata ratings.
+The proposed reviewer burden was approved on July 19, 2026. However, the approved five-point RQ1 sensitivity target may require increasing the claim population, which would require a new workload calculation and additive approval. If burden is reduced, the complete double-coded RQ1 population is protected first; reductions must use a predeclared balanced rule for secondary metadata ratings.
 
 ## 7. Statistical plan
 
@@ -166,17 +166,14 @@ Reviewer burden is therefore not yet approved. If it is reduced, the complete do
 
 ## 9. Freeze blockers
 
-The machine audit must continue returning `draft_blocked` until all of the following are complete:
+The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
 
-- private supervisor identity/evidence record;
-- authorship and CRediT agreement;
-- publication route and ethics determination;
-- DGX data/network policy and approved full-study topology;
-- final sample-size simulation and domain counts;
-- reviewer-burden approval;
-- randomization seed;
-- live digest/runtime reverification for all three models;
-- full-study execution approval.
+- choose the final sample-size option and approve its revised workload;
+- set final item and domain counts;
+- materialize and validate the full-study dataset manifest;
+- verify the listener/firewall security posture without changing shared infrastructure;
+- verify the dedicated project workspace and supported telemetry path;
+- change protocol status only after the resulting audit has no blockers.
 
 Run the offline audit with:
 

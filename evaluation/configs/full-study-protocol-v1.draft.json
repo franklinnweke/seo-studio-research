@@ -9,22 +9,22 @@
       "model_id": "qwen25vl-3b-baseline",
       "expected_digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
       "role": "below-gate reference vision condition",
-      "identity_frozen": false,
-      "live_reverification_required": true
+      "identity_frozen": true,
+      "live_reverification_required": false
     },
     {
       "model_id": "qwen35-9b",
       "expected_digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
       "role": "eligible vision challenger, fixed writer, and controlled direct baseline",
-      "identity_frozen": false,
-      "live_reverification_required": true
+      "identity_frozen": true,
+      "live_reverification_required": false
     },
     {
       "model_id": "gemma3-12b",
       "expected_digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
       "role": "eligible deployed-stack legacy-generation vision challenger",
-      "identity_frozen": false,
-      "live_reverification_required": true
+      "identity_frozen": true,
+      "live_reverification_required": false
     }
   ],
   "prompts": [
@@ -63,7 +63,7 @@
   "execution": {
     "repeats": 3,
     "human_repeat": 1,
-    "randomization_seed": null,
+    "randomization_seed": 1721844270,
     "temperature": 0,
     "thinking_mode": "disabled",
     "context_window": 8192,
@@ -79,31 +79,41 @@
       "metric": "hallucinated_claim_rate",
       "threshold": 0.05,
       "unit": "absolute proportion",
-      "approved": false
+      "approved": true
     },
     {
       "rq_id": "RQ2",
       "metric": "acceptable_disposition_rate",
       "threshold": 0.1,
       "unit": "absolute proportion",
-      "approved": false
+      "approved": true
     },
     {
       "rq_id": "RQ3",
       "metric": "contextual_usefulness_rating",
       "threshold": 0.5,
       "unit": "points on the five-point scale",
-      "approved": false
+      "approved": true
     }
   ],
   "approvals": {
-    "private_supervisor_record_complete": false,
-    "authorship_credit_agreed": false,
-    "publication_route_confirmed": false,
-    "ethics_determination_recorded": false,
-    "data_and_network_policy_confirmed": false,
-    "reviewer_burden_approved": false,
-    "full_study_execution_approved": false
+    "private_supervisor_record_complete": true,
+    "authorship_credit_agreed": true,
+    "publication_route_confirmed": true,
+    "ethics_determination_recorded": true,
+    "data_and_network_policy_confirmed": true,
+    "reviewer_burden_approved": true,
+    "full_study_execution_approved": true
+  },
+  "infrastructure": {
+    "runtime_version": "0.24.0",
+    "runtime_reverified": true,
+    "approved_access_path": "ssh_tunnel",
+    "listener_binding": "all_interfaces",
+    "listener_security_verified": false,
+    "dedicated_workspace_verified": false,
+    "telemetry_path_verified": false,
+    "evidence_path": "configs/full-study-runtime-reverification-20260719.json"
   },
   "run_accounting": {
     "provisional_final_images": 120,

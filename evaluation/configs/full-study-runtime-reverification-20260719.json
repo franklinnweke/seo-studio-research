@@ -1,0 +1,43 @@
+{
+  "evidence_version": 1,
+  "checked_at": "2026-07-19T10:23:30-04:00",
+  "access_authority": "$davneet-dgx-access",
+  "method": [
+    "required read-only status check",
+    "Ollama tags API read through the approved SSH path"
+  ],
+  "expected_host_verified": true,
+  "ollama_service_active": true,
+  "ollama_api_version": "0.24.0",
+  "no_models_loaded": true,
+  "listener_binding": "all_interfaces",
+  "listener_security_verified": false,
+  "models": [
+    {
+      "model_id": "qwen25vl-3b-baseline",
+      "ollama_name": "qwen2.5vl:3b",
+      "digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "parameter_size": "3.8B",
+      "quantization": "Q4_K_M",
+      "digest_matches_protocol": true
+    },
+    {
+      "model_id": "qwen35-9b",
+      "ollama_name": "qwen3.5:latest",
+      "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "parameter_size": "9.7B",
+      "quantization": "Q4_K_M",
+      "digest_matches_protocol": true
+    },
+    {
+      "model_id": "gemma3-12b",
+      "ollama_name": "gemma3:12b",
+      "digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
+      "parameter_size": "12.2B",
+      "quantization": "Q4_K_M",
+      "digest_matches_protocol": true
+    }
+  ],
+  "mutations_performed": [],
+  "preservation_boundary_observed": true
+}

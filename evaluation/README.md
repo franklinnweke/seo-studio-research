@@ -12,6 +12,7 @@ python -m seo_studio_eval preflight --config configs/pilot-amendment.toml
 python -m seo_studio_eval preflight --config configs/pilot-truncation-repair.toml
 python -m seo_studio_eval preflight --config configs/pilot-isolated-gemma4.toml
 python -m seo_studio_eval protocol-audit --protocol configs/full-study-protocol-v1.draft.json --output results/full-study-protocol-audit-v1.json
+python -m seo_studio_eval sample-size-plan --protocol configs/full-study-protocol-v1.draft.json --output results/full-study-sample-size-sensitivity-v1.json
 python -m seo_studio_eval validate --run-dir runs/<experiment-id>
 python -m seo_studio_eval compatibility-smoke --config configs/pilot.toml --model-id qwen35-9b --image-id healthcare-doctor-consultation-001 --base-url http://127.0.0.1:11435 --output-dir runs/<experiment-id> --timeout-seconds 240
 python -m seo_studio_eval compatibility-pilot --config configs/pilot.toml --criteria configs/compatibility-criteria.toml --base-url http://127.0.0.1:<local-tunnel-port> --output-dir runs/<pilot-block> --run-id <pilot-run-id> --system-snapshot-ref <private-snapshot-reference> --max-new-attempts 10
@@ -39,6 +40,7 @@ The preflight validates configuration structure, model declarations, dataset bal
 
 `protocol-audit` validates the Gate 4 draft, verifies pinned prompt hashes, recomputes provisional model-call and human-review accounting, and lists every unresolved freeze blocker. A `draft_blocked` result is the correct state until final sample size, model/runtime reverification, administrative approvals, reviewer burden, and the randomization seed are complete. It performs no live DGX access and must never be treated as execution authorization.
 The latest generated public audit is `results/full-study-protocol-audit-v1.json`; regenerate it whenever the draft contract changes.
+`sample-size-plan` uses only the approved pre-data meaningful effects and declared nuisance-parameter sensitivity grid. It does not inspect comparative model quality. Its `decision_required` result prevents the provisional population from being presented as justified when it cannot resolve the approved effects under reasonable clustering assumptions.
 
 Live inventory, SSH tunnels, model pulls, and DGX experiments are governed by `$davneet-dgx-access`; repository commands never contain the live connection profile. Research execution has no hidden retry. `configs/compatibility-criteria.toml` freezes the compatibility and fallback rules, while compatibility reports explicitly prohibit quality ranking from the one-image smoke data.
 
