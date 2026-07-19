@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from .accounting import build_run_accounting
 from .blinding import build_blinded_package
-from .normalization import normalize_run_directories
+from .normalization import normalize_metadata_pipeline, normalize_run_directories
 from .pilot import run_compatibility_pilot
 from .pilot_reporting import build_pilot_report
 from .preflight import run_preflight
@@ -20,6 +20,7 @@ from .truncation_repair import (
 )
 from .validation import validate_run_directory
 from .writer_compatibility import build_writer_report, run_writer_compatibility
+from .writer_matrix import run_writer_matrix
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,7 +35,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     normalize = commands.add_parser("normalize", help="Create versioned normalized records without changing raw evidence")
     normalize.add_argument("--run-dir", type=Path, action="append", required=True)
+    normalize.add_argument("--repair-run-dir", type=Path, action="append")
+    normalize.add_argument("--model-id", action="append")
     normalize.add_argument("--output-dir", type=Path, required=True)
+
+    normalize_metadata = commands.add_parser(
+        "normalize-metadata-pipeline",
+        help="Combine source facts, bounded repairs, and fixed-writer outcomes into balanced metadata cells",
+    )
+    normalize_metadata.add_argument("--source-run-dir", type=Path, action="append", required=True)
+    normalize_metadata.add_argument("--repair-run-dir", type=Path, action="append", required=True)
+    normalize_metadata.add_argument("--writer-run-dir", type=Path, required=True)
+    normalize_metadata.add_argument("--writer-criteria", type=Path, required=True)
+    normalize_metadata.add_argument("--writer-run-id", required=True)
+    normalize_metadata.add_argument("--model-id", action="append", required=True)
+    normalize_metadata.add_argument("--output-dir", type=Path, required=True)
 
     blind = commands.add_parser("blind", help="Create a reviewer package and a separate private identity map")
     blind.add_argument("--normalized-records", type=Path, required=True)
@@ -130,6 +145,19 @@ def build_parser() -> argparse.ArgumentParser:
     writer_report.add_argument("--summary", type=Path, required=True)
     writer_report.add_argument("--evidence", type=Path, required=True)
     writer_report.add_argument("--output", type=Path, required=True)
+    writer_matrix = commands.add_parser(
+        "writer-matrix",
+        help="Pass every schema-valid selected fact record through the pinned metadata writer",
+    )
+    writer_matrix.add_argument("--config", type=Path, required=True)
+    writer_matrix.add_argument("--criteria", type=Path, required=True)
+    writer_matrix.add_argument("--source-run-dir", type=Path, action="append", required=True)
+    writer_matrix.add_argument("--repair-run-dir", type=Path, action="append", required=True)
+    writer_matrix.add_argument("--base-url", required=True)
+    writer_matrix.add_argument("--output-dir", type=Path, required=True)
+    writer_matrix.add_argument("--run-id", required=True)
+    writer_matrix.add_argument("--system-snapshot-ref", required=True)
+    writer_matrix.add_argument("--max-new-attempts", type=int)
     return parser
 
 
@@ -145,7 +173,24 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))
             return 0 if summary.status == "valid" else 1
         if args.command == "normalize":
-            summary, output_path = normalize_run_directories(args.run_dir, args.output_dir)
+            summary, output_path = normalize_run_directories(
+                args.run_dir,
+                args.output_dir,
+                model_ids=args.model_id,
+                repair_run_dirs=args.repair_run_dir,
+            )
+            print(json.dumps({**summary.model_dump(), "records_path": str(output_path)}, sort_keys=True))
+            return 0 if summary.status == "normalized" else 1
+        if args.command == "normalize-metadata-pipeline":
+            summary, output_path = normalize_metadata_pipeline(
+                args.source_run_dir,
+                args.repair_run_dir,
+                args.writer_run_dir,
+                args.output_dir,
+                model_ids=args.model_id,
+                writer_criteria_path=args.writer_criteria,
+                writer_run_id=args.writer_run_id,
+            )
             print(json.dumps({**summary.model_dump(), "records_path": str(output_path)}, sort_keys=True))
             return 0 if summary.status == "normalized" else 1
         if args.command == "blind":
@@ -319,6 +364,26 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0
+        if args.command == "writer-matrix":
+            summary, summary_path = run_writer_matrix(
+                args.config,
+                args.criteria,
+                args.source_run_dir,
+                args.repair_run_dir,
+                args.base_url,
+                args.output_dir,
+                args.run_id,
+                args.system_snapshot_ref,
+                progress=lambda payload: print(json.dumps(payload, sort_keys=True), flush=True),
+                max_new_attempts=args.max_new_attempts,
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(mode="json"), "summary_path": str(summary_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status in {"paused", "complete"} else 1
     except (OSError, RuntimeError, ValueError, ValidationError) as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2

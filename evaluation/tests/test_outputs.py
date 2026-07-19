@@ -24,6 +24,11 @@ class ResetTransport:
         raise ConnectionResetError("synthetic reset")
 
 
+class TruncatedTransport:
+    def generate(self, request: dict[str, Any]) -> dict[str, Any]:
+        return {"response": '{"alt_text":', "done_reason": "length"}
+
+
 def make_spec(
     attempt_id: str,
     model_id: str = "qwen35-9b",
@@ -156,6 +161,86 @@ def test_multi_directory_normalization_and_filtered_accounting(tmp_path: Path) -
     assert accounting.expected_attempts == 5
     assert accounting.observed_attempts == 5
     assert accounting.raw_attempts == 5
+
+
+def test_pipeline_normalization_filters_models_and_applies_source_linked_repair(
+    tmp_path: Path,
+) -> None:
+    source_dir = tmp_path / "source"
+    repair_dir = tmp_path / "repair"
+    image_id = "healthcare-doctor-consultation-001"
+    truncated = execute_attempt(
+        make_spec("source-qwen", model_id="qwen35-9b", image_id=image_id),
+        TruncatedTransport(),
+    )
+    excluded = execute_attempt(
+        make_spec("source-baseline", model_id="qwen25vl-3b-baseline", image_id=image_id),
+        OutputTransport({"alt_text": "A reference output."}),
+    )
+    repair_spec = make_spec("repair-qwen", model_id="qwen35-9b", image_id=image_id).model_copy(
+        update={
+            "experiment_id": "repair-v1",
+            "sanitized_request": {
+                "repair_source_attempt_id": truncated.attempt_id,
+                "model": "redacted",
+            },
+        }
+    )
+    repair = execute_attempt(
+        repair_spec,
+        OutputTransport({"alt_text": "A repaired clinician consultation output."}),
+    )
+    write_attempt_record(source_dir, truncated)
+    write_attempt_record(source_dir, excluded)
+    write_attempt_record(repair_dir, repair)
+
+    summary, normalized_path = normalize_run_directories(
+        [source_dir],
+        tmp_path / "normalized",
+        model_ids=["qwen35-9b"],
+        repair_run_dirs=[repair_dir],
+    )
+
+    assert summary.status == "normalized"
+    assert summary.records_written == 1
+    assert summary.repairs_applied == 1
+    assert summary.valid_pipeline_outcomes == 1
+    row = json.loads(normalized_path.read_text().strip())
+    assert row["normalization_version"] == "normalization-v2"
+    assert row["source_attempt_id"] == truncated.attempt_id
+    assert row["effective_attempt_id"] == repair.attempt_id
+    assert row["pipeline_stage"] == "protocol_2_2_repair"
+    assert row["output"]["alt_text"] == "A repaired clinician consultation output."
+
+
+def test_blinding_rejects_unbalanced_condition_populations(tmp_path: Path) -> None:
+    run_dir = tmp_path / "runs"
+    write_attempt_record(
+        run_dir,
+        execute_attempt(
+            make_spec("qwen-one", model_id="qwen35-9b", image_id="pilot-001"),
+            OutputTransport({"alt_text": "First output."}),
+        ),
+    )
+    write_attempt_record(
+        run_dir,
+        execute_attempt(
+            make_spec("baseline-one", model_id="qwen25vl-3b-baseline", image_id="pilot-002"),
+            OutputTransport({"alt_text": "Second output."}),
+        ),
+    )
+    _, normalized_path = normalize_run_directory(run_dir, tmp_path / "normalized")
+
+    summary, package_path, _ = build_blinded_package(
+        normalized_path,
+        tmp_path / "released",
+        tmp_path / "private",
+        seed=42,
+    )
+
+    assert summary.status == "invalid"
+    assert any("same image/repeat population" in error for error in summary.errors)
+    assert not package_path.exists()
 
 
 def test_accounting_resolves_recorded_transport_recovery(tmp_path: Path) -> None:

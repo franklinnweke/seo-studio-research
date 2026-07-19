@@ -1,0 +1,24 @@
+{
+  "acknowledgement_version": 1,
+  "date": "2026-07-18",
+  "status": "approval_relayed_private_identity_record_pending",
+  "approver_role": [
+    "project supervisor",
+    "program coordinator",
+    "DGX Spark owner"
+  ],
+  "communication_method": "relayed by the project team in the Codex task",
+  "private_evidence_reference": "project-team-relay-20260718",
+  "approved_scope": [
+    "deployed-stack research scope",
+    "fixed Qwen3.5 writer stage for the selected 60 source cells",
+    "non-destructive use of shared DGX inference capacity",
+    "blinded metadata quality-screening package preparation"
+  ],
+  "preservation_boundary": [
+    "do not delete, overwrite, move, rename, or repurpose supervisor-owned files",
+    "do not delete models or alter the shared Ollama service configuration",
+    "use only additive repository-side research evidence and temporary local tunnels"
+  ],
+  "documentation_note": "The supervisor's name and the private communication artifact are intentionally excluded from the repository. The project team must complete the private approval record before final Gate 3 closure; no identity or evidence was fabricated here."
+}
