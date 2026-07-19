@@ -1,0 +1,23 @@
+schema_version = 1
+criteria_id = "truncation-repair-isolated-gemma4-v1"
+purpose = "Predeclared Protocol 2.2 system-level repair for isolated-block output truncation only; not a quality retry or threshold change."
+source_done_reason = "length"
+source_output_token_limit = 384
+recovery_output_token_limit = 768
+expected_repairs = 4
+per_attempt_timeout_seconds = 240
+hidden_retries_allowed = 0
+explicit_repair_attempts_per_truncation = 1
+abort_on_transport_error = true
+max_transport_attempts_per_item = 3
+temperature = 0
+seed = 20260716
+thinking_mode = "disabled"
+context_window = 8192
+warmup_manifest = "dataset/manifest-contract.jsonl"
+warmup_image_id = "synthetic-solid-blue-001"
+keep_alive = "10m"
+
+[required_repairs_by_model]
+qwen35-9b = 1
+gemma4-12b-amendment = 3

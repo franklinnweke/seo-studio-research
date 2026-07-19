@@ -46,5 +46,5 @@
     "project_model_store_approximate_gb": 17,
     "free_disk_approximate_gb": 274
   },
-  "status": "installed_and_digest_locked_pending_measured_preflight"
+  "status": "installed_digest_locked_and_one_shot_matrix_complete"
 }

@@ -1,6 +1,6 @@
 {
   "amendment_version": 1,
-  "status": "isolated_runtime_installed_and_digest_locked_pending_measured_preflight",
+  "status": "isolated_one_shot_complete_protocol_2_2_repair_plan_frozen",
   "date": "2026-07-17",
   "trigger": {
     "reason": "A pre-freeze catalog audit found that Gemma 4 was publicly available before the July 2026 candidate set was finalized. The installed-inventory-first selection had therefore treated Gemma 3 as current without a defensible recency justification.",
@@ -90,6 +90,18 @@
     "shared_service_changed": false,
     "owner_files_changed": false,
     "context_window_for_isolated_block": 8192
+  },
+  "isolated_one_shot_outcome": {
+    "measured_outcomes": 60,
+    "raw_measured_records": 62,
+    "superseded_transport_records": 2,
+    "qwen25vl_3b_baseline_valid": "20/20",
+    "qwen35_9b_valid": "18/20",
+    "gemma4_12b_valid": "17/20",
+    "repair_eligible_length_truncations": 4,
+    "final_nonrepairable_timeouts": 1,
+    "repair_plan": "evaluation/results/truncation-repair-isolated-gemma4-plan-20260718.json",
+    "quality_ranking_performed": false
   },
   "advancement_rule": "If Gemma 4 meets the unchanged 95% pipeline-validity gate, it supersedes Gemma 3 as the current-generation Gemma challenger in quality screening. Gemma 3 remains reported as historical compatibility evidence. If Gemma 4 fails, retain that failure and document whether Gemma 3 remains only as a legacy-generation comparator or the protocol requires reassessment."
 }

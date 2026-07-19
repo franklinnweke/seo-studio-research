@@ -33,7 +33,7 @@
       "license": "Apache-2.0",
       "license_source": "https://huggingface.co/Qwen/Qwen3.5-9B",
       "ollama_source": "https://ollama.com/library/qwen3.5",
-      "pilot_status": "full_matrix_failed_18_of_20_writer_role_retained",
+      "pilot_status": "original_shared_runtime_18_of_20_and_isolated_runtime_18_of_20_writer_role_retained",
       "protocol_2_2_pipeline_status": "passed_19_of_20_eligible_challenger"
     },
     {
@@ -49,7 +49,7 @@
       "license": "Apache-2.0",
       "license_source": "https://ai.google.dev/gemma/docs/core/model_card_4",
       "ollama_source": "https://ollama.com/library/gemma4/tags",
-      "pilot_status": "installed_and_digest_locked_in_project_isolated_ollama_0_32_1_pending_measured_preflight",
+      "pilot_status": "isolated_runtime_one_shot_17_of_20_with_three_length_truncations_pending_frozen_protocol_2_2_repairs",
       "expected_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
       "selection_basis": "current same-size Gemma generation identified by a catalog audit before final protocol freeze and before comparative quality inspection"
     },

@@ -1,0 +1,23 @@
+schema_version = 1
+
+[[models]]
+id = "qwen35-9b"
+ollama_name = "qwen3.5:latest"
+expected_digest = "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7"
+family = "Qwen3.5"
+parameters = "9.7B"
+quantization = "Q4_K_M"
+role = "isolated_runtime_truncation_repair"
+license = "Apache-2.0"
+frozen = true
+
+[[models]]
+id = "gemma4-12b-amendment"
+ollama_name = "gemma4:12b-it-q4_K_M"
+expected_digest = "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c"
+family = "Gemma 4"
+parameters = "11.9B"
+quantization = "Q4_K_M"
+role = "isolated_runtime_truncation_repair"
+license = "Apache-2.0"
+frozen = true

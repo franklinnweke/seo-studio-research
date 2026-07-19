@@ -1,0 +1,65 @@
+{
+  "criteria_id": "truncation-repair-isolated-gemma4-v1",
+  "criteria_sha256": "97c759e34acbc2bf236440689894899939106c621b72401948bad3cd832e3cb4",
+  "expected_repairs": 4,
+  "experiment_id": "seo-studio-isolated-gemma4-repair-v1",
+  "explicit_repair_attempts_per_truncation": 1,
+  "model_order": [
+    "qwen35-9b",
+    "gemma4-12b-amendment"
+  ],
+  "models_config_sha256": "d2e13847b95ca591235fd9fa3826f58fd7d162fdda6befaf89148670428dcb90",
+  "plan_version": 1,
+  "protocol_version": "2.3-isolated-gemma4-protocol-2-2-repair",
+  "quality_retry_permitted": false,
+  "recovery_output_token_limit": 768,
+  "repairs": [
+    {
+      "image_id": "retail-mushroom-display-009",
+      "model_digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "model_id": "qwen35-9b",
+      "source_attempt_id": "pilot-isolated-gemma4-20260717-03-002-qwen35-9b-retail-mushroom-display-009-r1-c1",
+      "source_experiment_id": "seo-studio-isolated-finalist-pilot-v1",
+      "source_run_id": "pilot-isolated-gemma4-20260717"
+    },
+    {
+      "image_id": "retail-mushroom-display-009",
+      "model_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+      "model_id": "gemma4-12b-amendment",
+      "source_attempt_id": "pilot-isolated-gemma4-20260717-01-001-gemma4-12b-amendment-retail-mushroom-display-009-r1-c1",
+      "source_experiment_id": "seo-studio-isolated-finalist-pilot-v1",
+      "source_run_id": "pilot-isolated-gemma4-20260717"
+    },
+    {
+      "image_id": "education-library-study-017",
+      "model_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+      "model_id": "gemma4-12b-amendment",
+      "source_attempt_id": "pilot-isolated-gemma4-20260717-01-006-gemma4-12b-amendment-education-library-study-017-r1-c1",
+      "source_experiment_id": "seo-studio-isolated-finalist-pilot-v1",
+      "source_run_id": "pilot-isolated-gemma4-20260717"
+    },
+    {
+      "image_id": "hospitality-patio-dining-014",
+      "model_digest": "4eb23ef187e2c5462566d6a1d3bbbc2f1346d0b4327cbb66d58fffbcc9b2b05c",
+      "model_id": "gemma4-12b-amendment",
+      "source_attempt_id": "pilot-isolated-gemma4-20260717-01-003-gemma4-12b-amendment-hospitality-patio-dining-014-r1-c1",
+      "source_experiment_id": "seo-studio-isolated-finalist-pilot-v1",
+      "source_run_id": "pilot-isolated-gemma4-20260717"
+    }
+  ],
+  "required_repairs_by_model": {
+    "gemma4-12b-amendment": 3,
+    "qwen35-9b": 1
+  },
+  "seed": 20260716,
+  "source_output_token_limit": 384,
+  "source_run_ids": [
+    "pilot-isolated-gemma4-20260717"
+  ],
+  "study_config_sha256": "fc1162b7923fe5baba9c910895681a8fe8f853d44127415f13ee165d29e1ceb0",
+  "temperature": 0.0,
+  "thinking_mode": "disabled",
+  "timeout_repair_permitted": false,
+  "timeout_seconds": 240.0,
+  "trigger": "invalid source outcome with done_reason=length and num_predict=384"
+}
