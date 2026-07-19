@@ -67,6 +67,8 @@ This starts:
 - FastAPI backend on `http://localhost:11502`
 - Next.js frontend on `http://localhost:11501`
 
+The research repository intentionally has no inherited capstone staging-deployment workflow. Public deployment must be configured separately and must not expose Ollama or the DGX directly.
+
 Build a single service image directly:
 
 ```bash
