@@ -1,0 +1,146 @@
+{
+  "adjudicated_records": 15,
+  "analysis_version": 1,
+  "blocking_findings": [
+    "Independent reviewers produced non-isomorphic claim inventories; claim-label agreement is not estimable until both label the same frozen claim units.",
+    "Agreement below the provisional 0.60 feasibility marker: salient_coverage_score, contextual_usefulness_score, redundancy_control_score, purpose_appropriateness_score, disposition_valid_outputs"
+  ],
+  "calibration_items": 15,
+  "cautions": [
+    "Chronological timing order does not match the stored assigned-order file for: R1",
+    "The 0.60 feasibility marker was not numerically frozen before these ratings and is descriptive, not a post-hoc pass/fail rule.",
+    "Kappa can be unstable or undefined under near-perfect prevalence; report exact agreement and score distributions alongside it.",
+    "Adjudication duration was not supplied, so workload projections exclude reconciliation overhead."
+  ],
+  "claim_counts": {
+    "R1": 64,
+    "R2": 103,
+    "adjudicated": 79
+  },
+  "claim_label_agreement_estimable": false,
+  "disposition_agreement_all_items": {
+    "exact_agreement": 0.5333333333333333,
+    "interpretation_note": "",
+    "linear_weighted_kappa": 0.6153846153846154,
+    "mean_absolute_difference": null,
+    "n": 15
+  },
+  "disposition_agreement_valid_outputs": {
+    "exact_agreement": 0.4166666666666667,
+    "interpretation_note": "",
+    "linear_weighted_kappa": 0.26315789473684226,
+    "mean_absolute_difference": null,
+    "n": 12
+  },
+  "projected_active_minutes_for_60_items": {
+    "R1": 120.0,
+    "R2": 125.0
+  },
+  "rating_agreement": {
+    "brand_alignment_score": {
+      "exact_agreement": 0.9166666666666666,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 0.0,
+      "mean_absolute_difference": 0.08333333333333333,
+      "n": 12
+    },
+    "concision_fluency_score": {
+      "exact_agreement": 1.0,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 1.0,
+      "mean_absolute_difference": 0.0,
+      "n": 12
+    },
+    "contextual_usefulness_score": {
+      "exact_agreement": 0.6666666666666666,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 0.5,
+      "mean_absolute_difference": 0.3333333333333333,
+      "n": 12
+    },
+    "factual_grounding_score": {
+      "exact_agreement": 0.6666666666666666,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 0.6103896103896104,
+      "mean_absolute_difference": 0.4166666666666667,
+      "n": 12
+    },
+    "purpose_appropriateness_score": {
+      "exact_agreement": 0.5,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 0.5862068965517241,
+      "mean_absolute_difference": 0.5,
+      "n": 12
+    },
+    "redundancy_control_score": {
+      "exact_agreement": 0.5,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 0.06666666666666643,
+      "mean_absolute_difference": 1.1666666666666667,
+      "n": 12
+    },
+    "safety_score": {
+      "exact_agreement": 1.0,
+      "interpretation_note": "Kappa undefined because expected weighted disagreement is zero; use exact agreement.",
+      "linear_weighted_kappa": null,
+      "mean_absolute_difference": 0.0,
+      "n": 12
+    },
+    "salient_coverage_score": {
+      "exact_agreement": 0.5,
+      "interpretation_note": "",
+      "linear_weighted_kappa": 0.23809523809523814,
+      "mean_absolute_difference": 0.6666666666666666,
+      "n": 12
+    }
+  },
+  "reviewer_records": {
+    "R1": 15,
+    "R2": 15
+  },
+  "source_sha256": {
+    "annotation_schema": "bba36314c4532190500e96f8f23ceb98a567bfd9c8b4e869644fe530ff8c72aa",
+    "annotations_R1": "c86ead22914a1e2d6da702356c782de9ee19ea4b7061292f281c6058dfc29b5f",
+    "annotations_R2": "4a57d5740cc29ed73d0028fd23bec0273023612c2d5fd672d47e65052dad3c10",
+    "annotations_adjudicated": "b2c9b87c7fa1450fac1b54b6bf2d080c54f1a678a6c08401f0fd96d8a960961d",
+    "assigned_order_R1": "46f2d09177ba296eec6f2175e683d586642e254dddd7236b2b828819856f82f3",
+    "assigned_order_R2": "4f07b4ab5c33340cf9f65fa561f2a8544748a94e57480b4fac47c0d15ffc02d2",
+    "review_items": "2e485e1294d47abd53042dc22d96c311c05d9beb355fe9affe802ee7f64247db",
+    "rubric_v1_1": "0432fa89a52d9cc92f8bede5003e5ae66064c3bf2e7966962365bd9790392735",
+    "timing_R1": "882f7429231af6d4ebfe327561924410bc4701b961996272cd1dcd42e38ec22f",
+    "timing_R2": "cb47a34e70917c1fa02feb40583b7c85b6f49f1c540c6fa5d7760d8fb2b029ff"
+  },
+  "status": "recalibration_required",
+  "system_failure_items": 3,
+  "timing": {
+    "R1": {
+      "all_items_within_session": true,
+      "chronological_order_matches_assigned_order": false,
+      "duration_mismatches": 0,
+      "items": 15,
+      "maximum_item_seconds": 155.0,
+      "median_item_seconds": 120.0,
+      "minimum_item_seconds": 45.0,
+      "overlapping_items": 0,
+      "q1_item_seconds": 110.0,
+      "q3_item_seconds": 130.0,
+      "session_seconds": 1665.0,
+      "summed_item_seconds": 1665.0
+    },
+    "R2": {
+      "all_items_within_session": true,
+      "chronological_order_matches_assigned_order": true,
+      "duration_mismatches": 0,
+      "items": 15,
+      "maximum_item_seconds": 150.0,
+      "median_item_seconds": 125.0,
+      "minimum_item_seconds": 40.0,
+      "overlapping_items": 0,
+      "q1_item_seconds": 97.5,
+      "q3_item_seconds": 130.0,
+      "session_seconds": 1795.0,
+      "summed_item_seconds": 1635.0
+    }
+  },
+  "valid_output_items": 12
+}

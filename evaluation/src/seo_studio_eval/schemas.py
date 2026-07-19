@@ -126,7 +126,7 @@ class ClaimAnnotation(BaseModel):
 class AnnotationRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    rubric_version: Literal["rubric-v1"] = "rubric-v1"
+    rubric_version: Literal["rubric-v1", "rubric-v1.1"] = "rubric-v1"
     record_type: Literal["individual", "adjudicated"] = "individual"
     item_id: str
     review_item_id: str
@@ -135,14 +135,14 @@ class AnnotationRecord(BaseModel):
     repeat: Literal[1] = 1
     calibration_item: bool = False
     claims: list[ClaimAnnotation] = Field(default_factory=list)
-    factual_grounding_score: int = Field(ge=1, le=5)
-    salient_coverage_score: int = Field(ge=1, le=5)
-    contextual_usefulness_score: int = Field(ge=1, le=5)
+    factual_grounding_score: int | None = Field(default=None, ge=1, le=5)
+    salient_coverage_score: int | None = Field(default=None, ge=1, le=5)
+    contextual_usefulness_score: int | None = Field(default=None, ge=1, le=5)
     redundancy_control_score: int | None = Field(default=None, ge=1, le=5)
-    purpose_appropriateness_score: int = Field(ge=1, le=5)
+    purpose_appropriateness_score: int | None = Field(default=None, ge=1, le=5)
     brand_alignment_score: int | None = Field(default=None, ge=1, le=5)
-    safety_score: int = Field(ge=1, le=5)
-    concision_fluency_score: int = Field(ge=1, le=5)
+    safety_score: int | None = Field(default=None, ge=1, le=5)
+    concision_fluency_score: int | None = Field(default=None, ge=1, le=5)
     disposition: Literal["accept_unchanged", "minor_edit", "major_edit", "reject"]
     notes: str = ""
 
@@ -151,6 +151,25 @@ class AnnotationRecord(BaseModel):
         claim_ids = [claim.claim_id for claim in self.claims]
         if len(claim_ids) != len(set(claim_ids)):
             raise ValueError("claim ids must be unique within an annotation record")
+        primary_scores = (
+            self.factual_grounding_score,
+            self.salient_coverage_score,
+            self.contextual_usefulness_score,
+            self.purpose_appropriateness_score,
+            self.safety_score,
+            self.concision_fluency_score,
+        )
+        all_scores = primary_scores + (
+            self.redundancy_control_score,
+            self.brand_alignment_score,
+        )
+        if any(score is None for score in primary_scores):
+            if any(score is not None for score in all_scores):
+                raise ValueError("system-failure annotations must set every rating to null")
+            if self.claims:
+                raise ValueError("system-failure annotations cannot contain claims")
+            if self.disposition != "reject":
+                raise ValueError("system-failure annotations must use reject disposition")
         return self
 
 

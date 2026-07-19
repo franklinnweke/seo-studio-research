@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from .accounting import build_run_accounting
 from .blinding import build_blinded_package
 from .calibration import build_calibration_package
+from .calibration_analysis import build_calibration_analysis
 from .normalization import normalize_metadata_pipeline, normalize_run_directories
 from .pilot import run_compatibility_pilot
 from .pilot_reporting import build_pilot_report
@@ -67,6 +68,20 @@ def build_parser() -> argparse.ArgumentParser:
     calibration.add_argument("--seed", type=int, required=True)
     calibration.add_argument("--image-count", type=int, required=True)
     calibration.add_argument("--expected-conditions", type=int, required=True)
+
+    calibration_analysis = commands.add_parser(
+        "calibration-analysis",
+        help="Validate two blinded human calibration passes and generate agreement/workload evidence",
+    )
+    calibration_analysis.add_argument("--review-items", type=Path, required=True)
+    calibration_analysis.add_argument("--reviewer", action="append", nargs=2, metavar=("ALIAS", "PATH"), required=True)
+    calibration_analysis.add_argument("--adjudicated", type=Path, required=True)
+    calibration_analysis.add_argument("--timing", action="append", nargs=2, metavar=("ALIAS", "PATH"), required=True)
+    calibration_analysis.add_argument("--assigned-order", action="append", nargs=2, metavar=("ALIAS", "PATH"), required=True)
+    calibration_analysis.add_argument("--rubric", type=Path, required=True)
+    calibration_analysis.add_argument("--schema", type=Path, required=True)
+    calibration_analysis.add_argument("--evidence", type=Path, required=True)
+    calibration_analysis.add_argument("--output", type=Path, required=True)
 
     account = commands.add_parser("account", help="Account for every planned model, image, and repeat")
     account.add_argument("--config", type=Path, required=True)
@@ -248,6 +263,29 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0 if summary.status == "ready" else 1
+        if args.command == "calibration-analysis":
+            summary, evidence_path, report_path = build_calibration_analysis(
+                args.review_items,
+                {alias: Path(path) for alias, path in args.reviewer},
+                args.adjudicated,
+                {alias: Path(path) for alias, path in args.timing},
+                {alias: Path(path) for alias, path in args.assigned_order},
+                args.rubric,
+                args.schema,
+                args.evidence,
+                args.output,
+            )
+            print(
+                json.dumps(
+                    {
+                        **summary.model_dump(mode="json"),
+                        "evidence_path": str(evidence_path),
+                        "report_path": str(report_path),
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status in {"ready", "recalibration_required"} else 1
         if args.command == "account":
             summary = build_run_accounting(
                 args.config,

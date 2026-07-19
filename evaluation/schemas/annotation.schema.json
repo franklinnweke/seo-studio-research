@@ -71,16 +71,32 @@
       "type": "array"
     },
     "concision_fluency_score": {
-      "maximum": 5,
-      "minimum": 1,
-      "title": "Concision Fluency Score",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Concision Fluency Score"
     },
     "contextual_usefulness_score": {
-      "maximum": 5,
-      "minimum": 1,
-      "title": "Contextual Usefulness Score",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contextual Usefulness Score"
     },
     "disposition": {
       "enum": [
@@ -93,10 +109,18 @@
       "type": "string"
     },
     "factual_grounding_score": {
-      "maximum": 5,
-      "minimum": 1,
-      "title": "Factual Grounding Score",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Factual Grounding Score"
     },
     "item_id": {
       "title": "Item Id",
@@ -108,10 +132,18 @@
       "type": "string"
     },
     "purpose_appropriateness_score": {
-      "maximum": 5,
-      "minimum": 1,
-      "title": "Purpose Appropriateness Score",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Purpose Appropriateness Score"
     },
     "record_type": {
       "default": "individual",
@@ -151,22 +183,41 @@
       "type": "string"
     },
     "rubric_version": {
-      "const": "rubric-v1",
       "default": "rubric-v1",
+      "enum": [
+        "rubric-v1",
+        "rubric-v1.1"
+      ],
       "title": "Rubric Version",
       "type": "string"
     },
     "safety_score": {
-      "maximum": 5,
-      "minimum": 1,
-      "title": "Safety Score",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Safety Score"
     },
     "salient_coverage_score": {
-      "maximum": 5,
-      "minimum": 1,
-      "title": "Salient Coverage Score",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Salient Coverage Score"
     }
   },
   "required": [
@@ -174,12 +225,6 @@
     "review_item_id",
     "blinded_condition_id",
     "reviewer_alias",
-    "factual_grounding_score",
-    "salient_coverage_score",
-    "contextual_usefulness_score",
-    "purpose_appropriateness_score",
-    "safety_score",
-    "concision_fluency_score",
     "disposition"
   ],
   "title": "AnnotationRecord",
