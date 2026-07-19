@@ -1,6 +1,12 @@
-# seo-studio
+# SEO Studio Research
 
-AI-powered image and website optimization platform POC.
+Research edition of an AI-powered image and website optimization platform, with a reproducible evaluation harness for context-aware web image metadata on self-hosted multimodal models.
+
+This standalone research repository preserves the complete development history of the original team capstone application and the subsequent publication-oriented research work. The original shared application is maintained at [`iobami/seo-studio`](https://github.com/iobami/seo-studio); republication of that shared foundation was approved by the project team. See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for attribution.
+
+The source is publicly available for review and research transparency. No open-source reuse license has been selected yet, so no permission to copy, modify, or redistribute is granted beyond rights provided by applicable law.
+
+Research and publication documentation starts at [`docs/README.md`](docs/README.md). The compact handoff is [`docs/research-context.md`](docs/research-context.md), and the ordered continuation checklist is [`docs/research-next-steps.md`](docs/research-next-steps.md).
 
 ## Local Development
 
@@ -173,5 +179,12 @@ Implemented phases:
 - Ollama dual-model AI image metadata backend
 - SEO Metadata page for job-based image metadata generation and review
 - Selected metadata ZIP download with renamed images and `report.csv`
+- Feature-flagged page and brand context workflow
+- Human-confirmed image-purpose taxonomy and purpose-aware review
+- Structured visual-fact and direct/decomposed metadata routing
+- Offline evaluation harness, immutable evidence, blinding, and calibrated human-review protocol
 
-Next phase: continue focus-aware crop/resize hardening, then review and export flows.
+Next phases:
+
+- Product/capstone track: continue focus-aware crop/resize hardening, review, export, and course-delivery stabilization.
+- Publication track: close administrative/security prerequisites, freeze the exact full-study protocol and workload, complete the licensed dataset, then execute blinded primary evaluation. AI cropping remains outside the primary paper.

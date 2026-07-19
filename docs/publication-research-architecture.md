@@ -1,12 +1,17 @@
 # SEO Studio Research Master Architecture and Execution Plan
 
 Status: Canonical architecture, research protocol, paper guide, and agent execution specification
-Version: 2.1
+Version: 2.2
 Prepared: July 13, 2026
-Updated: July 16, 2026
+Updated: July 19, 2026
 Project: PROG8751 SEO Studio Capstone
-Repository: `https://github.com/iobami/seo-studio`
+Research repository: `https://github.com/franklinnweke/seo-studio-research`
+Original team capstone repository: `https://github.com/iobami/seo-studio`
 Target outcome: capstone delivery, institutional publication, and a reproducible applied-AI research artifact
+Working article: [`docs/publication/seo-studio-manuscript.html`](publication/seo-studio-manuscript.html)
+Documentation index: [`docs/README.md`](README.md)
+Compact current context: [`docs/research-context.md`](research-context.md)
+Current execution checklist: [`docs/research-next-steps.md`](research-next-steps.md)
 
 ## 1. Purpose of this document
 
@@ -43,11 +48,11 @@ An implementation agent must:
 7. Never place passwords, SSH keys, public/private server inventories, reviewer identity maps, client data, or raw restricted research records in Git.
 8. Invoke `$davneet-dgx-access` for every live DGX access, status, inventory, connectivity diagnosis, server command, or experiment handoff. Follow the skill's required current-status check before making a live-state claim; do not reproduce its connection profile in this repository.
 
-### 1.2 Repository snapshot at version 2.1
+### 1.2 Repository snapshot at version 2.2
 
 This snapshot is evidence for handoff, not a permanent claim. Re-check it at the start of every task.
 
-- Active branch: `codex/research-context-aware-metadata`.
+- Public research release branch: `main`, preserving the complete history of the original `codex/research-context-aware-metadata` development lineage.
 - Latest research foundation commit before the completed live repair evidence: `1179475` (`Record amendment and add truncation repair protocol`).
 - The upload/deletion workflow was preserved separately on `agent/automatic-upload-flow` at commit `5f6d137`; draft PR #33 targets `main`.
 - The research branch was created from the clean `main` baseline so PR #33 is not silently absorbed into the research work.
@@ -56,7 +61,7 @@ This snapshot is evidence for handoff, not a permanent claim. Re-check it at the
 - `$davneet-dgx-access` is the canonical operational authority for live DGX access. Its connection profile and current-status baseline remain outside this repository; committed documents contain only sanitized protocol requirements and research evidence.
 - The application has upload, optimization, page/brand context, human-confirmed purpose, purpose-aware review/export, structured visual facts, direct/dual routing, sanitized provenance, and Ollama telemetry behind the research feature flag.
 - The research harness is separate from the product path and sends raw image bytes only at execution time while persisting image hashes in sanitized request evidence.
-- The full 20-item compatibility matrix, fixed-writer compatibility pass, separate two-model Qwen3.6 amendment, both source-linked Protocol 2.2 repair stages, and the 54-call fixed-writer metadata matrix are complete with sanitized evidence under `evaluation/results/`. On the original deployed Ollama 0.24.0 stack, Qwen3.5 9B and Gemma 3 12B meet the unchanged 95% fact-pipeline-validity gate; Qwen2.5-VL 3B remains the reference. A pre-freeze catalog correction prospectively tested same-size Gemma 4 on an official project-owned Ollama 0.32.1 runtime with an 8192-token common context. In that isolated block, the reference reached 20/20, Qwen3.5 reached 19/20 after its single repair, and Gemma 4 reached only 18/20 after three repairs, so Gemma 4 failed the unchanged gate. The protocol reassessment retains the original same-runtime reference/Qwen3.5/Gemma 3 set for a deployed SEO Studio stack comparison and reports Gemma 4 as a current-generation exclusion. The supervisor acknowledgement was relayed on July 18, 2026 and is recorded in sanitized form at `evaluation/configs/supervisor-acknowledgement-20260718.json`; the supervisor's identity and communication artifact remain private and must be completed in the private approval record before final Gate 3 closure. The leakage-checked reviewer package contains 60 balanced cells: 46 schema-valid metadata outputs and 14 explicit failures. Two human reviewers completed and timed the 15-item calibration subset, and a third record adjudicated it. Median review time was 120 and 125 seconds per item. The first pass exposed non-aligned claim units and low agreement for salient coverage, redundancy control, and valid-output disposition, so rubric v1.1 and a common-claim relabelling pass are required before primary scoring. No quality winner has been selected. Final calibration, protocol freeze, the approximately 120-item dataset, full experiments, statistical analysis, and manuscript remain outstanding.
+- The full 20-item compatibility matrix, fixed-writer compatibility pass, separate two-model Qwen3.6 amendment, both source-linked Protocol 2.2 repair stages, and the 54-call fixed-writer metadata matrix are complete with sanitized evidence under `evaluation/results/`. On the original deployed Ollama 0.24.0 stack, Qwen3.5 9B and Gemma 3 12B meet the unchanged 95% fact-pipeline-validity gate; Qwen2.5-VL 3B remains the reference. A pre-freeze catalog correction prospectively tested same-size Gemma 4 on an official project-owned Ollama 0.32.1 runtime with an 8192-token common context. In that isolated block, the reference reached 20/20, Qwen3.5 reached 19/20 after its single repair, and Gemma 4 reached only 18/20 after three repairs, so Gemma 4 failed the unchanged gate. The protocol reassessment retains the original same-runtime reference/Qwen3.5/Gemma 3 set for a deployed SEO Studio stack comparison and reports Gemma 4 as a current-generation exclusion. The supervisor acknowledgement was relayed on July 18, 2026 and is recorded in sanitized form at `evaluation/configs/supervisor-acknowledgement-20260718.json`; the supervisor's identity and communication artifact remain private. The leakage-checked reviewer package contains 60 balanced cells: 46 schema-valid metadata outputs and 14 explicit failures. The initial calibration was preserved, rubric v1.1 was applied, and two reviewers then independently rated a common 76-claim inventory across the same 15 blinded items. Recalibration achieved 98.7% exact claim-label agreement (Cohen's kappa 0.923), 91.7% exact valid-output disposition agreement (linear-weighted kappa 0.860), and a 120-second median item time for each reviewer. Calibration is ready and primary quality annotation is authorized. No quality winner has been selected. Protocol freeze, the approximately 120-item dataset, full experiments, statistical analysis, and final manuscript results remain outstanding; the working article now lives at `docs/publication/seo-studio-manuscript.html`.
 
 ### 1.3 Authority hierarchy
 
@@ -103,7 +108,7 @@ Alternative systems-oriented title:
 
 ### 3.2 Central thesis
 
-Web image metadata should not be generated from pixels alone. Useful alt text depends on the image's role, surrounding page content, and intended audience, while brand context should influence terminology without becoming evidence of visible content. A decomposed vision-plus-writer pipeline may improve control and grounding, but that benefit must be measured against direct multimodal generation, latency, reliability, and deployment cost.
+Web image metadata should not be generated from pixels alone. Useful alt text depends on the image's role, surrounding page content, and intended audience, while brand context should influence terminology without becoming evidence of visible content. A decomposed vision-plus-writer pipeline may improve control and grounding, but that benefit must be measured against direct multimodal generation, latency, reliability, and deployment cost. A project-level motivation for self-hosting is to reduce paid external API usage when metadata is generated across large image collections; this is an economic hypothesis, not an assumed saving, because local hardware, energy, storage, maintenance, and operator time also have costs.
 
 ### 3.3 Proposed contributions
 
@@ -114,7 +119,7 @@ The paper should claim only contributions actually completed and released:
 3. An ablation of image-only, brand-aware, page-aware, and combined context.
 4. An ablation of direct multimodal generation versus a two-stage visual-facts-plus-writer pipeline.
 5. A reproducible Ollama/DGX Spark evaluation harness with raw evidence and deployment telemetry.
-6. A model-selection framework using grounding, purpose-aware metadata appropriateness, reliability, latency, and resource trade-offs.
+6. A model-selection framework using grounding, purpose-aware metadata appropriateness, reliability, latency, resource use, and operational-cost trade-offs.
 7. A human-review application implementing the selected workflow.
 
 ### 3.4 Research questions
@@ -125,7 +130,7 @@ RQ2. Does decomposing generation into visual-fact extraction and contextual writ
 
 RQ3. How do brand context and page context affect alt-text usefulness, terminology, redundancy, and unsupported claims?
 
-RQ4. What quality, reliability, latency, and resource trade-offs determine the most suitable deployment configuration for SEO Studio?
+RQ4. What quality, reliability, latency, resource, and operational-cost trade-offs determine the most suitable deployment configuration for SEO Studio?
 
 Purpose suggestion remains an exploratory product feature, not a primary research question in this paper.
 
@@ -214,7 +219,7 @@ Verified July 16, 2026 on the research branch:
 - first A1 code slice: authenticated sanitized `/api/ai/health`, private Ollama URL/storage removal from frontend settings, pooled structured Ollama generation results with native telemetry and request IDs, updated frontend contract, and regenerated OpenAPI contract are implemented locally with fake-transport tests.
 - first A2 slice: schema-version-2 image jobs, legacy context defaults, page-context `GET/PUT`, per-image-context `GET/PUT`, the complete seven-state purpose taxonomy, explicit human confirmation, feature-flagged purpose-aware approval, decorative/redundant empty-alt support, matching TypeScript contracts, and regenerated OpenAPI are implemented and tested.
 - A5 harness slice: a visually checked and licensed 20-image pilot spans four equal domains and all six declared purposes; materialization preserves license evidence, hashes, dimensions, fictional contexts, reference facts, and forbidden claims. Five one-image cold compatibility attempts were schema-valid with no hidden retry; multi-block accounting was complete; normalization succeeded; the five-condition reviewer package passed model-identity leakage checks; raw records and the private map remain ignored. The warm compatibility runner now verifies live digests, randomizes model blocks and per-model image order from the frozen seed, records one declared synthetic warm-up per active model block, checkpoints every measured attempt append-only, supports evidence-safe resume, and unloads each model after its final pending item.
-- A5 evidence explicitly forbids quality ranking from the one-image smoke, completed five-condition compatibility matrix, five-call writer pass, completed Qwen3.6 amendment, and completed Protocol 2.2 repair stage. Supervisor acknowledgement is relayed and sanitized, and the balanced blinded metadata package has passed leakage checks. The first human calibration pass and adjudication are complete, but Gate 3 remains open for a common-claim rubric-v1.1 relabelling check, resolution of low-agreement dimensions, and completion of the private supervisor identity/evidence record before final protocol freeze.
+- A5 evidence explicitly forbids quality ranking from the one-image smoke, completed five-condition compatibility matrix, five-call writer pass, completed Qwen3.6 amendment, and completed Protocol 2.2 repair stage. Supervisor acknowledgement is relayed and sanitized, the balanced blinded metadata package has passed leakage checks, and common-inventory recalibration under rubric v1.1 is ready. Gate 3's technical calibration requirement is satisfied; administrative evidence completion and the explicit protocol-freeze decision remain separate actions.
 - The first full-matrix collection attempt on July 16, 2026 is classified as infrastructure-aborted and excluded from compatibility estimates. A localhost-only SSH tunnel reset during the ninth Mistral measured request while the host and Ollama service remained continuously active; the original runner then incorrectly recorded all remaining planned calls as immediate connection failures. All raw records are preserved, none are attributed to model incompatibility, and the corrected runner now aborts after the first recorded transport failure. Recollection must use a new run ID, a keepalive-protected tunnel, and the committed corrected criteria hash.
 - Because the first forwarding session reset after approximately 50 minutes, clean recollection may use predeclared operational segments via `--max-new-attempts`. Each segment preserves the same model/image order and generation contract, checkpoints measured attempts append-only, records a separate session warm-up, unloads the active model at the boundary, and resumes the same run ID without duplicating completed keys. Operational segmentation is not an experimental condition and must be reported when interpreting latency.
 - Warm-up diagnostics distinguish Ollama HTTP inference rejection from transport loss. The original PPM contract fixture exposed an unsupported-input path and, on Mistral, could consume much of the forwarding-session lifetime before rejection. The warm-up now uses a hash-pinned PNG derivative of the same synthetic blue square; the original PPM remains preserved as historical contract evidence. Warm-up validity does not enter the licensed 20-item denominator, and only a true connection/transport failure triggers immediate run abort.
@@ -244,7 +249,7 @@ Verified July 16, 2026 on the research branch:
 - The fixed-writer matrix completed at clean contract commit `08e7127`: 54/54 writer calls, 46 schema-valid metadata outcomes, 8 final schema-invalid outcomes, no transport failures or recoveries, and no hidden or validation retries. Together with the six preserved upstream failures, structural pipeline validity is 46/60. By source condition, the writer produced 14/16 valid baseline-fact outputs, 16/19 valid Qwen3.5-fact outputs, and 16/19 valid Gemma 3-fact outputs; including upstream failures, the condition-level structural totals are 14/20, 16/20, and 16/20. These are reliability outcomes, not human quality rankings.
 - Metadata normalization retained all 60 source cells and all seven Protocol 2.2 repair links. Automated blinding produced three anonymous conditions with 20 cells each, 60 unique review IDs, and only public reviewer fields. Both the built-in leakage check and an independent identity-string scan passed. The private mapping remains under the ignored `evaluation/annotations/private/` boundary. The deterministic calibration subset contains five images crossed with all three blinded conditions (15 items; 12 valid and 3 explicit failures) plus a reviewer timing template. Calibration items have been human-scored, but primary comparative scoring and model selection have not begun.
 - On July 18–19, R1 and R2 independently returned 15 complete schema-valid calibration records, R3 returned 15 adjudicated records, and both timing files covered all items without duration mismatches or overlap. R1 and R2 median item times were 120 and 125 seconds, projecting approximately 120 and 125 active minutes respectively for 60 items before adjudication overhead. The first pass is preserved under the ignored private annotation boundary and hash-linked from `evaluation/results/calibration-analysis-20260719.json`.
-- Calibration did not yet establish claim-label agreement: R1 segmented 64 claims, R2 103, and adjudication 79, so the reviewers did not label a common unit population. On the 12 valid outputs, exact/linear-weighted agreement was 66.7%/0.610 for factual grounding, 50.0%/0.238 for salient coverage, 50.0%/0.067 for redundancy control, and 41.7%/0.263 for disposition. Safety and concision had 100% exact agreement; near-constant brand scores make kappa prevalence-sensitive. Rubric v1.1 therefore freezes atomic deduplicated claim units, system-failure null handling, functional-alt, redundancy, brand-term, and grounding-cap clarifications. Primary scoring remains paused until R1 and R2 label the same frozen claim inventory and the low-agreement anchors are rechecked. These are calibration diagnostics, not model-quality results.
+- The preserved first pass did not establish claim-label agreement because reviewers segmented different claim populations. Rubric v1.1 therefore froze atomic deduplicated claim units, system-failure null handling, functional-alt, redundancy, brand-term, and grounding-cap clarifications. In the completed recalibration, R1, R2, and the adjudicator each used the same 76-claim inventory; R1/R2 exact claim-label agreement was 98.7% with Cohen's kappa 0.923. Across the 12 valid outputs, factual-grounding exact/weighted agreement was 91.7%/0.935, salient coverage 83.3%/0.826, redundancy control 91.7%/0.942, and valid-output disposition 91.7%/0.860. These are reviewer-feasibility diagnostics, not model-quality results.
 - A4 slice: the feature-flagged frontend now collects page context, requires explicit per-image purpose confirmation, exposes optional AI purpose suggestions without conflating them with human decisions, gates generation/approval on contextual readiness, supports direct and dual-stage selection, and presents purpose, warnings, structured facts, and sanitized provenance during review. The workflow is keyboard operable, has responsive no-overflow behavior at 390 px, and preserves legacy metadata mode when the feature flag is disabled.
 
 Current private addresses, usernames, key locations, and SSH authentication details are operational data owned by `$davneet-dgx-access` and its private status material. Do not copy them into the repository. The committed protocol records sanitized evidence, required security properties, and preflight outcomes only.
@@ -1140,6 +1145,8 @@ Use a balanced incomplete-block assignment when full three-reviewer coverage wou
 - model/package size and observed process/system memory;
 - end-to-end product latency in a separate operational test.
 
+Economic reporting must separate marginal operation on already-owned institutional hardware from total ownership cost. Use observed duration, throughput, token counts, storage, and validated energy telemetry when available. Any external-API comparison must freeze the provider, model, price sheet, currency, and retrieval date; show workload scenarios rather than claiming a universal saving. Report hardware amortization, electricity, maintenance, staff time, utilization, and excluded costs as explicit replaceable assumptions. If energy or accounting evidence cannot be validated, retain cost as a bounded scenario analysis rather than a measured causal outcome.
+
 ### 15.2 Primary-outcome hierarchy
 
 | Research question | Primary outcome |
@@ -1147,9 +1154,9 @@ Use a balanced incomplete-block assignment when full three-reviewer coverage wou
 | RQ1 | Supported-claim precision and hallucinated-claim rate in the complete predeclared 60-image RQ1 population |
 | RQ2 | Accept unchanged/minor edit versus major edit/reject disposition |
 | RQ3 | Contextual-usefulness rating |
-| RQ4 | Quality-reliability-latency Pareto position |
+| RQ4 | Quality-reliability-latency-operational-cost Pareto position |
 
-Salient-fact recall, redundancy, brand alignment, purpose-aware appropriateness, concision, schema validity, failure rate, latency, and memory are secondary outcomes unless the frozen protocol explicitly promotes one before full-study inspection. This hierarchy controls multiplicity and prevents choosing a favorable outcome after results are visible.
+Salient-fact recall, redundancy, brand alignment, purpose-aware appropriateness, concision, schema validity, failure rate, throughput, token counts, latency, memory, and individual cost components are secondary outcomes unless the frozen protocol explicitly promotes one before full-study inspection. This hierarchy controls multiplicity and prevents choosing a favorable outcome after results are visible.
 
 ### 15.3 Human-rated dimensions
 
@@ -1216,7 +1223,7 @@ Selection occurs in this order:
 
 1. Hard eligibility: required license, compatibility, structured-output validity, and the frozen unacceptable safety-failure threshold.
 2. Supported-claim precision and hallucinated-claim performance on the complete primary RQ1 population.
-3. Pareto position across quality, reliability, and latency.
+3. Pareto position across quality, reliability, latency, and operational cost using the predeclared scenario assumptions.
 4. Tie-breaker: lower failure rate, then lower median warm latency.
 5. Advance the current baseline and the two highest-ranked eligible non-baseline challengers, producing three unique finalists.
 6. Use a predeclared utility score only if one operational winner is required, followed by sensitivity analysis showing whether reasonable weight changes alter the decision.
@@ -1327,7 +1334,7 @@ Report results in research-question order:
 - direct versus dual-stage architecture;
 - context effects;
 - reliability and structured-output results;
-- latency and resource trade-offs;
+- latency, resource, and operational-cost trade-offs;
 - inter-rater agreement;
 - final deployment decision.
 
@@ -1338,7 +1345,7 @@ Include all failures in denominators.
 - Interpret why the selected model/pipeline performed as observed.
 - Explain when brand context helps and when it creates risk.
 - Explain the effect of page context and purpose.
-- Discuss whether quality gains justify latency/resource cost.
+- Discuss whether quality gains justify latency, resource, and operational cost.
 - Translate results into the actual SEO Studio deployment decision.
 - Compare findings with related work without overstating generality.
 
@@ -1765,7 +1772,7 @@ Supervisor acknowledgement record required before comparative quality inspection
 - authorize release of the identity-safe reviewer package without authorizing public-network exposure, owner-file mutation, or full-study execution;
 - record supervisor name, role, acknowledgement date, communication method, and a private evidence reference. Do not commit signatures, email content, credentials, or private contact details.
 
-Status on July 18, 2026: the project team relayed supervisor approval for this scope and the next non-destructive DGX stage. The repository contains only the sanitized acknowledgement and preservation boundary. Supervisor identity and the underlying communication artifact belong in the private approval record and remain required for administrative Gate 3 closure. Comparative quality inspection remains prohibited until the fixed-writer outputs are blinded and the leakage check passes.
+Status on July 19, 2026: the project team relayed supervisor approval for this scope and the next non-destructive DGX stage. The repository contains only the sanitized acknowledgement and preservation boundary. Supervisor identity and the underlying communication artifact belong in the private approval record and remain required for administrative Gate 3 closure. The fixed-writer outputs are blinded, leakage checks pass, and rubric-v1.1 recalibration is ready, so comparative quality annotation is no longer blocked by the technical Gate 3 conditions. Full-study execution still requires the explicit protocol-freeze decision.
 
 ### Gate 4: protocol freeze
 
@@ -1903,7 +1910,7 @@ Status: satisfied locally ahead of schedule on July 16, 2026. Backend determinis
 
 Exit: Gate 3 passes and the model/protocol decisions needed for the full study are known.
 
-Status on July 19, 2026: the technical Gate 3 package and first human calibration pass are complete, but calibration has not passed its final agreement check. R1, R2, and adjudication each cover all 15 calibration items; timing feasibility is established at median 120–125 seconds per item. The first pass identified a non-common claim inventory and low agreement for salient coverage, redundancy control, and valid-output disposition. Rubric v1.1 records the resulting clarifications, and the annotation schema now represents null-output system failures without converting them into artificial quality scores. No quality winner has been selected and the condition map remains closed. Remaining A5 work is a short common-claim relabelling/reliability pass, low-agreement anchor confirmation, private supervisor identity/evidence completion, and the final Gate 3/protocol-freeze decision.
+Status on July 19, 2026: the technical Gate 3 package and rubric-v1.1 recalibration are complete. R1, R2, and adjudication each cover all 15 blinded items and the same 76-claim inventory; claim-label exact agreement is 98.7% with Cohen's kappa 0.923, valid-output disposition exact agreement is 91.7% with linear-weighted kappa 0.860, and both reviewers recorded a median 120 seconds per item. Calibration is ready and primary quality annotation is authorized without opening the private condition map. No quality winner has been selected. Remaining A5 governance work is the private supervisor evidence completion and explicit Gate 3/protocol-freeze decision.
 
 #### Work package A6: capstone stabilization — August 8–15
 
@@ -2050,7 +2057,8 @@ Not permitted during the deferral:
 - [x] Generate a deterministic 15-item calibration subset covering five images and every blinded condition, plus the reviewer timing template.
 - [x] Collect complete R1/R2 human calibration records, adjudicated records, and observed per-item timing without opening the condition map.
 - [x] Analyze agreement and workload, preserve source hashes, and version the resulting claim-unit, system-failure, grounding, redundancy, purpose, and brand clarifications as rubric v1.1.
-- [ ] Have R1 and R2 independently label the same frozen adjudicated claim inventory under rubric v1.1; confirm the low-agreement anchors, complete the private supervisor evidence record, and then decide Gate 3/protocol freeze.
+- [x] Have R1 and R2 independently label the same frozen adjudicated claim inventory under rubric v1.1 and confirm the previously low-agreement anchors.
+- [ ] Complete the private supervisor evidence record and make the explicit Gate 3/protocol-freeze decision.
 
 ### P2: full research and paper
 
@@ -2059,7 +2067,8 @@ Not permitted during the deferral:
 - [ ] Run full experiments.
 - [ ] Complete blinded annotations and agreement analysis.
 - [ ] Generate tables, figures, and decision report.
-- [ ] Draft manuscript and supplementary material.
+- [x] Draft the evidence-honest working manuscript at `docs/publication/seo-studio-manuscript.html`; preserve pending sections until primary results exist.
+- [ ] Generate final manuscript tables/figures from normalized evidence and complete the supplementary material after the primary study.
 - [ ] Complete CRediT, ethics, data/code, AI disclosure, and limitations statements.
 - [ ] Submit/release through approved school/venue route.
 
@@ -2126,9 +2135,9 @@ The three most important research controls are protocol freeze, immutable raw re
 
 ### 31.1 Current implementation assignment
 
-Work packages A0–A4 and the compatibility portion of A5 are implemented on `codex/research-context-aware-metadata`. The branch includes the product context workflow plus the licensed pilot, candidate/license evidence, digest-pinned configurations, strict Ollama transport, immutable compatibility and repair records, normalization, accounting, blinding, annotation rubric, and sanitized reports. The existing no-body metadata request remains backward compatible. Network-policy verification remains deferred and Gate 1 remains open; completed live checks used the approved key path and temporary localhost-only SSH tunnels. Protocol 2.2 produced two eligible challengers—Qwen3.5 and Gemma—while retaining Qwen2.5-VL 3B as a below-gate reference. No quality winner has been selected.
+Work packages A0–A4 and the technical compatibility, blinding, and calibration portion of A5 are implemented on `codex/research-context-aware-metadata`. The branch includes the product context workflow plus the licensed pilot, candidate/license evidence, digest-pinned configurations, strict Ollama transport, immutable compatibility and repair records, normalization, accounting, blinding, rubric v1.1, final 76-claim recalibration, and sanitized reports. The existing no-body metadata request remains backward compatible. Network-policy verification remains deferred and Gate 1 remains open; completed live checks used the approved key path and temporary localhost-only SSH tunnels. Protocol 2.2 produced two eligible challengers—Qwen3.5 and Gemma 3—while retaining Qwen2.5-VL 3B as a below-gate reference. No quality winner has been selected.
 
-The next agent completes A5 without treating the one-image smoke as a quality result or the network deferral as a passed security gate:
+The next agent closes the administrative portion of Gate 3 and prepares the explicit Gate 4 protocol freeze without treating compatibility or calibration as model-quality results and without treating the network deferral as a passed security gate:
 
 1. Read all applicable `AGENTS.md` files and this master document.
 2. Re-check branch, status, tests, and A0 handoff evidence.
@@ -2139,7 +2148,7 @@ The next agent completes A5 without treating the one-image smoke as a quality re
 7. Treat the Qwen3.6 amendment, both Protocol 2.2 repair stages, and the isolated Gemma 4 amendment as complete. Do not rerun them unless a formally recorded protocol revision requires it. The isolated service and tunnel are stopped; any future DGX operation must begin with `$davneet-dgx-access`. Never upgrade or restart the shared service, mutate its model store, or alter owner files.
 8. Preserve the protocol reassessment boundary: Gemma 4 failed the unchanged gate and is a reported current-generation exclusion; Gemma 3 is retained only as the deployed-stack-compatible legacy-generation challenger. The paper studies selection for the deployed SEO Studio system and must not claim an exhaustive newest-model benchmark.
 9. Treat the fixed-writer matrix, 60-cell metadata normalization, and leakage-checked blinding as complete. Preserve the released package and sanitized structural report, keep the condition map private, and do not rerun failed cells. Complete the supervisor name and communication reference only in the private approval record.
-10. Treat the first human calibration, adjudication, and timing pass as complete but not agreement-final. Preserve it unchanged. Generate a label-only common claim inventory from the adjudicated claim boundaries, have R1 and R2 independently relabel it under rubric v1.1, and recompute claim-label agreement plus the low salient-coverage, redundancy, and disposition anchors before protocol freeze. Never use pilot quality effects to choose a significance-friendly sample size.
+10. Treat the first human calibration as preserved diagnostic evidence and the rubric-v1.1 common-inventory recalibration as agreement-final. Use the 76-claim recalibration artifact for feasibility reporting, preserve the private condition map, and never use pilot quality effects to choose a significance-friendly sample size.
 11. Keep live DGX addresses, credentials, transient reachability, raw run directories, and private reviewer maps out of Git; commit only sanitized evidence and approved locked digests.
 12. Run backend/evaluation tests, schema and dataset validation, pilot preflight, and `git diff --check`, then hand off Gate 3 evidence and remaining blockers.
 

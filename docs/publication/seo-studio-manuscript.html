@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Working research manuscript for SEO Studio's evaluation of self-hosted multimodal pipelines for context-aware web image metadata.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23be3f24'/%3E%3Cpath d='M17 18h30v7H25v6h18v7H25v7h23v7H17z' fill='%23fffdf8'/%3E%3C/svg%3E">
+  <title>Evaluating Self-Hosted Multimodal Pipelines — SEO Studio Working Manuscript</title>
+  <style>
+    :root {
+      --paper: #f2eee5;
+      --paper-deep: #e6dfd1;
+      --ink: #171713;
+      --ink-soft: #59564e;
+      --line: #c8bfaf;
+      --accent: #be3f24;
+      --accent-soft: #eed6cb;
+      --forest: #22483b;
+      --pending: #a87118;
+      --white: #fffdf8;
+      --display: Georgia, "Times New Roman", serif;
+      --body: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --max: 1480px;
+      --article: 760px;
+    }
+
+    html[data-theme="night"] {
+      --paper: #171816;
+      --paper-deep: #22231f;
+      --ink: #f1ede3;
+      --ink-soft: #b9b5ab;
+      --line: #45463f;
+      --accent: #ef795d;
+      --accent-soft: #472a23;
+      --forest: #79bca1;
+      --pending: #e5ad4e;
+      --white: #1e1f1c;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 17px;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection { background: var(--accent); color: #fff; }
+    a { color: inherit; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent); text-underline-offset: .18em; }
+    a:hover { color: var(--accent); }
+    img { max-width: 100%; display: block; }
+    button { font: inherit; }
+
+    .skip-link {
+      position: fixed;
+      left: 1rem;
+      top: -5rem;
+      z-index: 100;
+      padding: .75rem 1rem;
+      color: #fff;
+      background: var(--accent);
+      transition: top .2s ease;
+    }
+    .skip-link:focus { top: 1rem; }
+
+    .progress {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 90;
+      height: 3px;
+      background: transparent;
+    }
+    .progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width .08s linear;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 80;
+      height: 64px;
+      border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+      background: color-mix(in srgb, var(--paper) 89%, transparent);
+      backdrop-filter: blur(16px);
+    }
+    .header-inner {
+      width: min(calc(100% - 2rem), var(--max));
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    .wordmark {
+      display: inline-flex;
+      align-items: baseline;
+      gap: .65rem;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .wordmark strong { font-family: var(--display); font-size: 1.08rem; letter-spacing: -.02em; }
+    .wordmark span { color: var(--ink-soft); font-size: .68rem; letter-spacing: .13em; text-transform: uppercase; }
+    .header-actions { display: flex; gap: .4rem; }
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: var(--ink);
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      transition: color .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .icon-button:hover { color: var(--accent); border-color: var(--line); transform: translateY(-1px); }
+    .icon-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+    .cover {
+      min-height: calc(100svh - 64px);
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      align-items: end;
+      overflow: hidden;
+      color: #fff;
+      background: #111;
+    }
+    .cover::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background-image: url("../../evaluation/dataset/images/pilot/education-library-study-017.jpg");
+      background-size: cover;
+      background-position: center 44%;
+      filter: saturate(.72) contrast(1.04);
+      transform: scale(1.025);
+      animation: cover-settle 1.4s cubic-bezier(.2,.75,.25,1) both;
+    }
+    .cover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(9,13,11,.9) 0%, rgba(9,13,11,.7) 44%, rgba(9,13,11,.18) 77%),
+        linear-gradient(0deg, rgba(9,13,11,.82) 0%, transparent 54%);
+    }
+    @keyframes cover-settle { from { opacity: .25; transform: scale(1.09); } to { opacity: 1; transform: scale(1.025); } }
+    .cover-inner {
+      width: min(calc(100% - 3rem), var(--max));
+      margin: 0 auto;
+      padding: 8rem 0 4rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 330px);
+      align-items: end;
+      gap: clamp(2rem, 8vw, 9rem);
+    }
+    .cover-copy { min-width: 0; max-width: 930px; }
+    .eyebrow {
+      margin: 0 0 1rem;
+      font-size: .75rem;
+      font-weight: 750;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    .cover .eyebrow { color: #efb5a4; }
+    .cover h1 {
+      max-width: 900px;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(3.1rem, 7.3vw, 7.7rem);
+      font-weight: 500;
+      letter-spacing: -.055em;
+      line-height: .91;
+      text-wrap: balance;
+      animation: title-rise .9s .12s cubic-bezier(.2,.75,.25,1) both;
+    }
+    @keyframes title-rise { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+    .cover-deck {
+      max-width: 720px;
+      margin: 1.6rem 0 0;
+      color: rgba(255,255,255,.82);
+      font-size: clamp(1rem, 1.5vw, 1.3rem);
+      line-height: 1.5;
+    }
+    .cover-meta {
+      padding-top: 1.1rem;
+      border-top: 1px solid rgba(255,255,255,.45);
+      color: rgba(255,255,255,.76);
+      font-size: .83rem;
+      line-height: 1.6;
+    }
+    .cover-meta strong { display: block; margin-bottom: .65rem; color: #fff; font-size: .76rem; letter-spacing: .12em; text-transform: uppercase; }
+    .cover-meta p { margin: .3rem 0; }
+    .cover-meta .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: .45rem;
+      border-radius: 50%;
+      background: #f2ad5b;
+      box-shadow: 0 0 0 4px rgba(242,173,91,.16);
+    }
+    .image-credit {
+      position: absolute;
+      right: 1rem;
+      bottom: 1rem;
+      color: rgba(255,255,255,.62);
+      font-size: .66rem;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    .evidence-strip {
+      border-bottom: 1px solid var(--line);
+      background: var(--white);
+    }
+    .evidence-inner {
+      width: min(calc(100% - 3rem), var(--max));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+    }
+    .evidence-cell {
+      min-height: 132px;
+      padding: 1.55rem 1.8rem;
+      border-left: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .evidence-cell:first-child { border-left: 0; padding-left: 0; }
+    .evidence-cell .label { color: var(--ink-soft); font-size: .7rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence-cell strong { font-family: var(--display); font-size: clamp(1.7rem, 2.6vw, 2.6rem); font-weight: 500; letter-spacing: -.04em; line-height: 1; }
+    .evidence-cell p { margin: .45rem 0 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.45; }
+    .evidence-cell.pending strong { color: var(--pending); font-size: 1.3rem; }
+
+    .page-shell {
+      width: min(calc(100% - 3rem), var(--max));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 230px minmax(0, var(--article)) minmax(220px, 1fr);
+      gap: clamp(2rem, 5vw, 6.5rem);
+      align-items: start;
+      padding: 6rem 0 10rem;
+    }
+    .toc {
+      position: sticky;
+      top: 92px;
+      max-height: calc(100svh - 120px);
+      overflow: auto;
+      padding-right: 1rem;
+      scrollbar-width: thin;
+    }
+    .toc-title { margin: 0 0 1rem; color: var(--ink-soft); font-size: .66rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .toc ol { margin: 0; padding: 0; list-style: none; }
+    .toc a {
+      display: block;
+      padding: .32rem 0 .32rem .8rem;
+      color: var(--ink-soft);
+      border-left: 1px solid var(--line);
+      font-size: .75rem;
+      line-height: 1.35;
+      text-decoration: none;
+      transition: color .2s, border-color .2s, padding-left .2s;
+    }
+    .toc a:hover, .toc a.active { color: var(--ink); border-color: var(--accent); padding-left: 1rem; }
+    .toc a.active { font-weight: 700; }
+
+    .manuscript { min-width: 0; }
+    .section {
+      scroll-margin-top: 92px;
+      margin: 0 0 7rem;
+    }
+    .section-number {
+      display: inline-block;
+      margin-bottom: .8rem;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+    }
+    .section h2 {
+      max-width: 700px;
+      margin: 0 0 2rem;
+      font-family: var(--display);
+      font-size: clamp(2.35rem, 5vw, 4.6rem);
+      font-weight: 500;
+      letter-spacing: -.05em;
+      line-height: 1;
+      text-wrap: balance;
+    }
+    .section h3 {
+      margin: 3.3rem 0 1rem;
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
+      font-weight: 550;
+      letter-spacing: -.025em;
+      line-height: 1.2;
+    }
+    .section h4 { margin: 2rem 0 .6rem; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
+    .section p { margin: 0 0 1.35rem; }
+    .section > p:first-of-type:not(.abstract-text):not(.note) { font-size: 1.08rem; }
+    .lead { font-family: var(--display); font-size: clamp(1.4rem, 2.2vw, 1.85rem) !important; line-height: 1.48; letter-spacing: -.02em; }
+    .dropcap::first-letter {
+      float: left;
+      margin: .08em .12em 0 0;
+      color: var(--accent);
+      font-family: var(--display);
+      font-size: 4.2em;
+      line-height: .72;
+    }
+    .abstract-text { font-family: var(--display); font-size: 1.24rem; line-height: 1.66; }
+    .keywords { margin-top: 2rem; color: var(--ink-soft); font-size: .82rem; }
+    .keywords strong { color: var(--ink); }
+
+    .status-note, .note {
+      margin: 2.5rem 0;
+      padding: 1.3rem 0 1.3rem 1.25rem;
+      border-left: 3px solid var(--accent);
+      color: var(--ink-soft);
+      font-size: .9rem;
+    }
+    .status-note strong, .note strong { color: var(--ink); }
+    .status-note.pending { border-color: var(--pending); }
+
+    .rq-list { margin: 2.5rem 0; border-top: 1px solid var(--line); }
+    .rq {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 1rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .rq b { color: var(--accent); font-family: var(--mono); font-size: .74rem; }
+    .rq p { margin: 0; font-size: .94rem; }
+
+    .figure {
+      width: min(1120px, calc(100vw - 4rem));
+      margin: 4rem 0 4rem min(-9vw, -150px);
+      padding: 0;
+    }
+    .figure img { width: 100%; max-height: 620px; object-fit: cover; }
+    .figure figcaption {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 1rem;
+      padding-top: .9rem;
+      color: var(--ink-soft);
+      border-top: 1px solid var(--line);
+      font-size: .76rem;
+      line-height: 1.5;
+    }
+    .figure figcaption b { color: var(--ink); font-family: var(--mono); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(7, auto);
+      align-items: center;
+      justify-content: space-between;
+      gap: .6rem;
+      padding: 2.4rem;
+      border-block: 1px solid var(--line);
+      background: var(--white);
+    }
+    .pipeline-node { max-width: 125px; text-align: center; }
+    .pipeline-node svg { width: 30px; height: 30px; margin: 0 auto .65rem; fill: none; stroke: var(--accent); stroke-width: 1.6; }
+    .pipeline-node strong { display: block; font-size: .72rem; line-height: 1.25; }
+    .pipeline-node span { display: block; margin-top: .25rem; color: var(--ink-soft); font-size: .62rem; line-height: 1.25; }
+    .pipeline-arrow { color: var(--line); font-size: 1.3rem; }
+
+    .method-grid {
+      margin: 2.5rem 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      border-top: 1px solid var(--line);
+    }
+    .method-item { padding: 1.4rem 1.4rem 1.4rem 0; border-bottom: 1px solid var(--line); }
+    .method-item:nth-child(even) { padding-left: 1.4rem; border-left: 1px solid var(--line); }
+    .method-item b { display: block; margin-bottom: .4rem; color: var(--accent); font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+    .method-item p { margin: 0; color: var(--ink-soft); font-size: .82rem; line-height: 1.5; }
+
+    .table-wrap { width: min(1050px, calc(100vw - 4rem)); margin: 2.5rem 0 3.2rem min(-6vw, -90px); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .78rem; line-height: 1.45; font-variant-numeric: tabular-nums; }
+    caption { padding: 0 0 .8rem; text-align: left; color: var(--ink-soft); font-size: .7rem; }
+    th, td { padding: .8rem .65rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--ink-soft); font-size: .63rem; letter-spacing: .08em; text-transform: uppercase; }
+    td strong { color: var(--ink); }
+    .pass { color: var(--forest); font-weight: 750; }
+    .fail { color: var(--accent); font-weight: 750; }
+
+    .chart {
+      width: min(960px, calc(100vw - 4rem));
+      margin: 3rem 0 3.5rem min(-5vw, -70px);
+      padding: 2rem 0;
+      border-block: 1px solid var(--line);
+    }
+    .chart-head { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+    .chart-head strong { font-family: var(--display); font-size: 1.35rem; font-weight: 500; }
+    .chart-head span { color: var(--ink-soft); font-size: .68rem; }
+    .bar-row { display: grid; grid-template-columns: minmax(150px, 220px) 1fr 46px; gap: 1rem; align-items: center; margin: .72rem 0; }
+    .bar-label { font-size: .73rem; }
+    .bar-track { height: 15px; position: relative; background: var(--paper-deep); }
+    .bar-track::after { content: ""; position: absolute; top: -5px; bottom: -5px; left: 95%; border-left: 1px dashed var(--pending); }
+    .bar-fill { height: 100%; width: calc(var(--value) * 1%); background: var(--ink-soft); transform-origin: left; transition: transform .8s cubic-bezier(.2,.75,.25,1); }
+    .bar-row.highlight .bar-fill { background: var(--accent); }
+    .bar-value { font-family: var(--mono); font-size: .7rem; text-align: right; }
+    .chart-note { margin-top: 1rem; color: var(--ink-soft); font-size: .68rem; }
+
+    .visual-prototype {
+      width: min(950px, calc(100vw - 4rem));
+      margin: 3rem 0 4rem min(-9vw, -150px);
+    }
+    .visual-kicker {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: .9rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: .66rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .visual-kicker b { color: var(--accent); }
+    .role-lab {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr);
+      min-height: 560px;
+      background: var(--white);
+    }
+    .role-media { position: relative; min-height: 560px; overflow: hidden; background: #151715; }
+    .role-media img { width: 100%; height: 100%; min-height: 560px; object-fit: cover; filter: saturate(.8) contrast(1.02); }
+    .role-media::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(0deg, rgba(8,12,10,.72), transparent 52%);
+    }
+    .pixel-evidence {
+      position: absolute;
+      z-index: 2;
+      left: 1.2rem;
+      bottom: 1.2rem;
+      max-width: calc(100% - 2.4rem);
+      color: #fff;
+    }
+    .pixel-evidence b { display: block; margin-bottom: .55rem; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .evidence-chips span { padding: .28rem .48rem; border: 1px solid rgba(255,255,255,.42); background: rgba(8,12,10,.34); font-size: .64rem; line-height: 1; backdrop-filter: blur(8px); }
+    .role-panel { display: flex; flex-direction: column; padding: clamp(1.5rem, 4vw, 3rem); }
+    .role-panel > p:first-child { margin: 0 0 .7rem; color: var(--accent); font-size: .66rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .role-switch { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: 2rem; }
+    .role-switch button {
+      padding: .55rem .8rem;
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      font-size: .7rem;
+      transition: color .2s, background .2s, border-color .2s, transform .2s;
+    }
+    .role-switch button:hover { color: var(--ink); transform: translateY(-1px); }
+    .role-switch button[aria-pressed="true"] { color: var(--white); border-color: var(--ink); background: var(--ink); }
+    .role-readout { flex: 1; display: flex; flex-direction: column; }
+    .role-readout.is-changing { animation: readout-shift .34s cubic-bezier(.2,.75,.25,1); }
+    @keyframes readout-shift { from { opacity: .35; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+    .role-readout .readout-label { display: block; color: var(--ink-soft); font-size: .62rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+    .role-placement { min-height: 4.8em; margin: .45rem 0 1.7rem !important; font-family: var(--display); font-size: 1.25rem; line-height: 1.35; }
+    .alt-output {
+      margin: 0 0 1.6rem;
+      padding: 1.2rem 0;
+      border-block: 1px solid var(--line);
+    }
+    .alt-output code { display: block; margin-top: .45rem; padding: 0; color: var(--ink); background: transparent; font-family: var(--display); font-size: 1.45rem; line-height: 1.35; }
+    .role-reason { margin: 0 0 1.5rem !important; color: var(--ink-soft); font-size: .78rem; }
+    .context-boundary { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .context-boundary div { padding-top: .8rem; border-top: 2px solid var(--forest); }
+    .context-boundary div:last-child { border-color: var(--pending); }
+    .context-boundary b { display: block; margin-bottom: .3rem; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; }
+    .context-boundary span { display: block; color: var(--ink-soft); font-size: .7rem; line-height: 1.45; }
+    .prototype-caption { margin: .8rem 0 0; color: var(--ink-soft); font-size: .7rem; line-height: 1.5; }
+
+    .evidence-journey { margin: 4rem 0; padding: 2rem 0; border-block: 1px solid var(--line); }
+    .journey-track { display: grid; grid-template-columns: repeat(6, 1fr); }
+    .journey-step { position: relative; min-width: 0; padding: 0 1rem 0 0; }
+    .journey-step:not(:last-child)::after { content: ""; position: absolute; top: 13px; right: 0; left: 28px; border-top: 1px solid var(--line); }
+    .journey-dot { position: relative; z-index: 1; display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid var(--forest); border-radius: 50%; color: var(--forest); background: var(--paper); font-family: var(--mono); font-size: .58rem; }
+    .journey-step.pending .journey-dot { border-style: dashed; border-color: var(--pending); color: var(--pending); }
+    .journey-step strong { display: block; margin-top: .8rem; font-size: .68rem; line-height: 1.25; }
+    .journey-step span { display: block; margin-top: .28rem; color: var(--ink-soft); font-size: .61rem; line-height: 1.35; }
+    .journey-step em { display: inline-block; margin-top: .48rem; color: var(--forest); font-size: .56rem; font-style: normal; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .journey-step.pending em { color: var(--pending); }
+
+    .fingerprint { margin: 4rem 0; padding: 2rem 0; border-block: 1px solid var(--line); }
+    .fingerprint-head { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+    .fingerprint-head strong { font-family: var(--display); font-size: 1.35rem; font-weight: 500; }
+    .fingerprint-legend { display: flex; flex-wrap: wrap; justify-content: end; gap: .8rem; color: var(--ink-soft); font-size: .62rem; }
+    .fingerprint-legend span { display: inline-flex; align-items: center; gap: .32rem; }
+    .finger-row { display: grid; grid-template-columns: minmax(150px, 1fr) auto 52px; gap: 1rem; align-items: center; padding: .62rem 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+    .finger-row:first-of-type { border-top: 0; }
+    .finger-label b { display: block; font-size: .7rem; line-height: 1.3; }
+    .finger-label span { display: block; color: var(--ink-soft); font-size: .58rem; }
+    .finger-dots { display: grid; grid-template-columns: repeat(20, 12px); gap: 4px; }
+    .finger-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--forest); }
+    .finger-dot.repaired { border: 2px solid var(--accent); background: transparent; }
+    .finger-dot.failed { position: relative; border: 1px solid var(--line); background: transparent; }
+    .finger-dot.failed::before, .finger-dot.failed::after { content: ""; position: absolute; top: 5px; left: 2px; width: 6px; border-top: 1px solid var(--accent); transform: rotate(45deg); }
+    .finger-dot.failed::after { transform: rotate(-45deg); }
+    .finger-value { font-family: var(--mono); font-size: .67rem; text-align: right; }
+    .finger-row.passed .finger-value { color: var(--forest); font-weight: 800; }
+    .fingerprint-note { margin: 1.2rem 0 0 !important; color: var(--ink-soft); font-size: .67rem; }
+
+    .print-role-summary { display: none; }
+
+    .metric-band {
+      margin: 3rem 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-block: 1px solid var(--line);
+    }
+    .metric { padding: 1.7rem 1.2rem; border-left: 1px solid var(--line); }
+    .metric:first-child { padding-left: 0; border-left: 0; }
+    .metric strong { display: block; font-family: var(--display); font-size: 2.5rem; font-weight: 500; letter-spacing: -.05em; }
+    .metric span { display: block; margin-top: .35rem; color: var(--ink-soft); font-size: .68rem; line-height: 1.35; }
+
+    .pending-results {
+      margin: 2.8rem 0;
+      padding: 2rem;
+      border: 1px dashed var(--pending);
+      background: color-mix(in srgb, var(--pending) 6%, transparent);
+    }
+    .pending-results h3 { margin-top: 0; }
+    .pending-results ul { margin-bottom: 0; }
+
+    blockquote {
+      margin: 3.2rem 0;
+      padding: 0;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+      line-height: 1.4;
+      letter-spacing: -.025em;
+    }
+    blockquote::before { content: "“"; display: block; height: .5em; color: var(--accent); font-size: 3em; line-height: .7; }
+
+    .margin-rail { position: sticky; top: 92px; }
+    .margin-note {
+      max-width: 290px;
+      margin-bottom: 2rem;
+      padding-top: .8rem;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: .72rem;
+      line-height: 1.55;
+    }
+    .margin-note b { display: block; margin-bottom: .4rem; color: var(--ink); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; }
+    .mini-legend { display: flex; align-items: center; gap: .5rem; margin-top: .45rem; }
+    .mini-legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); }
+    .mini-legend.pending i { background: var(--pending); }
+
+    .references { padding-left: 1.35rem; }
+    .references li { margin-bottom: .9rem; padding-left: .35rem; font-size: .82rem; }
+    .references code { font-family: var(--mono); font-size: .75rem; }
+    code { padding: .08em .28em; background: var(--paper-deep); font-family: var(--mono); font-size: .86em; }
+
+    .end-matter { border-top: 1px solid var(--line); padding-top: 2rem; }
+    .end-row { display: grid; grid-template-columns: 160px 1fr; gap: 1.3rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+    .end-row b { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; }
+    .end-row p { margin: 0; color: var(--ink-soft); font-size: .8rem; }
+
+    .footer {
+      padding: 3.5rem 1.5rem;
+      color: rgba(255,255,255,.75);
+      background: #131714;
+    }
+    .footer-inner { width: min(100%, var(--max)); margin: 0 auto; display: flex; justify-content: space-between; gap: 2rem; }
+    .footer strong { color: #fff; font-family: var(--display); font-size: 1.4rem; font-weight: 500; }
+    .footer p { max-width: 620px; margin: .4rem 0 0; font-size: .75rem; }
+    .footer a { color: #fff; }
+
+    .reveal { opacity: 1; transform: none; }
+    .reveal-ready .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.75,.25,1); }
+    .reveal-ready .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 1120px) {
+      .page-shell { grid-template-columns: 190px minmax(0, 1fr); gap: 3rem; }
+      .margin-rail { display: none; }
+      .figure, .table-wrap, .chart { width: 100%; margin-left: 0; }
+      .visual-prototype { width: 100%; margin-left: 0; }
+      .cover-inner { grid-template-columns: 1fr; }
+      .cover-meta { max-width: 500px; }
+      .evidence-inner { grid-template-columns: repeat(2, 1fr); }
+      .evidence-cell:nth-child(3) { border-left: 0; }
+      .evidence-cell:first-child { padding-left: 1.8rem; }
+    }
+
+    @media (max-width: 760px) {
+      body { font-size: 16px; }
+      .site-header { height: 56px; }
+      .wordmark span { display: none; }
+      .header-inner { width: min(calc(100% - 1.25rem), var(--max)); }
+      .cover { min-height: calc(100svh - 56px); }
+      .cover-inner { width: min(calc(100% - 1.5rem), var(--max)); padding: 5rem 0 2.2rem; }
+      .cover h1 { max-width: 100%; font-size: clamp(2.8rem, 11.8vw, 3.6rem); line-height: .94; text-wrap: wrap; }
+      .cover::after { background: linear-gradient(0deg, rgba(9,13,11,.94) 0%, rgba(9,13,11,.55) 73%, rgba(9,13,11,.2)); }
+      .image-credit { display: none; }
+      .evidence-inner { width: 100%; grid-template-columns: 1fr 1fr; }
+      .evidence-cell { min-height: 118px; padding: 1.2rem; }
+      .evidence-cell:first-child { padding-left: 1.2rem; }
+      .page-shell { width: min(calc(100% - 1.5rem), var(--max)); display: block; padding-top: 4rem; }
+      .toc { display: none; }
+      .section { margin-bottom: 5rem; }
+      .section h2 { font-size: clamp(2.4rem, 12vw, 3.6rem); }
+      .figure, .table-wrap, .chart { width: calc(100vw - 1.5rem); margin-left: 0; }
+      .visual-prototype { width: calc(100vw - 1.5rem); margin-left: 0; }
+      .visual-kicker { display: block; }
+      .visual-kicker span { display: block; margin-top: .25rem; }
+      .role-lab { grid-template-columns: 1fr; }
+      .role-media, .role-media img { min-height: 390px; }
+      .role-placement { min-height: 0; }
+      .context-boundary { grid-template-columns: 1fr; }
+      .journey-track { grid-template-columns: repeat(2, 1fr); row-gap: 1.7rem; }
+      .journey-step:nth-child(2n)::after { display: none; }
+      .fingerprint-head { display: block; }
+      .fingerprint-legend { justify-content: start; margin-top: .6rem; }
+      .finger-row { grid-template-columns: 1fr 46px; }
+      .finger-dots { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(10, 12px); }
+      .finger-value { grid-column: 2; grid-row: 1; }
+      .pipeline { grid-template-columns: 1fr; text-align: left; padding: 1.5rem; }
+      .pipeline-node { max-width: none; display: grid; grid-template-columns: 38px 1fr; text-align: left; column-gap: .7rem; }
+      .pipeline-node svg { grid-row: 1 / 3; margin: 0; }
+      .pipeline-arrow { transform: rotate(90deg); text-align: center; }
+      .method-grid, .metric-band { grid-template-columns: 1fr; }
+      .method-item, .method-item:nth-child(even), .metric, .metric:first-child { padding: 1.1rem 0; border-left: 0; }
+      .metric { border-top: 1px solid var(--line); }
+      .metric:first-child { border-top: 0; }
+      .bar-row { grid-template-columns: 116px 1fr 38px; gap: .6rem; }
+      .end-row { grid-template-columns: 1fr; gap: .35rem; }
+      .footer-inner { display: block; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    @media print {
+      :root { --paper: #fff; --white: #fff; --ink: #000; --ink-soft: #333; --line: #aaa; }
+      @page { size: letter; margin: 18mm 17mm 20mm; }
+      body { font-size: 10.5pt; line-height: 1.55; background: #fff; }
+      .site-header, .progress, .toc, .margin-rail, .header-actions, .footer { display: none !important; }
+      .cover { min-height: 230mm; break-after: page; color: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .cover-inner { padding: 90mm 0 18mm; grid-template-columns: 1fr; }
+      .cover h1 { font-size: 46pt; }
+      .evidence-strip { break-after: page; }
+      .evidence-inner { width: 100%; grid-template-columns: repeat(4, 1fr); }
+      .evidence-cell { padding: 10mm 5mm; }
+      .page-shell { width: 100%; display: block; padding: 0; }
+      .section { margin: 0 0 20mm; break-inside: auto; }
+      .section h2 { font-size: 28pt; break-after: avoid; }
+      .section h3 { break-after: avoid; }
+      .figure, .table-wrap, .chart { width: 100%; margin: 12mm 0; break-inside: avoid; }
+      .visual-prototype { width: 100%; margin: 12mm 0; }
+      .role-lab { display: none; }
+      .print-role-summary { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--line); }
+      .print-role-summary div { padding: 6mm 4mm; border-left: 1px solid var(--line); }
+      .print-role-summary div:first-child { border-left: 0; }
+      .print-role-summary b { display: block; margin-bottom: 3mm; font-size: 8pt; text-transform: uppercase; }
+      .print-role-summary code { padding: 0; background: transparent; font-family: var(--display); font-size: 11pt; }
+      .evidence-journey, .fingerprint { break-inside: avoid; }
+      .journey-step span { font-size: 7pt; }
+      .finger-row { padding: 2mm 0; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      a { text-decoration: none; }
+      .pending-results { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#article">Skip to manuscript</a>
+  <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="wordmark" href="#top" aria-label="SEO Studio manuscript cover">
+        <strong>SEO Studio</strong>
+        <span>Working research manuscript</span>
+      </a>
+      <div class="header-actions">
+        <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle reading theme" title="Toggle reading theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 15.1A8.5 8.5 0 0 1 8.9 3.7 8.6 8.6 0 1 0 20.3 15Z"/></svg>
+        </button>
+        <button class="icon-button" type="button" onclick="window.print()" aria-label="Print or save as PDF" title="Print or save as PDF">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="cover" aria-labelledby="paper-title">
+      <div class="cover-inner">
+        <div class="cover-copy">
+          <p class="eyebrow">Applied AI systems · manuscript in preparation</p>
+          <h1 id="paper-title">Evaluating Self-Hosted Multimodal Pipelines for Context-Aware Web Image Metadata</h1>
+          <p class="cover-deck">A controlled study of grounding, context, purpose, human review, and deployment trade-offs in SEO Studio.</p>
+        </div>
+        <div class="cover-meta">
+          <strong><span class="status-dot"></span>Working manuscript</strong>
+          <p>SEO Studio Project Team</p>
+          <p>School of Applied Computer Science &amp; Information Technology<br>Conestoga College, Ontario, Canada</p>
+          <p>Author order and publication names pending CRediT agreement.</p>
+          <p>Version 0.1 · 19 July 2026</p>
+        </div>
+      </div>
+      <span class="image-credit">Benchmark image: Gary Todd · CC0</span>
+    </section>
+
+    <section class="evidence-strip" aria-label="Current evidence status">
+      <div class="evidence-inner">
+        <div class="evidence-cell">
+          <span class="label">Document status</span>
+          <strong>Evidence-led draft</strong>
+          <p>Stable methods and preliminary systems evidence are written. Final quality findings are intentionally absent.</p>
+        </div>
+        <div class="evidence-cell">
+          <span class="label">Compatibility evidence</span>
+          <strong>100 + 60</strong>
+          <p>Analyzed outcomes in the deployed-stack pilot and isolated Gemma 4 amendment.</p>
+        </div>
+        <div class="evidence-cell">
+          <span class="label">Calibration agreement</span>
+          <strong>98.7%</strong>
+          <p>Exact agreement across the frozen 76-claim human calibration inventory.</p>
+        </div>
+        <div class="evidence-cell pending">
+          <span class="label">Primary quality study</span>
+          <strong>Pending</strong>
+          <p>No final model winner, context effect, or architecture effect is claimed.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="page-shell">
+      <nav class="toc" aria-label="Manuscript contents">
+        <p class="toc-title">Contents</p>
+        <ol>
+          <li><a href="#abstract">Abstract</a></li>
+          <li><a href="#visual-explainer">Visual explainer</a></li>
+          <li><a href="#introduction">1. Introduction</a></li>
+          <li><a href="#background">2. Background</a></li>
+          <li><a href="#architecture">3. System architecture</a></li>
+          <li><a href="#methodology">4. Methodology</a></li>
+          <li><a href="#preliminary">5. Preliminary evidence</a></li>
+          <li><a href="#primary-results">6. Primary results</a></li>
+          <li><a href="#discussion">7. Discussion</a></li>
+          <li><a href="#threats">8. Threats to validity</a></li>
+          <li><a href="#responsible-use">9. Responsible use</a></li>
+          <li><a href="#limitations">10. Limitations</a></li>
+          <li><a href="#conclusion">11. Interim conclusion</a></li>
+          <li><a href="#end-matter">Declarations</a></li>
+          <li><a href="#references">References</a></li>
+          <li><a href="#appendix">Reproducibility</a></li>
+        </ol>
+      </nav>
+
+      <article class="manuscript" id="article">
+        <section class="section reveal" id="abstract">
+          <span class="section-number">ABSTRACT</span>
+          <h2>Pixels describe a scene. They do not determine its role.</h2>
+          <p class="abstract-text">Web image metadata must communicate not only what an image depicts, but why the image appears on a particular page. This working paper presents SEO Studio, a human-reviewed system for generating web image metadata with self-hosted multimodal models, page context, approved terminology, and a human-confirmed image purpose. The study separates visual-fact extraction from contextual writing and evaluates that decomposed pipeline against direct multimodal generation under controlled local-inference constraints. Completed compatibility evidence includes 100 outcomes across five deployed-stack model conditions and a separate 60-outcome current-generation amendment. Under the predeclared repair policy, Qwen3.5 9B and Gemma 3 12B reached the 95% pipeline-validity gate; the tested Gemma 4 12B condition reached 90% and was excluded from the primary quality screen. Human recalibration on 15 blinded items achieved 98.7% exact claim-label agreement (Cohen’s κ = 0.923) and 91.7% exact valid-output disposition agreement (linear-weighted κ = 0.860). These findings establish protocol feasibility rather than a quality winner. The primary grounding comparison, architecture ablation, context ablation, and final deployment decision remain pending.</p>
+          <p class="keywords"><strong>Keywords:</strong> alternative text; multimodal models; local inference; image metadata; hallucination; human-in-the-loop evaluation</p>
+          <div class="status-note pending"><strong>Drafting rule.</strong> The abstract will be rewritten after the primary analysis is frozen. Compatibility and calibration figures are reported now because they are complete; no missing quality result is estimated or implied.</div>
+        </section>
+
+        <section class="section reveal" id="visual-explainer">
+          <span class="section-number">VISUAL ABSTRACT · PROTOTYPE</span>
+          <h2>The same photograph can require three different answers.</h2>
+          <p class="lead">Pixels establish what is visible. Placement and human-confirmed purpose determine what the website should communicate.</p>
+
+          <div class="visual-prototype">
+            <div class="visual-kicker"><b>Try the image purpose</b><span>Illustrative treatments · not model outputs</span></div>
+            <div class="role-lab" id="role-lab">
+              <div class="role-media">
+                <img src="../../evaluation/dataset/images/pilot/education-library-study-017.jpg" alt="Students work at tables in a library study area with shelves visible behind them.">
+                <div class="pixel-evidence">
+                  <b>Pixels can support</b>
+                  <div class="evidence-chips" aria-label="Visible evidence"><span>students</span><span>tables</span><span>laptops</span><span>bookshelves</span></div>
+                </div>
+              </div>
+              <div class="role-panel" aria-live="polite">
+                <p>Human-confirmed purpose</p>
+                <div class="role-switch" aria-label="Choose an illustrative image purpose">
+                  <button type="button" data-role="informative" aria-pressed="true">Informative</button>
+                  <button type="button" data-role="decorative" aria-pressed="false">Decorative</button>
+                  <button type="button" data-role="functional" aria-pressed="false">Functional</button>
+                </div>
+                <div class="role-readout">
+                  <span class="readout-label">Page placement</span>
+                  <p class="role-placement" id="role-placement">Study-spaces article; surrounding text explains hours, not the scene.</p>
+                  <div class="alt-output">
+                    <span class="readout-label">Illustrative alternative text</span>
+                    <code id="role-alt">Students work at tables in a library study area.</code>
+                  </div>
+                  <p class="role-reason" id="role-reason">Describe the scene concisely because the photograph adds information.</p>
+                  <div class="context-boundary">
+                    <div><b>Image evidence</b><span id="role-visible">People · tables · laptops · bookshelves</span></div>
+                    <div><b>Context—not visual proof</b><span id="role-context">Article topic · non-redundant placement</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="print-role-summary" aria-label="Three illustrative metadata treatments for the same photograph">
+              <div><b>Informative</b><code>Students work at tables in a library study area.</code></div>
+              <div><b>Decorative</b><code>alt=""</code></div>
+              <div><b>Functional</b><code>Book a library study room</code></div>
+            </div>
+            <p class="prototype-caption">One licensed benchmark image, three plausible page roles. The interaction makes the paper’s central construct visible without implying that any wording is a scored model result. Image: Gary Todd, CC0.</p>
+
+            <div class="evidence-journey" role="img" aria-label="Research evidence journey from licensed benchmark images through visual facts, context and purpose, metadata generation, blinded human review, and a pending deployment decision">
+              <div class="visual-kicker"><b>From image to defensible decision</b><span>Completed foundations in solid marks · pending study in dashed marks</span></div>
+              <div class="journey-track">
+                <div class="journey-step"><i class="journey-dot">01</i><strong>Licensed image</strong><span>Hash, source, licence, domain</span><em>Complete</em></div>
+                <div class="journey-step"><i class="journey-dot">02</i><strong>Visible facts</strong><span>Supported and forbidden claims</span><em>Complete</em></div>
+                <div class="journey-step"><i class="journey-dot">03</i><strong>Context + purpose</strong><span>Page, terms, human decision</span><em>Complete</em></div>
+                <div class="journey-step"><i class="journey-dot">04</i><strong>Metadata</strong><span>Direct or decomposed pipeline</span><em>Pilot complete</em></div>
+                <div class="journey-step"><i class="journey-dot">05</i><strong>Blind review</strong><span>Grounding, usefulness, disposition</span><em>Calibrated</em></div>
+                <div class="journey-step pending"><i class="journey-dot">06</i><strong>Deployment choice</strong><span>Quality × reliability × latency × cost</span><em>Pending</em></div>
+              </div>
+            </div>
+
+            <div class="fingerprint" id="compatibility-fingerprint">
+              <div class="fingerprint-head">
+                <strong>Compatibility has a shape, not just a percentage</strong>
+                <div class="fingerprint-legend" aria-label="Outcome legend">
+                  <span><i class="finger-dot"></i>one-shot valid</span>
+                  <span><i class="finger-dot repaired"></i>repaired</span>
+                  <span><i class="finger-dot failed"></i>remaining failure</span>
+                </div>
+              </div>
+              <div class="finger-row" data-model="Qwen2.5-VL 3B" data-block="deployed stack" data-oneshot="16" data-repaired="0" data-final="16"></div>
+              <div class="finger-row" data-model="Qwen2.5-VL 32B" data-block="deployed stack" data-oneshot="15" data-repaired="0" data-final="15"></div>
+              <div class="finger-row passed" data-model="Qwen3.5 9B" data-block="deployed stack" data-oneshot="18" data-repaired="1" data-final="19"></div>
+              <div class="finger-row passed" data-model="Gemma 3 12B" data-block="deployed stack" data-oneshot="19" data-repaired="0" data-final="19"></div>
+              <div class="finger-row" data-model="Mistral Small 3.1 24B" data-block="deployed stack" data-oneshot="17" data-repaired="0" data-final="17"></div>
+              <div class="finger-row" data-model="Gemma 4 12B" data-block="isolated amendment" data-oneshot="17" data-repaired="1" data-final="18"></div>
+              <p class="fingerprint-note">Each row contains 20 measured outcomes grouped by final state, not run order. Nineteen valid outcomes are required to pass. The marks show pipeline reliability only—not metadata quality or a generational model ranking.</p>
+            </div>
+          </div>
+
+          <div class="status-note"><strong>Why this visual system.</strong> The interactive manuscript uses a manipulable canonical example, directly labelled outcome marks, and a left-to-right visual abstract. The eventual PDF keeps the same logic as static panels. Final numeric plots should be generated from normalized evidence using a declarative tool such as Observable Plot or Vega-Lite rather than redrawn by hand.</div>
+        </section>
+
+        <section class="section reveal" id="introduction">
+          <span class="section-number">01</span>
+          <h2>Introduction</h2>
+          <p class="lead dropcap">Images arrive as pixels, but websites publish them as decisions: filename, alternative text, caption, purpose, placement, and audience.</p>
+          <p>For content teams and web developers, preparing those decisions at scale is repetitive and error-prone. A generic captioning model can identify objects and actions, yet useful alternative text is not a caption detached from its page. A photograph may be informative in one placement, redundant in another, decorative in a third, or functional when it acts as a control. The same visible evidence can therefore require different metadata.</p>
+          <p>SEO Studio was developed as a capstone application for image preparation and web metadata review. The research extension turns that product into a controlled evaluation environment. It asks whether page context, human-confirmed purpose, and a decomposed vision-plus-writer architecture improve grounding and contextual usefulness without making deployment impractical on institutional hardware.</p>
+          <p>Self-hosting is relevant for organizations that wish to reduce third-party image transfer, control model versions, and inspect inference provenance. Cost was also a practical motivation for the project: processing large image collections through paid external APIs can accumulate image-, request-, and token-based charges, while the institution already has access to a DGX Spark. Local inference may avoid some external usage charges, but it is not cost-free: hardware acquisition or amortization, electricity, storage, maintenance, and operator time still matter. The system therefore treats privacy, security, accessibility, quality, and economic value as deployment boundaries to measure—not as benefits to assume.</p>
+
+          <h3>Research questions</h3>
+          <div class="rq-list">
+            <div class="rq"><b>RQ1</b><p>How accurately do the selected self-hosted multimodal models extract grounded and salient visual facts for web image metadata?</p></div>
+            <div class="rq"><b>RQ2</b><p>Does decomposing generation into visual-fact extraction and contextual writing reduce unsupported claims and improve metadata acceptability compared with direct generation using the same model?</p></div>
+            <div class="rq"><b>RQ3</b><p>How do brand context and page context affect contextual usefulness, terminology, redundancy, and unsupported claims?</p></div>
+            <div class="rq"><b>RQ4</b><p>What quality, reliability, latency, resource, and operational-cost trade-offs determine the most suitable deployment configuration for SEO Studio?</p></div>
+          </div>
+
+          <h3>Contributions under evaluation</h3>
+          <p>The intended contribution is a reproducible, task-specific framework rather than a claim that one model is universally best. If the completed evidence supports it, the study will contribute a licensed context-rich benchmark, a controlled local-model comparison, an architecture ablation, a context ablation, a provenance-preserving evaluation harness, and a human-review workflow for purpose-aware metadata. Claims will be limited to contributions actually completed and released.</p>
+        </section>
+
+        <section class="section reveal" id="background">
+          <span class="section-number">02</span>
+          <h2>Background and related work</h2>
+          <p class="lead">Alternative text is contextual communication, not an inventory of everything visible.</p>
+          <p>The W3C image decision tree distinguishes informative, decorative, functional, text-containing, and complex image roles. That distinction matters because an empty alternative value can be correct, while a visually detailed description can be wrong when an image is decorative or repeats adjacent content. For functional imagery, the control’s action or destination can matter more than its appearance.</p>
+          <p>Prior work on context-sensitive image description has shown that surrounding language can influence which visual information is useful to communicate. Multimodal foundation models make this technically feasible, but they also introduce unsupported claims, sensitive inferences, inconsistent structured output, and prompt-dependent verbosity. Standard caption metrics are poorly matched to an open-ended task in which several descriptions may be acceptable and usefulness depends on placement.</p>
+          <p>This study therefore combines objective reliability evidence with blinded human judgment. It separates page and brand context from visible evidence, records failures in denominators, and treats model selection as a multi-objective deployment decision rather than a leaderboard.</p>
+          <blockquote>Context may guide wording and purpose. It must never become proof that an object, identity, diagnosis, location, or outcome is visible.</blockquote>
+          <div class="status-note"><strong>Related-work status.</strong> This section establishes the conceptual frame. A venue-specific literature review and formatted bibliography remain to be completed before submission.</div>
+        </section>
+
+        <section class="section reveal" id="architecture">
+          <span class="section-number">03</span>
+          <h2>SEO Studio system architecture</h2>
+          <p>SEO Studio uses a Next.js frontend, a FastAPI backend, and Ollama-hosted local models. The research path is deliberately separate from mutable browser state: it sends source images to the inference runtime at execution time, stores only approved evidence and hashes, and produces blinded review packages outside the production workflow.</p>
+
+          <figure class="figure">
+            <div class="pipeline" role="img" aria-label="SEO Studio decomposed metadata pipeline: image to visual facts, combined with page context, brand terms, and confirmed purpose, then writer, validator, and human approval">
+              <div class="pipeline-node">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="8" cy="9" r="2"/><path d="m4 18 5-5 3 3 3-4 5 6"/></svg>
+                <strong>Source image</strong><span>Licensed pixels</span>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true">→</div>
+              <div class="pipeline-node">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                <strong>Visual facts</strong><span>Image evidence only</span>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true">+</div>
+              <div class="pipeline-node">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg>
+                <strong>Permitted context</strong><span>Page · terms · purpose</span>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true">→</div>
+              <div class="pipeline-node">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16 17 6l2 2L9 18H7v-2Z"/></svg>
+                <strong>Metadata writer</strong><span>Purpose-aware text</span>
+              </div>
+              <div class="pipeline-arrow" aria-hidden="true">→</div>
+              <div class="pipeline-node">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                <strong>Human approval</strong><span>Edit · accept · reject</span>
+              </div>
+            </div>
+            <figcaption><b>FIG. 1</b><span>The decomposed research condition separates visible evidence from page context before writing metadata. The controlled direct condition generates metadata from the image and permitted context in one step.</span></figcaption>
+          </figure>
+
+          <h3>Evidence boundary</h3>
+          <p>Brand profiles can supply approved terminology and tone. Page context can identify audience, placement, nearby text, and functional destination. Human-confirmed purpose determines whether alternative text should describe, identify, perform an action, refer to a long description, or remain empty. None of these inputs is allowed to manufacture visible facts.</p>
+
+          <h3>Deployment boundary</h3>
+          <p>Inference runs on an NVIDIA DGX Spark through Ollama. Every research record identifies the model digest, quantization, runtime version, code commit, prompt and schema hashes, image hash, generation options, native timing, and failure outcome. Live connection details remain outside the repository under the project’s dedicated operational access procedure.</p>
+        </section>
+
+        <section class="section reveal" id="methodology">
+          <span class="section-number">04</span>
+          <h2>Methodology</h2>
+          <p class="lead">The protocol advances models by compatibility first, then quality, then deployment trade-offs.</p>
+
+          <h3>Dataset and contexts</h3>
+          <p>The pilot uses 20 licensed images spanning healthcare, retail, hospitality, education, and professional-service contexts. Every record includes source and licence evidence, visible-fact references, forbidden claims, a fictional page context, a brand profile, and a human-confirmed purpose. The full approximately 120-item dataset will be pilot-driven and frozen before primary execution.</p>
+
+          <figure class="figure">
+            <img src="../../evaluation/dataset/images/pilot/retail-checkout-queue-010.jpg" alt="A shopper holds the handle of a blue rolling basket while waiting among other people in a store queue.">
+            <figcaption><b>FIG. 2</b><span>A benchmark item illustrates the evidence boundary: the basket, products, floor, and nearby people are visible; customer identity, wait time, and the named store are not established by pixels. Image by WY alisongmako, CC BY-SA 4.0.</span></figcaption>
+          </figure>
+
+          <h3>Candidate screening</h3>
+          <p>The deployed-stack pilot screened Qwen2.5-VL 3B, Qwen2.5-VL 32B, Qwen3.5 9B, Gemma 3 12B, and Mistral Small 3.1 24B. A later pre-freeze catalog correction tested Gemma 4 12B prospectively on an isolated current Ollama runtime. Compatibility is a hard gate: a condition must produce at least 19 valid outcomes from 20 under the frozen schema and bounded repair policy.</p>
+
+          <div class="method-grid">
+            <div class="method-item"><b>Generation</b><p>Temperature 0; seed 20260716; thinking disabled; structured JSON schema; one measured repeat for compatibility.</p></div>
+            <div class="method-item"><b>Output policy</b><p>384-token one-shot limit; exactly one source-linked 768-token repair only after <code>done_reason=length</code>.</p></div>
+            <div class="method-item"><b>Failure accounting</b><p>Timeouts, truncations, schema-invalid responses, transport attempts, and superseded recoveries remain in immutable records.</p></div>
+            <div class="method-item"><b>Advancement</b><p>Baseline reference plus the two eligible challengers; no threshold reduction after outcomes are observed.</p></div>
+          </div>
+
+          <h3>Primary quality outcomes</h3>
+          <p>RQ1 prioritizes supported-claim precision and hallucinated-claim rate across the complete predeclared grounding population. RQ2 uses the binary grouping of accept unchanged or minor edit versus major edit or reject. RQ3 prioritizes contextual usefulness. RQ4 evaluates the quality–reliability–latency–cost Pareto position. Secondary dimensions include salient coverage, redundancy, brand alignment, purpose appropriateness, safety, concision, failure rate, throughput, and token counts.</p>
+
+          <h3>Economic evaluation</h3>
+          <p>The financial analysis will distinguish marginal operating cost on already-owned institutional hardware from total ownership cost. Observed run duration, throughput, token counts, storage, and—only if validated telemetry is available—energy use will support transparent workload scenarios. A dated API-price comparison may estimate avoided external inference charges at different image volumes, but it will not be presented as a universal saving or a causal cost result. Hardware amortization, maintenance, staff time, and utilization assumptions will be reported separately so that readers can replace them with their own institutional values.</p>
+
+          <h3>Human review</h3>
+          <p>Reviewers receive randomized packages that hide model, condition, author, and latency. They inspect the image, permitted context, confirmed purpose, and generated output. Claims are labelled as supported, unsupported, contradicted, or not verifiable from permitted evidence. Eight five-point dimensions and an overall disposition are recorded. System failures remain explicit rejects with null content ratings.</p>
+
+          <h3>Statistical plan</h3>
+          <p>The preferred analysis uses ordinal mixed-effects models for ratings and logistic mixed-effects models for binary failure and hallucination outcomes, with model or condition as fixed effects and image and reviewer as random effects. Bootstrap confidence intervals and corrected planned contrasts will accompany effect estimates. If the full mixed-effects plan is infeasible for the capstone, item-level Friedman and Holm-corrected paired Wilcoxon analyses are predeclared fallbacks.</p>
+
+          <h3>Ethics and data handling</h3>
+          <p>Only licensed public images and fictional contexts enter the released benchmark. Private client and brand documents are excluded. Reviewers must not infer identity, diagnosis, protected attributes, intent, or outcomes. The product always preserves a human approval step, and AI-assisted writing or coding will be disclosed according to institutional and venue policy.</p>
+        </section>
+
+        <section class="section reveal" id="preliminary">
+          <span class="section-number">05</span>
+          <h2>Preliminary systems evidence</h2>
+          <p class="lead">Compatibility answers “can this condition participate?” It does not answer “which model writes the best metadata?”</p>
+
+          <h3>Deployed-stack pilot</h3>
+          <p>The clean pilot completed 100 analyzed outcomes across five model conditions. Gemma 3 was the only challenger to meet the original one-shot 95% structured-validity threshold. The predeclared truncation policy subsequently repaired one of two Qwen3.5 truncations, bringing Qwen3.5 and Gemma 3 to 19/20 pipeline-valid outcomes. The Qwen2.5-VL 3B condition remains a below-gate reference rather than an eligible finalist.</p>
+
+          <div class="chart" role="img" aria-label="Pipeline-validity rates: Qwen2.5-VL 3B 80%, Qwen2.5-VL 32B 75%, Qwen3.5 95%, Gemma 3 95%, Mistral Small 3.1 85%, Gemma 4 isolated amendment 90%. The gate is 95%.">
+            <div class="chart-head"><strong>Pipeline validity after permitted repair</strong><span>Dashed marker = 95% gate</span></div>
+            <div class="bar-row"><span class="bar-label">Qwen2.5-VL 3B</span><div class="bar-track"><div class="bar-fill" style="--value:80"></div></div><span class="bar-value">80%</span></div>
+            <div class="bar-row"><span class="bar-label">Qwen2.5-VL 32B</span><div class="bar-track"><div class="bar-fill" style="--value:75"></div></div><span class="bar-value">75%</span></div>
+            <div class="bar-row highlight"><span class="bar-label">Qwen3.5 9B</span><div class="bar-track"><div class="bar-fill" style="--value:95"></div></div><span class="bar-value">95%</span></div>
+            <div class="bar-row highlight"><span class="bar-label">Gemma 3 12B</span><div class="bar-track"><div class="bar-fill" style="--value:95"></div></div><span class="bar-value">95%</span></div>
+            <div class="bar-row"><span class="bar-label">Mistral Small 3.1</span><div class="bar-track"><div class="bar-fill" style="--value:85"></div></div><span class="bar-value">85%</span></div>
+            <div class="bar-row"><span class="bar-label">Gemma 4 12B*</span><div class="bar-track"><div class="bar-fill" style="--value:90"></div></div><span class="bar-value">90%</span></div>
+            <p class="chart-note">* Gemma 4 was evaluated in a separate isolated-runtime amendment and is shown for protocol accounting, not as a same-runtime causal comparison.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <caption>Table 1. Completed compatibility evidence. All failures remain in the denominator.</caption>
+              <thead><tr><th>Condition</th><th>Block</th><th>One-shot valid</th><th>Repair</th><th>Pipeline valid</th><th>Gate</th><th>Remaining failure</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Qwen2.5-VL 3B</strong></td><td>Deployed</td><td>16/20</td><td>0/4</td><td>16/20</td><td class="fail">Fail · reference</td><td>4 truncations</td></tr>
+                <tr><td><strong>Qwen2.5-VL 32B</strong></td><td>Deployed</td><td>15/20</td><td>0/0</td><td>15/20</td><td class="fail">Fail</td><td>5 timeouts</td></tr>
+                <tr><td><strong>Qwen3.5 9B</strong></td><td>Deployed</td><td>18/20</td><td>1/2</td><td>19/20</td><td class="pass">Pass</td><td>1 truncation</td></tr>
+                <tr><td><strong>Gemma 3 12B</strong></td><td>Deployed</td><td>19/20</td><td>0/1</td><td>19/20</td><td class="pass">Pass</td><td>1 truncation</td></tr>
+                <tr><td><strong>Mistral Small 3.1 24B</strong></td><td>Deployed</td><td>17/20</td><td>0/0</td><td>17/20</td><td class="fail">Fail</td><td>3 timeouts</td></tr>
+                <tr><td><strong>Gemma 4 12B</strong></td><td>Isolated amendment</td><td>17/20</td><td>1/3</td><td>18/20</td><td class="fail">Fail</td><td>2 truncations</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Gemma generation boundary</h3>
+          <p>The Gemma 4 amendment corrected an initial candidate-selection limitation. Its output failures were genuine under the frozen contract, but the amendment does not establish that Gemma 4 is generally inferior to Gemma 3. The generations ran in different Ollama runtime blocks, the visual-facts schema did not cap array length, and the prompt did not prohibit coordinate-style grounding strings or repeated object enumeration. The defensible conclusion is narrower: the tested Gemma 4 package failed this pipeline’s compatibility threshold and therefore did not enter the primary quality screen.</p>
+
+          <h3>Human calibration</h3>
+          <p>Two reviewers independently labelled the same 76-claim inventory across 15 blinded calibration items; an adjudicated record was preserved separately. Twelve items contained metadata and three were explicit system failures. The recalibration established reviewer feasibility without opening the private model map.</p>
+          <div class="metric-band">
+            <div class="metric"><strong>98.7%</strong><span>Exact claim-label agreement<br>Cohen’s κ = 0.923</span></div>
+            <div class="metric"><strong>91.7%</strong><span>Valid-output disposition agreement<br>κw = 0.860</span></div>
+            <div class="metric"><strong>120 s</strong><span>Median review time per item<br>for both reviewers</span></div>
+          </div>
+          <p>Exact agreement was at least 83.3% for seven of eight ordinal dimensions and 100% for brand alignment and safety. Purpose-appropriateness exact agreement was 66.7%, with linear-weighted κ = 0.742. Kappa was undefined for safety because both reviewers used the same category throughout, and was prevalence-sensitive for concision despite 91.7% exact agreement.</p>
+        </section>
+
+        <section class="section reveal" id="primary-results">
+          <span class="section-number">06</span>
+          <h2>Primary results</h2>
+          <div class="pending-results">
+            <h3>Reserved for frozen evidence</h3>
+            <p>The primary study has not been completed. This section will be generated from normalized evidence and will report:</p>
+            <ul>
+              <li>supported-claim precision and hallucinated-claim rate by model;</li>
+              <li>direct versus decomposed architecture disposition;</li>
+              <li>page-context and brand-context effects on contextual usefulness;</li>
+              <li>quality, reliability, latency, resource, and operational-cost Pareto position;</li>
+              <li>planned contrasts, effect sizes, uncertainty, and agreement;</li>
+              <li>the final deployment decision under the frozen advancement rule.</li>
+            </ul>
+          </div>
+          <p>No compatibility percentage is treated as a quality score. No calibration output is used to choose a model. No final result will be selected because it looks favourable.</p>
+        </section>
+
+        <section class="section reveal" id="discussion">
+          <span class="section-number">07</span>
+          <h2>Discussion</h2>
+          <p class="lead">The completed evidence already shows why model selection is a systems decision; it does not yet show which eligible pipeline produces the most useful metadata.</p>
+          <p>The compatibility pilots exposed qualitatively different failure modes: output truncation in smaller and newer multimodal packages, timeouts in larger conditions, and sensitivity to unbounded structured arrays. These outcomes matter operationally because a model that produces excellent text only intermittently may be unsuitable for a review workflow. They also demonstrate that package identity, runtime version, context window, output limits, and repair policy are part of the evaluated condition.</p>
+          <p>The calibration results support the feasibility of blinded human review. They also caution against interpreting kappa without exact agreement and category prevalence. The primary study must therefore report both agreement statistics and rating distributions.</p>
+          <p>Interpretation of the central hypothesis is deferred. The study will not claim that context or decomposition improves metadata unless the predeclared outcomes and uncertainty estimates support that conclusion. Null or negative findings will be reported directly.</p>
+        </section>
+
+        <section class="section reveal" id="threats">
+          <span class="section-number">08</span>
+          <h2>Threats to validity</h2>
+          <h3>Internal validity</h3>
+          <p>Model families differ in training, package implementation, quantization, and runtime requirements. The Gemma 4 amendment used a different Ollama block from the deployed-stack comparison and cannot support a clean generational causal claim. Prompt and schema choices may interact with model-specific output behaviour. Temperature zero does not guarantee determinism, and shared hardware load may affect latency.</p>
+          <h3>Construct validity</h3>
+          <p>Alternative text has no single correct wording. Human ratings approximate usefulness under a supplied purpose and context but do not replace evaluation by blind or low-vision users. Compatibility and schema validity are not quality. Reference descriptions are aids, not ground truth.</p>
+          <h3>External validity</h3>
+          <p>The benchmark emphasizes English-language Canadian business-web contexts and a limited domain set. Findings may not generalize to other languages, cultures, art styles, charts, scientific imagery, social media, or enterprise production loads.</p>
+          <h3>Researcher effects</h3>
+          <p>Project contributors may also participate as reviewers. Blinding, randomized order, preserved individual records, explicit adjudication, and disclosure reduce but do not eliminate author-rater bias.</p>
+        </section>
+
+        <section class="section reveal" id="responsible-use">
+          <span class="section-number">09</span>
+          <h2>Responsible use, ethics, and privacy</h2>
+          <p>SEO Studio is an assistive authoring system. A person confirms image purpose, reviews generated metadata, and may edit or reject every output before export. The model is not described as understanding accessibility, and the software is not described as WCAG compliant.</p>
+          <p>The evaluation forbids unsupported identity, diagnosis, protected-attribute, intent, and outcome claims. Empty alternative text remains an available and sometimes correct decision. Private brand or client materials do not enter the public benchmark.</p>
+          <p>Self-hosted inference can reduce third-party transfer, but privacy also depends on network exposure, access control, logging, retention, and operational practice. The paper will document those controls rather than treating locality as a guarantee.</p>
+        </section>
+
+        <section class="section reveal" id="limitations">
+          <span class="section-number">10</span>
+          <h2>Limitations and future work</h2>
+          <p>Future work includes additional languages and cultural contexts, participation by blind and low-vision evaluators under separately approved ethics procedures, CMS-integrated page studies, validated energy measurement, broader runtime comparisons, and larger context-aware benchmarks.</p>
+          <p>AI crop targeting remains outside the primary paper. Purpose suggestion is a product feature and exploratory research direction, not a primary outcome. A same-runtime Gemma 3 versus Gemma 4 sensitivity study could clarify the candidate-amendment result, but it is not required to preserve the current compatibility decision.</p>
+        </section>
+
+        <section class="section reveal" id="conclusion">
+          <span class="section-number">11</span>
+          <h2>Interim conclusion</h2>
+          <p class="lead">The study infrastructure is ready to ask the quality questions honestly; it has not answered them yet.</p>
+          <p>SEO Studio now has a provenance-preserving evaluation harness, a controlled compatibility screen, an explicit repair policy, a defensible deployed-stack finalist set, and a calibrated blinded-review process. Preliminary evidence supports proceeding to the primary quality study. It does not support naming a best model, claiming an accessibility improvement, or preferring direct or decomposed generation.</p>
+          <p>The final conclusion will answer each research question from the frozen analysis and identify the deployment configuration selected for SEO Studio. Until then, this manuscript remains a transparent working paper.</p>
+        </section>
+
+        <section class="section reveal" id="end-matter">
+          <span class="section-number">DECLARATIONS</span>
+          <h2>Required end matter</h2>
+          <div class="end-matter">
+            <div class="end-row"><b>CRediT</b><p>Contributor roles and author order are pending a documented team agreement. The software will not be represented as solely built by the lead author.</p></div>
+            <div class="end-row"><b>Resources</b><p>Institutional NVIDIA DGX Spark compute was provided under the supervision of the project coordinator. No external model API was required for the reported local runs.</p></div>
+            <div class="end-row"><b>Data</b><p>The intended release includes licensed images or source links, fictional contexts, manifests, prompts, schemas, normalized evidence, and attribution records, subject to institutional approval.</p></div>
+            <div class="end-row"><b>Code</b><p>Evaluation code is maintained in the SEO Studio repository. Release commit, archive URL, and persistent identifier will be added at submission.</p></div>
+            <div class="end-row"><b>Ethics</b><p>Course/institutional ethics determination and any exemption reference remain to be recorded before submission.</p></div>
+            <div class="end-row"><b>AI assistance</b><p>AI tools assisted with software development, evidence review, and manuscript drafting. Human authors remain responsible for verification, interpretation, authorship, and the submitted text.</p></div>
+            <div class="end-row"><b>Conflicts</b><p>No conflict-of-interest statement has yet been finalized.</p></div>
+          </div>
+        </section>
+
+        <section class="section reveal" id="references">
+          <span class="section-number">REFERENCES</span>
+          <h2>Working references</h2>
+          <ol class="references">
+            <li>World Wide Web Consortium. “An alt Decision Tree.” <a href="https://www.w3.org/WAI/tutorials/images/decision-tree/">WAI Images Tutorial</a>.</li>
+            <li>Kreiss, E., et al. “Context Matters for Image Descriptions for Accessibility.” <a href="https://arxiv.org/abs/2205.10646">arXiv:2205.10646</a>.</li>
+            <li>Ollama. “Generate a response,” “Structured Outputs,” and “Vision.” <a href="https://docs.ollama.com/">Official documentation</a>.</li>
+            <li>NVIDIA. “DGX Spark Hardware.” <a href="https://docs.nvidia.com/dgx/dgx-spark/hardware.html">Product documentation</a>.</li>
+            <li>NISO. “CRediT — Contributor Roles Taxonomy.” <a href="https://credit.niso.org/">credit.niso.org</a>.</li>
+            <li>Conestoga College. “Research Policy” and “Policy on Students’ Rights in Research.” Institutional policy documents.</li>
+            <li>SEO Studio Project Team. <a href="../publication-research-architecture.md">Research Master Architecture and Execution Plan, version 2.1</a>. Internal protocol document, 2026.</li>
+            <li>Hohman, F., Conlen, M., Heer, J., and Chau, D. H. P. “<a href="https://distill.pub/2020/communicating-with-interactive-articles/">Communicating with Interactive Articles</a>.” <i>Distill</i>, 2020.</li>
+            <li>Nature. “<a href="https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/">Preparing figures—our specifications</a>.” Nature Research Figure Guide.</li>
+            <li>Elsevier. “<a href="https://www.elsevier.com/researcher/author/tools-and-resources/graphical-abstract">Graphical abstract</a>.” Author tools and resources.</li>
+            <li>Observable. “<a href="https://observablehq.github.io/plot/">Observable Plot</a>.” Open-source grammar of graphics for exploratory visualization.</li>
+            <li>Vega Project. “<a href="https://vega.github.io/vega-lite/">Vega-Lite</a>.” A grammar of interactive graphics.</li>
+          </ol>
+          <div class="status-note pending"><strong>Bibliography status.</strong> References are provisional and will be expanded, verified, and formatted for the selected venue before submission.</div>
+        </section>
+
+        <section class="section reveal" id="appendix">
+          <span class="section-number">APPENDIX A</span>
+          <h2>Reproducibility map</h2>
+          <div class="end-matter">
+            <div class="end-row"><b>Protocol</b><p><a href="../publication-research-architecture.md">docs/publication-research-architecture.md</a></p></div>
+            <div class="end-row"><b>Evaluation guide</b><p><a href="../../evaluation/README.md">evaluation/README.md</a></p></div>
+            <div class="end-row"><b>Compatibility</b><p><a href="../../evaluation/results/compatibility-pilot-20260717.md">Deployed-stack pilot</a> · <a href="../../evaluation/results/truncation-repair-20260717.md">repair evidence</a></p></div>
+            <div class="end-row"><b>Gemma 4</b><p><a href="../../evaluation/results/compatibility-isolated-gemma4-20260718.md">Isolated amendment</a> · <a href="../../evaluation/results/truncation-repair-isolated-gemma4-20260718.md">repair evidence</a></p></div>
+            <div class="end-row"><b>Calibration</b><p><a href="../../evaluation/results/recal_analysis_results.md">Human calibration report</a> · <a href="../../evaluation/annotations/templates/rubric-v1.1.md">rubric v1.1</a></p></div>
+            <div class="end-row"><b>Dataset</b><p><a href="../../evaluation/dataset/manifest.jsonl">Licensed manifest</a> · hashes, contexts, purpose, attribution, and forbidden claims</p></div>
+          </div>
+        </section>
+      </article>
+
+      <aside class="margin-rail" aria-label="Manuscript status notes">
+        <div class="margin-note">
+          <b>Evidence key</b>
+          <div class="mini-legend"><i></i><span>Completed evidence</span></div>
+          <div class="mini-legend pending"><i></i><span>Pending primary study</span></div>
+        </div>
+        <div class="margin-note"><b>Claim boundary</b>Compatibility results establish whether a model condition reliably satisfies the pipeline contract. They do not rank metadata quality.</div>
+        <div class="margin-note"><b>Current finalist set</b>Qwen2.5-VL 3B reference, Qwen3.5 9B challenger, and Gemma 3 12B deployed-stack challenger.</div>
+        <div class="margin-note"><b>Reading tip</b>Use the moon control for low-light reading and the print control to save a journal-style PDF.</div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><strong>SEO Studio</strong><p>Working manuscript for a reproducible applied-AI capstone and institutional publication.</p></div>
+      <p>Prepared from versioned repository evidence. Last manuscript update: 19 July 2026. No final quality winner has been selected.</p>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const themeButton = document.getElementById('theme-toggle');
+      const storedTheme = localStorage.getItem('seo-studio-manuscript-theme');
+      if (storedTheme === 'night') root.dataset.theme = 'night';
+
+      themeButton.addEventListener('click', () => {
+        const next = root.dataset.theme === 'night' ? 'day' : 'night';
+        root.dataset.theme = next;
+        localStorage.setItem('seo-studio-manuscript-theme', next);
+        themeButton.setAttribute('aria-label', next === 'night' ? 'Use light reading theme' : 'Use dark reading theme');
+      });
+
+      const progress = document.getElementById('reading-progress');
+      const updateProgress = () => {
+        const available = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = available > 0 ? window.scrollY / available : 0;
+        progress.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+      };
+      updateProgress();
+      window.addEventListener('scroll', updateProgress, { passive: true });
+
+      const roleTreatments = {
+        informative: {
+          placement: 'Study-spaces article; surrounding text explains hours, not the scene.',
+          alt: 'Students work at tables in a library study area.',
+          reason: 'Describe the scene concisely because the photograph adds information.',
+          visible: 'People · tables · laptops · bookshelves',
+          context: 'Article topic · non-redundant placement'
+        },
+        decorative: {
+          placement: 'Banner beside a heading that already says “Library study spaces.”',
+          alt: 'alt=""',
+          reason: 'Use an empty alternative value because adjacent content already carries the meaning.',
+          visible: 'People · tables · laptops · bookshelves',
+          context: 'Repeated heading · no unique information'
+        },
+        functional: {
+          placement: 'Linked tile that opens the study-room booking page.',
+          alt: 'Book a library study room',
+          reason: 'Communicate the destination or action instead of narrating the photograph.',
+          visible: 'People · tables · laptops · bookshelves',
+          context: 'Link destination · expected action'
+        }
+      };
+      const roleReadout = document.querySelector('.role-readout');
+      const roleButtons = [...document.querySelectorAll('[data-role]')];
+      const roleFields = {
+        placement: document.getElementById('role-placement'),
+        alt: document.getElementById('role-alt'),
+        reason: document.getElementById('role-reason'),
+        visible: document.getElementById('role-visible'),
+        context: document.getElementById('role-context')
+      };
+      roleButtons.forEach((button) => button.addEventListener('click', () => {
+        const treatment = roleTreatments[button.dataset.role];
+        if (!treatment) return;
+        roleButtons.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+        Object.entries(roleFields).forEach(([key, element]) => { if (element) element.textContent = treatment[key]; });
+        if (roleReadout) {
+          roleReadout.classList.remove('is-changing');
+          requestAnimationFrame(() => roleReadout.classList.add('is-changing'));
+        }
+      }));
+
+      document.querySelectorAll('.finger-row').forEach((row) => {
+        const oneShot = Number(row.dataset.oneshot);
+        const repaired = Number(row.dataset.repaired);
+        const finalValid = Number(row.dataset.final);
+        const failures = 20 - finalValid;
+
+        const label = document.createElement('div');
+        label.className = 'finger-label';
+        const name = document.createElement('b');
+        name.textContent = row.dataset.model;
+        const block = document.createElement('span');
+        block.textContent = row.dataset.block;
+        label.append(name, block);
+
+        const dots = document.createElement('div');
+        dots.className = 'finger-dots';
+        dots.setAttribute('role', 'img');
+        dots.setAttribute('aria-label', `${row.dataset.model}: ${oneShot} one-shot valid, ${repaired} repaired, ${failures} remaining failures.`);
+        for (let index = 0; index < 20; index += 1) {
+          const dot = document.createElement('i');
+          dot.className = 'finger-dot';
+          if (index >= oneShot && index < oneShot + repaired) dot.classList.add('repaired');
+          if (index >= finalValid) dot.classList.add('failed');
+          dot.setAttribute('aria-hidden', 'true');
+          dots.append(dot);
+        }
+
+        const value = document.createElement('span');
+        value.className = 'finger-value';
+        value.textContent = `${finalValid}/20`;
+        row.append(label, dots, value);
+      });
+
+      const revealTargets = [...document.querySelectorAll('.reveal')];
+      if ('IntersectionObserver' in window) {
+        root.classList.add('reveal-ready');
+        const revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.06 });
+        revealTargets.forEach((element) => revealObserver.observe(element));
+      }
+
+      const links = [...document.querySelectorAll('.toc a')];
+      const sections = links.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+      const activeObserver = new IntersectionObserver((entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        links.forEach((link) => link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`));
+      }, { rootMargin: '-18% 0px -67% 0px', threshold: [0, .1, .25, .5] });
+      sections.forEach((section) => activeObserver.observe(section));
+    })();
+  </script>
+</body>
+</html>
