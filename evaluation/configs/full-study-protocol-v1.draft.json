@@ -48,17 +48,21 @@
     "pilot_disposition": "excluded_from_primary_inference",
     "split": "full",
     "manifest_path": "dataset/manifest-full-v1.jsonl",
-    "provisional_items": 120,
-    "final_items": null,
-    "primary_claim_images": 60,
-    "context_ablation_images": 30,
+    "provisional_items": 128,
+    "final_items": 128,
+    "primary_claim_images": 128,
+    "production_metadata_images": 64,
+    "context_ablation_images": 36,
     "domains": {
-      "healthcare": null,
-      "retail_product": null,
-      "hospitality_local_service": null,
-      "education_professional_service": null
+      "healthcare": 32,
+      "retail_product": 32,
+      "hospitality_local_service": 32,
+      "education_professional_service": 32
     },
-    "sample_size_approved": false
+    "sample_size_approved": true,
+    "analysis_intent": "estimation_first",
+    "sample_size_decision_path": "configs/full-study-sample-size-decision-20260719.json",
+    "sample_size_decision_sha256": "b5f40ea3d70c5502af6b2ca9ee578ebd490df664466d5d0668756a7b45ca8e91"
   },
   "execution": {
     "repeats": 3,
@@ -126,19 +130,24 @@
     "evidence_path": "configs/full-study-runtime-reverification-20260719.json"
   },
   "run_accounting": {
-    "provisional_final_images": 120,
-    "primary_claim_images": 60,
-    "context_ablation_images": 30,
+    "provisional_final_images": 128,
+    "primary_claim_images": 128,
+    "production_metadata_images": 64,
+    "context_ablation_images": 36,
     "finalist_models": 3,
     "repeats": 3,
-    "vision_fact_calls": 1080,
-    "decomposed_writer_calls": 1080,
-    "direct_metadata_calls": 360,
-    "incremental_context_calls": 270,
-    "total_model_calls": 2790,
-    "unique_human_review_items": 510,
-    "total_reviewer_assignments": 756,
-    "projected_minutes_per_reviewer": 756,
+    "vision_fact_calls": 1152,
+    "decomposed_writer_calls": 1152,
+    "direct_metadata_calls": 384,
+    "incremental_context_calls": 324,
+    "total_model_calls": 3012,
+    "unique_human_review_items": 876,
+    "total_reviewer_assignments": 1071,
+    "reviewers": 3,
+    "rq1_overlap_rate": 0.25,
+    "metadata_overlap_rate": 0.2,
+    "review_seconds_per_item": 120,
+    "projected_minutes_per_reviewer": 714,
     "adjudication_minutes_included": false
   },
   "condition_ids": [
@@ -155,7 +164,7 @@
     "context-selected-vision-brand-page-purpose"
   ],
   "primary_outcomes": {
-    "RQ1": "hallucinated-claim rate on every claim in the complete 60-image primary population",
+    "RQ1": "hallucinated-claim rate on every claim in the complete 128-image primary population",
     "RQ2": "accept-unchanged-or-minor-edit disposition rate",
     "RQ3": "contextual-usefulness rating",
     "RQ4": "predeclared quality-reliability-latency-operational-cost Pareto position"

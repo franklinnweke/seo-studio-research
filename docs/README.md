@@ -36,7 +36,8 @@ Recommended reading order for a new person or agent:
 | [All-approvals relay](../evaluation/configs/full-study-approval-20260719.json) | Sanitized record of governance approvals; private names and communications remain outside Git |
 | [Full-study runtime reverification](../evaluation/configs/full-study-runtime-reverification-20260719.json) | Read-only Ollama/runtime and exact three-model digest evidence |
 | [Sample-size sensitivity](publication/sample-size-sensitivity-v1.md) | Pre-data calculation testing whether the provisional population can resolve the approved effects |
-| [Sample-size evidence JSON](../evaluation/results/full-study-sample-size-sensitivity-v1.json) | Reproducible machine-readable sensitivity results and required decision options |
+| [Sample-size evidence JSON](../evaluation/results/full-study-sample-size-sensitivity-v1.json) | Reproducible machine-readable sensitivity results and the recorded estimation-first selection |
+| [Approved 128-image decision](../evaluation/configs/full-study-sample-size-decision-20260719.json) | Pre-data selection of the practical estimation-first design, domain allocation, review populations, workload, and inferential limits |
 | [Rubric v1.1](../evaluation/annotations/templates/rubric-v1.1.md) | Frozen human-review dimensions, claim labels, purpose rules, and failure handling |
 | [Final calibration report](../evaluation/results/recal_analysis_results.md) | Reviewer feasibility on 15 blinded items and the final 76-claim inventory |
 | [Calibration evidence JSON](../evaluation/results/recal-analysis-20260719.json) | Machine-readable analysis version 2, source hashes, agreement, timing, and status |

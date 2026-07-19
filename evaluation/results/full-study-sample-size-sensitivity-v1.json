@@ -2,10 +2,10 @@
   "alpha_two_sided": 0.05,
   "average_claims_per_output_assumption": 6.0,
   "conclusions": [
-    "The proposed 60-image RQ1 claim population is below every displayed five-point sensitivity scenario.",
-    "A 120-image RQ1 population reaches only the low-rate, ICC 0.10 scenario; moderate rates or stronger clustering require more images.",
-    "The most favorable displayed RQ2 scenario requires 127 paired images after reserve, slightly above 120.",
-    "The proposed 30-image RQ3 subset is below the 35-pair planning value under a one-point paired standard deviation.",
+    "The selected 128-image RQ1 population covers the displayed 100- and 120-image low-rate scenarios but not the 160-image high-clustering scenario or the displayed moderate-rate scenarios.",
+    "The selected 128-image controlled RQ2 population reaches the favorable 127-pair scenario but not the higher-discordance scenarios.",
+    "The selected 36-image RQ3 subset reaches the 35-pair planning value under the one-point paired-standard-deviation assumption.",
+    "The approved design is estimation-first: effect sizes and confidence intervals are primary, and null findings are not evidence of equivalence when meaningful effects remain compatible with the interval.",
     "These are design sensitivities, not post-hoc power calculations and not evidence of a model effect."
   ],
   "decision_options": [
@@ -14,7 +14,7 @@
     "Retain the five-point target as estimation-only and explicitly label the study underpowered for confirmatory detection."
   ],
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_sha256": "9e778a7f23f69e9c56eff7254a6c265c620cc00f7cf4e595b1ebb3f22d322660",
+  "protocol_sha256": "334f415e6383c90095f50baa552b01e4c738e17d4a254cf35454d144ec2978ad",
   "reserve_rate": 0.1,
   "rq1": [
     {
@@ -69,6 +69,7 @@
     "paired_images_with_reserve": 35,
     "standardized_effect": 0.5
   },
-  "status": "decision_required",
+  "selected_decision": "estimation_first",
+  "status": "decision_recorded",
   "target_power": 0.8
 }

@@ -8,7 +8,7 @@ Public repository: `https://github.com/franklinnweke/seo-studio-research`
 
 Default release branch: `main`; source development lineage: `codex/research-context-aware-metadata`
 
-Current gate: technical Gate 3 complete; administrative Gate 3 closure and Gate 4 protocol freeze pending
+Current gate: Gate 3 complete; Gate 4 blocked only by dataset materialization and listener-security verification
 
 ## Project in one paragraph
 
@@ -42,7 +42,8 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Working article scaffold at `docs/publication/seo-studio-manuscript.html`, with primary results explicitly pending.
 - Structurally validated Gate 4 draft at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and blocker-reporting audit command. It is not frozen and does not authorize execution.
 - All governance approvals were relayed on July 19, 2026 and preserved in a sanitized public record. Exact model digests and Ollama 0.24.0 were reverified read-only through `$davneet-dgx-access`; no mutation occurred.
-- The pre-data sample-size sensitivity found that the 60-image RQ1 subset cannot support the approved five-point target under the displayed scenarios. The final population therefore remains a scientific design decision, not an administrative approval gap.
+- The pre-data sample-size sensitivity found that the original 60-image RQ1 subset could not support the approved five-point target under the displayed scenarios. Before primary output inspection, the project lead selected a practical estimation-first design: 128 licensed images balanced 32 per domain, all 128 in RQ1 and the controlled Qwen3.5 comparison, 64 in the other production metadata comparisons, and 36 in the context ablation.
+- The approved design entails 3,012 model calls and 876 unique human-review items. With three independently calibrated reviewers, 25% RQ1 overlap and 20% metadata overlap produce 1,071 assignments: 357 assignments or 714 active minutes per reviewer, excluding adjudication, breaks, and administration.
 
 The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-claim recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
 
@@ -56,7 +57,7 @@ Verified locally on July 19, 2026:
 - checked-in OpenAPI contract: matches the generated FastAPI schema;
 - deployed-stack and isolated-amendment preflights: ready on all 20 licensed pilot items;
 - final calibration JSON and Markdown: regenerate byte-for-byte from the accepted inputs;
-- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; governance and model-identity blockers are closed, while dataset/sample-size and infrastructure evidence remain;
+- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; governance, sample-size, workload, model-identity, workspace, and telemetry blockers are closed; the manifest and listener-security evidence remain;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
 
@@ -64,17 +65,15 @@ The deployed-stack preflight still warns that the five legacy screening model id
 
 ## Current research boundary
 
-Technical calibration has passed, and the review protocol is feasible. Full-study execution has not been authorized by protocol freeze. Before opening or scoring remaining comparative outputs as primary evidence, the team must close the administrative/security items and freeze the final design.
+Technical calibration has passed, the review protocol is feasible, and the 128-image estimation-first design is approved. Full-study execution remains prohibited until the protocol audit reports `freeze_ready`.
 
 Outstanding technical freeze work:
 
-- choose the sample-size option after reviewing the pre-data sensitivity results;
-- freeze final item/domain counts and the RQ1/context populations;
 - materialize and validate the new full-study manifest;
 - resolve the failed private listener-reachability check through an approved mitigation; the dedicated workspace and limited non-GPU telemetry path are verified;
 - regenerate the audit and freeze only when it reports no blockers.
 
-The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. These decisions are approved, but the contract remains a draft until its technical blockers are cleared.
+The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. The study is estimation-first: report effect sizes and uncertainty, and do not reinterpret an underpowered null as evidence of equivalence.
 
 ## Safety, privacy, and ownership
 
@@ -100,5 +99,5 @@ The Gate 4 draft resolves the design hierarchy: five original deployed-stack con
 3. Inspect `git status`, the active branch, recent commits, and existing uncommitted work.
 4. Treat calibration as final at 76 claims, 98.7% exact agreement, and Cohen's kappa 0.923.
 5. Do not name a winning model or infer primary quality results.
-6. Do not run the full study until Gate 4 is explicitly frozen.
+6. Treat 128 images, 32 per domain, and the 128/64/36 review populations as fixed; do not run the full study until Gate 4 is explicitly frozen.
 7. For any DGX action, invoke `$davneet-dgx-access` and preserve the no-deletion boundary.

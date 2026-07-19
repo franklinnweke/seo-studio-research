@@ -1,6 +1,6 @@
 # Full-study sample-size sensitivity v1
 
-Status: **pre-data decision required**
+Status: **pre-data decision recorded**
 
 Source contract: `evaluation/configs/full-study-protocol-v1.draft.json`
 
@@ -14,9 +14,9 @@ The claim calculation uses a two-proportion approximation, six claims per output
 |---|---:|---:|---:|---:|
 | 10% → 5% | 435 | 100 | 120 | 160 |
 | 15% → 10% | 686 | 158 | 189 | 252 |
-| 20% → 15% | 906 | 208 | 249 | 332 |
+| 20% → 15% | 906 | 208 | 250 | 333 |
 
-The proposed 60-image claim population is below every displayed scenario. A 120-image population reaches only the low-rate, moderate-clustering scenario. The result is sensitive to the true claim count and within-image correlation, which must be reported as planning assumptions rather than estimated model effects.
+The selected 128-image claim population covers the displayed 100- and 120-image low-rate scenarios, but not the 160-image high-clustering scenario or the displayed moderate-rate scenarios. The result is sensitive to the true claim count and within-image correlation, which must be reported as planning assumptions rather than estimated model effects.
 
 ## RQ2: ten-percentage-point acceptable-disposition difference
 
@@ -28,20 +28,22 @@ The paired binary approximation depends on the proportion of image pairs with di
 | 25% | 194 | 214 |
 | 35% | 273 | 300 |
 
-Even the favorable displayed case is slightly above the provisional 120-image population.
+The selected 128-image controlled Qwen3.5 population reaches the favorable 127-pair scenario, but not the higher-discordance scenarios.
 
 ## RQ3: 0.5-point contextual-usefulness difference
 
-Assuming a one-point paired standard deviation, the standardized effect is 0.5 and the planning value is 35 paired images after reserve. The proposed 30-image context subset is slightly below this value.
+Assuming a one-point paired standard deviation, the standardized effect is 0.5 and the planning value is 35 paired images after reserve. The selected 36-image context subset reaches this planning value.
 
-## Required design decision
+## Recorded design decision
 
-Choose one option before opening primary outputs:
+Before opening primary outputs, the project lead selected option 3 with targeted population increases: 128 total and RQ1/RQ2 images, plus 36 context-ablation images. The complete decision and revised workload are recorded in `evaluation/configs/full-study-sample-size-decision-20260719.json`.
+
+The planning options considered were:
 
 1. Increase the final and human-annotated populations and resource the added reviewer workload.
 2. Retain a feasible population but approve larger minimum meaningful effects before data inspection.
 3. Retain the current effects as estimation targets and explicitly describe the study as underpowered for confirmatory detection.
 
-Option 1 is strongest scientifically but materially increases DGX time and claim annotation. Option 2 is defensible only if the larger effects are genuinely the smallest differences that matter, not because they make the design easier. Option 3 supports an exploratory publication but weakens confirmatory claims.
+The approved hybrid preserves the independently defined meaningful effects as interpretation thresholds and improves precision over the provisional plan without claiming comprehensive confirmatory power. The paper must emphasize effect sizes and confidence intervals, and it must describe null findings as inconclusive whenever scientifically meaningful effects remain compatible with those intervals.
 
 Machine-readable results are generated at `evaluation/results/full-study-sample-size-sensitivity-v1.json`.

@@ -1,0 +1,42 @@
+{
+  "decision_version": 1,
+  "date": "2026-07-19",
+  "status": "approved",
+  "choice": "practical_estimation_first",
+  "final_images": 128,
+  "domain_allocation": {
+    "healthcare": 32,
+    "retail_product": 32,
+    "hospitality_local_service": 32,
+    "education_professional_service": 32
+  },
+  "human_review_populations": {
+    "rq1_claim_images": 128,
+    "rq2_controlled_qwen35_images": 128,
+    "production_metadata_images": 64,
+    "context_ablation_images": 36
+  },
+  "reviewer_plan": {
+    "reviewers": 3,
+    "unique_review_items": 876,
+    "rq1_overlap_rate": 0.25,
+    "metadata_overlap_rate": 0.2,
+    "total_reviewer_assignments": 1071,
+    "projected_assignments_per_reviewer": 357,
+    "review_seconds_per_item": 120,
+    "projected_active_minutes_per_reviewer": 714,
+    "adjudication_minutes_included": false,
+    "third_reviewer_independent_calibration_required": true,
+    "self_adjudication_prohibited": true
+  },
+  "inferential_position": [
+    "estimate effect sizes with image-clustered or paired confidence intervals",
+    "report the approved meaningful effects as interpretation thresholds",
+    "do not claim guaranteed power to detect a five-percentage-point RQ1 difference",
+    "describe null findings as inconclusive when confidence intervals include scientifically meaningful effects",
+    "retain every system failure in accounting and sensitivity analyses"
+  ],
+  "selection_basis": "Chosen before primary output inspection after reviewing the versioned pre-data sensitivity calculation.",
+  "approval_source": "project lead selection in the Codex task",
+  "supersedes": "the provisional 120-image, 60-image-RQ1, and 30-image-context planning values"
+}

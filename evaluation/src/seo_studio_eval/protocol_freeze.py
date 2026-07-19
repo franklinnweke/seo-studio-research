@@ -1,10 +1,13 @@
 import json
+from collections import Counter
+from math import ceil
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from .hashing import sha256_file
+from .dataset import load_manifest, verify_dataset_item
 
 
 SHA256_PATTERN = r"^[0-9a-f]{64}$"
@@ -31,9 +34,30 @@ class DatasetPlan(BaseModel):
     provisional_items: int = Field(gt=0)
     final_items: int | None = Field(default=None, gt=0)
     primary_claim_images: int = Field(gt=0)
+    production_metadata_images: int = Field(gt=0)
     context_ablation_images: int = Field(gt=0)
     domains: dict[str, int | None]
     sample_size_approved: bool
+    analysis_intent: Literal["estimation_first"]
+    sample_size_decision_path: Path
+    sample_size_decision_sha256: str = Field(pattern=SHA256_PATTERN)
+
+    @model_validator(mode="after")
+    def validate_populations(self) -> "DatasetPlan":
+        domain_counts = list(self.domains.values())
+        if (
+            self.final_items is not None
+            and all(count is not None for count in domain_counts)
+            and sum(count for count in domain_counts if count is not None) != self.final_items
+        ):
+            raise ValueError("domain counts must sum to final_items")
+        if self.final_items is not None and self.primary_claim_images > self.final_items:
+            raise ValueError("primary_claim_images cannot exceed final_items")
+        if self.final_items is not None and self.production_metadata_images > self.final_items:
+            raise ValueError("production_metadata_images cannot exceed final_items")
+        if self.context_ablation_images > self.production_metadata_images:
+            raise ValueError("context_ablation_images cannot exceed production_metadata_images")
+        return self
 
 
 class ExecutionPlan(BaseModel):
@@ -90,6 +114,7 @@ class InfrastructureState(BaseModel):
 class RunAccounting(BaseModel):
     provisional_final_images: int = Field(gt=0)
     primary_claim_images: int = Field(gt=0)
+    production_metadata_images: int = Field(gt=0)
     context_ablation_images: int = Field(gt=0)
     finalist_models: int = Field(gt=0)
     repeats: int = Field(gt=0)
@@ -100,6 +125,10 @@ class RunAccounting(BaseModel):
     total_model_calls: int = Field(gt=0)
     unique_human_review_items: int = Field(gt=0)
     total_reviewer_assignments: int = Field(gt=0)
+    reviewers: int = Field(gt=0)
+    rq1_overlap_rate: float = Field(ge=0, le=1)
+    metadata_overlap_rate: float = Field(ge=0, le=1)
+    review_seconds_per_item: int = Field(gt=0)
     projected_minutes_per_reviewer: float = Field(gt=0)
     adjudication_minutes_included: bool
 
@@ -175,6 +204,8 @@ def audit_protocol_freeze(
 
         _validate_accounting(protocol, errors)
         _collect_blockers(protocol, root, blockers)
+        _validate_decision_record(protocol, root, errors)
+        _validate_manifest(protocol, root, errors)
 
     if errors:
         status = "invalid"
@@ -210,6 +241,9 @@ def _collect_blockers(
     manifest_path = (root / protocol.dataset.manifest_path).resolve()
     if not manifest_path.is_file():
         blockers.append("full-study dataset manifest is not materialized")
+    decision_path = (root / protocol.dataset.sample_size_decision_path).resolve()
+    if not decision_path.is_file():
+        blockers.append("sample-size decision record is not materialized")
     if any(count is None for count in protocol.dataset.domains.values()):
         blockers.append("final domain allocation is not set")
     if protocol.execution.randomization_seed is None:
@@ -246,13 +280,43 @@ def _validate_accounting(protocol: ProtocolFreezeContract, errors: list[str]) ->
     expected_direct = images * repeats
     expected_incremental_context = accounting.context_ablation_images * 3 * repeats
     expected_total = expected_vision + expected_writer + expected_direct + expected_incremental_context
-    expected_human_items = (
-        accounting.primary_claim_images * finalists
-        + accounting.primary_claim_images * finalists
-        + accounting.primary_claim_images
+    rq1_items = accounting.primary_claim_images * finalists
+    metadata_items = (
+        accounting.primary_claim_images * 2
+        + accounting.production_metadata_images * (finalists - 1)
         + accounting.context_ablation_images * 3
     )
+    expected_human_items = rq1_items + metadata_items
+    expected_assignments = (
+        rq1_items
+        + ceil(rq1_items * accounting.rq1_overlap_rate)
+        + metadata_items
+        + ceil(metadata_items * accounting.metadata_overlap_rate)
+    )
+    expected_minutes_per_reviewer = (
+        expected_assignments
+        * accounting.review_seconds_per_item
+        / 60
+        / accounting.reviewers
+    )
     checks = {
+        "provisional_final_images": (
+            accounting.provisional_final_images,
+            protocol.dataset.final_items,
+        ),
+        "primary_claim_images": (
+            accounting.primary_claim_images,
+            protocol.dataset.primary_claim_images,
+        ),
+        "production_metadata_images": (
+            accounting.production_metadata_images,
+            protocol.dataset.production_metadata_images,
+        ),
+        "context_ablation_images": (
+            accounting.context_ablation_images,
+            protocol.dataset.context_ablation_images,
+        ),
+        "repeats": (accounting.repeats, protocol.execution.repeats),
         "vision_fact_calls": (accounting.vision_fact_calls, expected_vision),
         "decomposed_writer_calls": (accounting.decomposed_writer_calls, expected_writer),
         "direct_metadata_calls": (accounting.direct_metadata_calls, expected_direct),
@@ -265,6 +329,14 @@ def _validate_accounting(protocol: ProtocolFreezeContract, errors: list[str]) ->
             accounting.unique_human_review_items,
             expected_human_items,
         ),
+        "total_reviewer_assignments": (
+            accounting.total_reviewer_assignments,
+            expected_assignments,
+        ),
+        "projected_minutes_per_reviewer": (
+            accounting.projected_minutes_per_reviewer,
+            expected_minutes_per_reviewer,
+        ),
     }
     for field_name, (actual, expected) in checks.items():
         if actual != expected:
@@ -274,7 +346,57 @@ def _validate_accounting(protocol: ProtocolFreezeContract, errors: list[str]) ->
         errors.append("dataset provisional_items does not match run accounting")
     if protocol.dataset.primary_claim_images != accounting.primary_claim_images:
         errors.append("dataset primary_claim_images does not match run accounting")
+    if protocol.dataset.production_metadata_images != accounting.production_metadata_images:
+        errors.append("dataset production_metadata_images does not match run accounting")
     if protocol.dataset.context_ablation_images != accounting.context_ablation_images:
         errors.append("dataset context_ablation_images does not match run accounting")
     if protocol.execution.repeats != repeats:
         errors.append("execution repeats does not match run accounting")
+
+
+def _validate_manifest(
+    protocol: ProtocolFreezeContract,
+    root: Path,
+    errors: list[str],
+) -> None:
+    manifest_path = (root / protocol.dataset.manifest_path).resolve()
+    if not manifest_path.is_file():
+        return
+    try:
+        items = load_manifest(root, protocol.dataset.manifest_path)
+    except (OSError, ValueError) as exc:
+        errors.append(f"full-study dataset manifest is invalid: {exc}")
+        return
+
+    if protocol.dataset.final_items is not None and len(items) != protocol.dataset.final_items:
+        errors.append(
+            "full-study dataset item count is "
+            f"{len(items)}; expected {protocol.dataset.final_items}"
+        )
+    wrong_split = [item.id for item in items if item.split != protocol.dataset.split]
+    if wrong_split:
+        errors.append("full-study dataset contains non-full items: " + ", ".join(wrong_split))
+    actual_domains = dict(Counter(item.domain for item in items))
+    expected_domains = {
+        domain: count
+        for domain, count in protocol.dataset.domains.items()
+        if count is not None
+    }
+    if actual_domains != expected_domains:
+        errors.append(
+            f"full-study domain counts are {actual_domains}; expected {expected_domains}"
+        )
+    for item in items:
+        errors.extend(verify_dataset_item(root, item))
+
+
+def _validate_decision_record(
+    protocol: ProtocolFreezeContract,
+    root: Path,
+    errors: list[str],
+) -> None:
+    decision_path = (root / protocol.dataset.sample_size_decision_path).resolve()
+    if not decision_path.is_file():
+        return
+    if sha256_file(decision_path) != protocol.dataset.sample_size_decision_sha256:
+        errors.append("sample-size decision record SHA-256 mismatch")

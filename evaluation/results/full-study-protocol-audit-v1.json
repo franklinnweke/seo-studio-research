@@ -1,15 +1,12 @@
 {
   "blockers": [
     "protocol status is draft",
-    "final dataset size is not set",
-    "sample-size justification is not approved",
     "full-study dataset manifest is not materialized",
-    "final domain allocation is not set",
     "listener security verification is pending"
   ],
   "errors": [],
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_sha256": "9e778a7f23f69e9c56eff7254a6c265c620cc00f7cf4e595b1ebb3f22d322660",
+  "protocol_sha256": "334f415e6383c90095f50baa552b01e4c738e17d4a254cf35454d144ec2978ad",
   "status": "draft_blocked",
   "verified_prompt_hashes": 3
 }

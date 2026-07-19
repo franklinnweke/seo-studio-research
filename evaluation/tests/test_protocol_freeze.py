@@ -7,6 +7,7 @@ from seo_studio_eval.protocol_freeze import audit_protocol_freeze
 
 EVALUATION_ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.draft.json"
+SAMPLE_SIZE_DECISION = EVALUATION_ROOT / "configs" / "full-study-sample-size-decision-20260719.json"
 
 
 def write_protocol_fixture(tmp_path: Path, payload: dict) -> Path:
@@ -24,7 +25,11 @@ def test_current_protocol_draft_is_structurally_valid_but_blocked(tmp_path: Path
     assert summary.status == "draft_blocked"
     assert summary.errors == []
     assert summary.verified_prompt_hashes == 3
-    assert "final dataset size is not set" in summary.blockers
+    assert summary.blockers == [
+        "protocol status is draft",
+        "full-study dataset manifest is not materialized",
+        "listener security verification is pending",
+    ]
     assert "listener security verification is pending" in summary.blockers
     assert output_path.is_file()
 
@@ -38,6 +43,55 @@ def test_protocol_audit_rejects_inconsistent_run_accounting(tmp_path: Path) -> N
 
     assert summary.status == "invalid"
     assert "run accounting total_model_calls" in "\n".join(summary.errors)
+
+
+def test_protocol_audit_rejects_inconsistent_review_workload(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    payload["run_accounting"]["projected_minutes_per_reviewer"] += 1
+    invalid = write_protocol_fixture(tmp_path, payload)
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "projected_minutes_per_reviewer" in "\n".join(summary.errors)
+
+
+def test_protocol_contract_rejects_domain_total_mismatch(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    payload["dataset"]["domains"]["healthcare"] -= 1
+    invalid = write_protocol_fixture(tmp_path, payload)
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "domain counts must sum to final_items" in "\n".join(summary.errors)
+
+
+def test_protocol_audit_rejects_empty_materialized_manifest(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    invalid = write_protocol_fixture(tmp_path, payload)
+    manifest = invalid.parents[1] / payload["dataset"]["manifest_path"]
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("")
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "Dataset manifest is empty" in "\n".join(summary.errors)
+
+
+def test_protocol_audit_rejects_sample_size_decision_hash_drift(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    invalid = write_protocol_fixture(tmp_path, payload)
+    decision = invalid.parents[1] / payload["dataset"]["sample_size_decision_path"]
+    decision.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(SAMPLE_SIZE_DECISION, decision)
+    decision.write_text(decision.read_text() + "\n")
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "sample-size decision record SHA-256 mismatch" in summary.errors
 
 
 def test_protocol_audit_rejects_prompt_hash_drift(tmp_path: Path) -> None:

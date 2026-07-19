@@ -2,6 +2,7 @@ import json
 from math import ceil, sqrt
 from pathlib import Path
 from statistics import NormalDist
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -28,7 +29,8 @@ class RQ3Sensitivity(BaseModel):
 
 
 class SampleSizeSummary(BaseModel):
-    status: str
+    status: Literal["decision_required", "decision_recorded"]
+    selected_decision: str | None
     protocol_id: str
     protocol_sha256: str
     alpha_two_sided: float
@@ -109,8 +111,12 @@ def build_sample_size_sensitivity(
     rq3_standardized_effect = effects["RQ3"] / 1.0
     rq3_images = ceil(((z_alpha + z_power) / rq3_standardized_effect) ** 2 * (1 + reserve))
 
+    decision_recorded = protocol.dataset.sample_size_approved
     summary = SampleSizeSummary(
-        status="decision_required",
+        status="decision_recorded" if decision_recorded else "decision_required",
+        selected_decision=(
+            protocol.dataset.analysis_intent if decision_recorded else None
+        ),
         protocol_id=protocol.protocol_id,
         protocol_sha256=sha256_file(protocol_path),
         alpha_two_sided=alpha,
@@ -124,10 +130,10 @@ def build_sample_size_sensitivity(
             paired_images_with_reserve=rq3_images,
         ),
         conclusions=[
-            "The proposed 60-image RQ1 claim population is below every displayed five-point sensitivity scenario.",
-            "A 120-image RQ1 population reaches only the low-rate, ICC 0.10 scenario; moderate rates or stronger clustering require more images.",
-            "The most favorable displayed RQ2 scenario requires 127 paired images after reserve, slightly above 120.",
-            "The proposed 30-image RQ3 subset is below the 35-pair planning value under a one-point paired standard deviation.",
+            f"The selected {protocol.dataset.primary_claim_images}-image RQ1 population covers the displayed 100- and 120-image low-rate scenarios but not the 160-image high-clustering scenario or the displayed moderate-rate scenarios.",
+            f"The selected {protocol.dataset.primary_claim_images}-image controlled RQ2 population reaches the favorable 127-pair scenario but not the higher-discordance scenarios.",
+            f"The selected {protocol.dataset.context_ablation_images}-image RQ3 subset reaches the 35-pair planning value under the one-point paired-standard-deviation assumption.",
+            "The approved design is estimation-first: effect sizes and confidence intervals are primary, and null findings are not evidence of equivalence when meaningful effects remain compatible with the interval.",
             "These are design sensitivities, not post-hoc power calculations and not evidence of a model effect.",
         ],
         decision_options=[

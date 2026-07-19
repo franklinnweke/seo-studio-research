@@ -2,7 +2,7 @@
 
 Last verified: July 19, 2026
 
-Starting point: technical calibration accepted; protocol freeze pending
+Starting point: 128-image estimation-first design approved; manifest and listener-security evidence pending
 
 This is the short operational view of the canonical master plan. It does not replace `publication-research-architecture.md`.
 
@@ -25,35 +25,35 @@ Exit: the accepted evidence and documentation are consistent, tested, and intent
 - [x] Choose the approved SSH-tunnel path to the shared Ollama runtime for the evaluated deployed-stack system; public direct access is not required.
 - [ ] Add missing CI gates for backend tests, frontend lint/build, evaluation tests, and OpenAPI drift.
 
-Exit: administrative Gate 3 and the deferred Gate 1 security/data requirements are documented as passed or explicitly constrained.
+Exit: the deferred Gate 1 listener-security requirement is documented as passed or explicitly constrained; Gate 3 administration is already complete.
 
 ## 2. Produce the protocol-freeze accounting sheet
 
 Draft created: `docs/publication/protocol-freeze-v1.md` and `evaluation/configs/full-study-protocol-v1.draft.json`. The offline audit validates its structure, prompt hashes, and arithmetic while returning a blocking status until the approvals and final values below are complete.
 
-All governance approvals and exact model identities are now recorded. The pre-data sample-size sensitivity is `docs/publication/sample-size-sensitivity-v1.md`; it requires a design decision because the approved effects are not supported by the original 60-image RQ1 subset under the displayed planning scenarios.
+All governance approvals and exact model identities are recorded. The project lead selected the practical estimation-first option after reviewing `docs/publication/sample-size-sensitivity-v1.md`; the dated decision record is `evaluation/configs/full-study-sample-size-decision-20260719.json`.
 
 Before inspecting additional comparative quality outputs, freeze an exact accounting table containing:
 
 - [ ] dataset images by split, domain, purpose, and diagnostic stratum;
-- [ ] model and condition IDs, immutable digests, quantization, runtime, context window, prompt/output limits, seed, temperature, thinking mode, preprocessing, and keep-alive policy;
-- [ ] attempts per model × image × architecture × context condition × repeat;
-- [ ] which repeat enters human quality review and why;
-- [ ] the complete RQ1 claim-level population;
-- [ ] expected valid/failure denominators and system-failure treatment;
+- [x] model and condition IDs, immutable digests, runtime, context window, prompt/output limits, seed, temperature, thinking mode, preprocessing, and keep-alive policy;
+- [x] attempts per model × image × architecture × context condition × repeat;
+- [x] which repeat enters human quality review and why;
+- [x] the complete 128-image RQ1 claim-level population;
+- [x] expected valid/failure denominators and system-failure treatment;
 - [ ] projected DGX hours, disk space, and backup location;
-- [ ] number of outputs and estimated minutes per reviewer, overlap set, adjudication plan, maximum burden, and predeclared reduction rule;
-- [ ] minimum scientifically meaningful effects, statistical tests, multiplicity control, confidence intervals, missingness/failure policy, and tie-breaking rule;
-- [ ] the status of the existing 60-cell package: pilot only, incorporated prospectively into the primary population, or excluded from primary inference.
+- [x] 876 unique outputs, 1,071 assignments, three reviewers, 25%/20% overlap, 714 active minutes per reviewer, independent adjudication, and predeclared reduction priority;
+- [x] minimum scientifically meaningful effects, statistical tests, multiplicity control, confidence intervals, missingness/failure policy, and tie-breaking rule;
+- [x] the existing 60-cell package is pilot/calibration evidence excluded from primary inference.
 
-The draft resolves the earlier design tension by treating the existing 20-image package as pilot/calibration evidence, reporting five original conditions plus amendments for compatibility, and advancing three conditions to primary quality evaluation. This decision still requires approval before freeze.
+The approved draft treats the existing 20-image package as pilot/calibration evidence, reports five original conditions plus amendments for compatibility, and advances three conditions to primary quality evaluation. The protocol remains a draft until the manifest and security blockers are cleared.
 
 Exit: supervisor/team approval of a dated, versioned protocol and run-accounting sheet. Tag the protocol/configuration commit.
 
 ## 3. Complete and freeze the publication dataset
 
-- [ ] Determine final sample size from the independently defined meaningful effects, pilot variance/failure rate, reviewer feasibility, runtime, and resources—not from a favourable pilot effect.
-- [ ] Expand the licensed dataset toward the approved target, provisionally approximately 120 items across four balanced domains.
+- [x] Select the practical estimation-first sample size before primary output inspection: 128 images, 32 per domain.
+- [ ] Materialize 128 licensed images across the four balanced domains; include all 128 in RQ1 and the controlled Qwen3.5 comparison, a deterministic 64-image subset in other production metadata comparisons, and a nested 36-image context subset.
 - [ ] Preserve source, author, licence, retrieval date, image hash, dimensions, split, domain, purpose, context, reference facts, forbidden claims, and preprocessing evidence.
 - [ ] Keep pilot/development and final evaluation images separate.
 - [ ] Validate all images visually and mechanically; resolve licence or duplicate-hash issues before freeze.
@@ -87,9 +87,10 @@ Exit: expected cells are present or explicitly failed, source hashes match, devi
 
 - [ ] Normalize records and generate identity-safe reviewer packages with automated leakage checks.
 - [ ] Keep the condition map private and closed to reviewers and quality adjudicators.
-- [ ] Human-rate only the frozen repeat and assignment structure.
+- [ ] Independently calibrate the third reviewer under rubric v1.1 without opening the private condition map.
+- [ ] Human-rate only the frozen repeat and 1,071-assignment balanced structure.
 - [ ] Annotate every claim in the complete primary RQ1 population.
-- [ ] Preserve individual R1/R2 records, timing, adjudication, and agreement analysis.
+- [ ] Preserve individual R1/R2/R3 records, timing, independent adjudication, and agreement analysis.
 - [ ] Stop and recalibrate only if a predeclared reliability rule fails; do not change anchors to favour a condition.
 
 Exit: Gate 6 annotation population is complete, blinded, schema-valid, and agreement-reportable.
