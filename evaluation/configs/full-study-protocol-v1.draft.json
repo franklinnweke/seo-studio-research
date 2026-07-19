@@ -111,8 +111,18 @@
     "approved_access_path": "ssh_tunnel",
     "listener_binding": "all_interfaces",
     "listener_security_verified": false,
-    "dedicated_workspace_verified": false,
-    "telemetry_path_verified": false,
+    "dedicated_workspace_verified": true,
+    "telemetry_path_verified": true,
+    "telemetry_scope": [
+      "Ollama native load, prompt-evaluation, generation, token, and wall durations",
+      "process and system memory",
+      "filesystem capacity"
+    ],
+    "telemetry_limitations": [
+      "nvidia-smi is unavailable on the current driver path",
+      "no complete GPU VRAM claim",
+      "no measured energy claim without a validated sensor or wall meter"
+    ],
     "evidence_path": "configs/full-study-runtime-reverification-20260719.json"
   },
   "run_accounting": {

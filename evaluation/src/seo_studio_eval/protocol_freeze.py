@@ -82,6 +82,8 @@ class InfrastructureState(BaseModel):
     listener_security_verified: bool
     dedicated_workspace_verified: bool
     telemetry_path_verified: bool
+    telemetry_scope: list[str] = Field(min_length=1)
+    telemetry_limitations: list[str] = Field(min_length=1)
     evidence_path: Path
 
 

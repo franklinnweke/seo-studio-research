@@ -166,13 +166,12 @@ The proposed reviewer burden was approved on July 19, 2026. However, the approve
 
 ## 9. Freeze blockers
 
-The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
+The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. Read-only inspection also verified the dedicated project workspace, available storage, and the supported telemetry scope. `nvidia-smi` is unavailable, so complete GPU-VRAM and measured-energy claims are prohibited. The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
 
 - choose the final sample-size option and approve its revised workload;
 - set final item and domain counts;
 - materialize and validate the full-study dataset manifest;
-- verify the listener/firewall security posture without changing shared infrastructure;
-- verify the dedicated project workspace and supported telemetry path;
+- resolve the failed private listener-reachability check through an institution-approved mitigation, then verify it without publishing connection details;
 - change protocol status only after the resulting audit has no blockers.
 
 Run the offline audit with:

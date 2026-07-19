@@ -12,6 +12,20 @@
   "no_models_loaded": true,
   "listener_binding": "all_interfaces",
   "listener_security_verified": false,
+  "dedicated_project_workspace_verified": true,
+  "available_project_filesystem_gib_at_check": 268,
+  "telemetry_path_verified": true,
+  "telemetry_scope": [
+    "Ollama native durations and token counts",
+    "process and system memory",
+    "filesystem capacity"
+  ],
+  "telemetry_limitations": [
+    "nvidia-smi could not communicate with the NVIDIA driver",
+    "no complete GPU VRAM claim is permitted",
+    "no energy claim is permitted without a validated sensor or wall meter"
+  ],
+  "private_security_finding_reference": "dgx-listener-reachability-check-20260719",
   "models": [
     {
       "model_id": "qwen25vl-3b-baseline",

@@ -71,7 +71,7 @@ Outstanding technical freeze work:
 - choose the sample-size option after reviewing the pre-data sensitivity results;
 - freeze final item/domain counts and the RQ1/context populations;
 - materialize and validate the new full-study manifest;
-- verify the dedicated DGX project workspace, supported telemetry, and listener/firewall posture;
+- resolve the failed private listener-reachability check through an approved mitigation; the dedicated workspace and limited non-GPU telemetry path are verified;
 - regenerate the audit and freeze only when it reports no blockers.
 
 The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. These decisions are approved, but the contract remains a draft until its technical blockers are cleared.

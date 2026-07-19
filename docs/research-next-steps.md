@@ -21,7 +21,7 @@ Exit: the accepted evidence and documentation are consistent, tested, and intent
 - [x] Complete the private supervisor record with name, role, acknowledgement date, communication method, and private evidence reference. Do not commit the communication itself.
 - [x] Agree provisional authorship order and CRediT responsibilities with both teammates and the supervisor; keep the private details outside Git until manuscript authorship is populated.
 - [x] Confirm the institutional publication route and course-based ethics determination with no external participant recruitment.
-- [ ] Through `$davneet-dgx-access` and the institution/supervisor, confirm the marketed DGX identity, allowed-data policy, dedicated project workspace, supported telemetry, listener/firewall posture, and approved network topology.
+- [ ] Through `$davneet-dgx-access` and the institution/supervisor, close the remaining listener/firewall security finding. DGX identity, allowed-data policy, dedicated workspace, limited supported telemetry, and SSH-tunnel topology are confirmed.
 - [x] Choose the approved SSH-tunnel path to the shared Ollama runtime for the evaluated deployed-stack system; public direct access is not required.
 - [ ] Add missing CI gates for backend tests, frontend lint/build, evaluation tests, and OpenAPI drift.
 

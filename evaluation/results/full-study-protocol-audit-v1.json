@@ -5,13 +5,11 @@
     "sample-size justification is not approved",
     "full-study dataset manifest is not materialized",
     "final domain allocation is not set",
-    "listener security verification is pending",
-    "dedicated project workspace verification is pending",
-    "supported telemetry path verification is pending"
+    "listener security verification is pending"
   ],
   "errors": [],
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_sha256": "1ac0028d6b55297a282ddcdaf56dafb417d2913adc92ee6d4cf0ddd966278745",
+  "protocol_sha256": "9e778a7f23f69e9c56eff7254a6c265c620cc00f7cf4e595b1ebb3f22d322660",
   "status": "draft_blocked",
   "verified_prompt_hashes": 3
 }
