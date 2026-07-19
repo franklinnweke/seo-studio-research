@@ -15,6 +15,7 @@ This page is the entry point for project documentation. Chat history is useful b
 | [Compact research context](research-context.md) | Fast handoff containing the current scope, evidence, decisions, gate, and safety boundaries | Current-state summary; update after every gate |
 | [Research next steps](research-next-steps.md) | Ordered execution checklist from the present gate through publication | Operational view derived from the master plan |
 | [Research master architecture](publication-research-architecture.md) | Complete architecture, protocol, governance, paper plan, and definitions of done | Canonical project and research source of truth |
+| [Gate 4 protocol-freeze draft](publication/protocol-freeze-v1.md) | Exact proposed full-study conditions, controls, accounting, statistics, and remaining blockers | Operational draft; not executable until the audit reports `freeze_ready` |
 | [Working manuscript](publication/seo-studio-manuscript.html) | Evidence-honest article draft with pending primary-results sections | Draft only; generated evidence outranks prose |
 
 Recommended reading order for a new person or agent:
@@ -30,6 +31,8 @@ Recommended reading order for a new person or agent:
 | Artifact | What it establishes |
 |---|---|
 | [Evaluation harness guide](../evaluation/README.md) | Commands, evidence boundaries, immutable-run rules, and completed compatibility stages |
+| [Machine-readable Gate 4 draft](../evaluation/configs/full-study-protocol-v1.draft.json) | Auditable models, prompt hashes, dataset plan, execution controls, outcomes, accounting, and approvals |
+| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Generated blocker report; `draft_blocked` is required until every freeze condition is satisfied |
 | [Rubric v1.1](../evaluation/annotations/templates/rubric-v1.1.md) | Frozen human-review dimensions, claim labels, purpose rules, and failure handling |
 | [Final calibration report](../evaluation/results/recal_analysis_results.md) | Reviewer feasibility on 15 blinded items and the final 76-claim inventory |
 | [Calibration evidence JSON](../evaluation/results/recal-analysis-20260719.json) | Machine-readable analysis version 2, source hashes, agreement, timing, and status |

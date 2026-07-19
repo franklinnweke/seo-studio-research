@@ -1,7 +1,7 @@
 # SEO Studio Research Master Architecture and Execution Plan
 
 Status: Canonical architecture, research protocol, paper guide, and agent execution specification
-Version: 2.2
+Version: 2.3
 Prepared: July 13, 2026
 Updated: July 19, 2026
 Project: PROG8751 SEO Studio Capstone
@@ -48,7 +48,7 @@ An implementation agent must:
 7. Never place passwords, SSH keys, public/private server inventories, reviewer identity maps, client data, or raw restricted research records in Git.
 8. Invoke `$davneet-dgx-access` for every live DGX access, status, inventory, connectivity diagnosis, server command, or experiment handoff. Follow the skill's required current-status check before making a live-state claim; do not reproduce its connection profile in this repository.
 
-### 1.2 Repository snapshot at version 2.2
+### 1.2 Repository snapshot at version 2.3
 
 This snapshot is evidence for handoff, not a permanent claim. Re-check it at the start of every task.
 
@@ -62,6 +62,7 @@ This snapshot is evidence for handoff, not a permanent claim. Re-check it at the
 - The application has upload, optimization, page/brand context, human-confirmed purpose, purpose-aware review/export, structured visual facts, direct/dual routing, sanitized provenance, and Ollama telemetry behind the research feature flag.
 - The research harness is separate from the product path and sends raw image bytes only at execution time while persisting image hashes in sanitized request evidence.
 - The full 20-item compatibility matrix, fixed-writer compatibility pass, separate two-model Qwen3.6 amendment, both source-linked Protocol 2.2 repair stages, and the 54-call fixed-writer metadata matrix are complete with sanitized evidence under `evaluation/results/`. On the original deployed Ollama 0.24.0 stack, Qwen3.5 9B and Gemma 3 12B meet the unchanged 95% fact-pipeline-validity gate; Qwen2.5-VL 3B remains the reference. A pre-freeze catalog correction prospectively tested same-size Gemma 4 on an official project-owned Ollama 0.32.1 runtime with an 8192-token common context. In that isolated block, the reference reached 20/20, Qwen3.5 reached 19/20 after its single repair, and Gemma 4 reached only 18/20 after three repairs, so Gemma 4 failed the unchanged gate. The protocol reassessment retains the original same-runtime reference/Qwen3.5/Gemma 3 set for a deployed SEO Studio stack comparison and reports Gemma 4 as a current-generation exclusion. The supervisor acknowledgement was relayed on July 18, 2026 and is recorded in sanitized form at `evaluation/configs/supervisor-acknowledgement-20260718.json`; the supervisor's identity and communication artifact remain private. The leakage-checked reviewer package contains 60 balanced cells: 46 schema-valid metadata outputs and 14 explicit failures. The initial calibration was preserved, rubric v1.1 was applied, and two reviewers then independently rated a common 76-claim inventory across the same 15 blinded items. Recalibration achieved 98.7% exact claim-label agreement (Cohen's kappa 0.923), 91.7% exact valid-output disposition agreement (linear-weighted kappa 0.860), and a 120-second median item time for each reviewer. Calibration is ready and primary quality annotation is authorized. No quality winner has been selected. Protocol freeze, the approximately 120-item dataset, full experiments, statistical analysis, and final manuscript results remain outstanding; the working article now lives at `docs/publication/seo-studio-manuscript.html`.
+- Gate 4 now has a structurally validated draft at `docs/publication/protocol-freeze-v1.md` and `evaluation/configs/full-study-protocol-v1.draft.json`. It excludes pilot/calibration items from primary inference, resolves the five-screened-versus-three-advanced design, fixes one primary outcome per RQ, and accounts provisionally for 2,790 model calls and 756 reviewer assignments. The audit intentionally remains blocked until sample size, approvals, live model/runtime reverification, and the final seed are complete. This draft does not authorize full-study execution.
 
 ### 1.3 Authority hierarchy
 
@@ -115,7 +116,7 @@ Web image metadata should not be generated from pixels alone. Useful alt text de
 The paper should claim only contributions actually completed and released:
 
 1. A licensed, context-rich benchmark for web image metadata.
-2. A controlled comparison of five self-hosted vision-language models.
+2. A five-condition compatibility screen followed by a controlled primary quality comparison of the three prospectively advanced deployed-stack conditions.
 3. An ablation of image-only, brand-aware, page-aware, and combined context.
 4. An ablation of direct multimodal generation versus a two-stage visual-facts-plus-writer pipeline.
 5. A reproducible Ollama/DGX Spark evaluation harness with raw evidence and deployment telemetry.
@@ -124,7 +125,7 @@ The paper should claim only contributions actually completed and released:
 
 ### 3.4 Research questions
 
-RQ1. How accurately do five self-hosted multimodal models extract grounded and salient visual facts for web image metadata?
+RQ1. After the five-condition compatibility screen, how accurately do the three prospectively advanced self-hosted multimodal conditions extract grounded visual facts for web image metadata?
 
 RQ2. Does decomposing generation into visual-fact extraction and contextual writing reduce unsupported claims and improve metadata acceptability compared with direct generation using the same model?
 
@@ -1073,7 +1074,7 @@ The pilot selects configuration, not a quality winner.
 
 ### 14.2 Stage B: vision screening
 
-Every candidate receives the same preprocessed image and versioned visual-facts prompt. Human raters evaluate grounding and completeness, independent of final copy style. The primary claim-level population is a predeclared 60-image subset stratified as 15 images per domain. Every claim from every candidate output in this population is annotated; hallucination conclusions must explicitly state that population.
+Each of the three prospectively advanced conditions receives the same preprocessed image and versioned visual-facts prompt. Human raters evaluate grounding and completeness, independent of final copy style. The primary claim-level population is a predeclared 60-image subset stratified as 15 images per domain. Every claim from every advanced-condition output in this population is annotated; hallucination conclusions must explicitly state that population. The five original conditions and amendments remain compatibility evidence and must not be described as receiving the same full human quality evaluation.
 
 Primary outcomes:
 
@@ -1151,12 +1152,12 @@ Economic reporting must separate marginal operation on already-owned institution
 
 | Research question | Primary outcome |
 |---|---|
-| RQ1 | Supported-claim precision and hallucinated-claim rate in the complete predeclared 60-image RQ1 population |
+| RQ1 | Hallucinated-claim rate in the complete predeclared 60-image RQ1 population |
 | RQ2 | Accept unchanged/minor edit versus major edit/reject disposition |
 | RQ3 | Contextual-usefulness rating |
 | RQ4 | Quality-reliability-latency-operational-cost Pareto position |
 
-Salient-fact recall, redundancy, brand alignment, purpose-aware appropriateness, concision, schema validity, failure rate, throughput, token counts, latency, memory, and individual cost components are secondary outcomes unless the frozen protocol explicitly promotes one before full-study inspection. This hierarchy controls multiplicity and prevents choosing a favorable outcome after results are visible.
+Supported-claim precision is the key RQ1 secondary outcome and remains part of the selection rule. Salient-fact recall, redundancy, brand alignment, purpose-aware appropriateness, concision, schema validity, failure rate, throughput, token counts, latency, memory, and individual cost components are secondary outcomes unless the frozen protocol explicitly promotes one before full-study inspection. This hierarchy controls multiplicity and prevents choosing a favorable outcome after results are visible.
 
 ### 15.3 Human-rated dimensions
 

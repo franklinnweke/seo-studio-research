@@ -1,0 +1,31 @@
+{
+  "blockers": [
+    "protocol status is draft",
+    "final dataset size is not set",
+    "sample-size justification is not approved",
+    "full-study dataset manifest is not materialized",
+    "final domain allocation is not set",
+    "full-study randomization seed is not set",
+    "qwen25vl-3b-baseline: model identity is not frozen",
+    "qwen25vl-3b-baseline: live digest/runtime reverification is pending",
+    "qwen35-9b: model identity is not frozen",
+    "qwen35-9b: live digest/runtime reverification is pending",
+    "gemma3-12b: model identity is not frozen",
+    "gemma3-12b: live digest/runtime reverification is pending",
+    "RQ1: minimum meaningful effect is not approved",
+    "RQ2: minimum meaningful effect is not approved",
+    "RQ3: minimum meaningful effect is not approved",
+    "private supervisor record complete is pending",
+    "authorship credit agreed is pending",
+    "publication route confirmed is pending",
+    "ethics determination recorded is pending",
+    "data and network policy confirmed is pending",
+    "reviewer burden approved is pending",
+    "full study execution approved is pending"
+  ],
+  "errors": [],
+  "protocol_id": "seo-studio-full-study-v1",
+  "protocol_sha256": "bbda72b1321c30409ae2ecf40e922e5bcac9713417a809d22e2c71106d613ded",
+  "status": "draft_blocked",
+  "verified_prompt_hashes": 3
+}

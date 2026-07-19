@@ -13,6 +13,7 @@ from .normalization import normalize_metadata_pipeline, normalize_run_directorie
 from .pilot import run_compatibility_pilot
 from .pilot_reporting import build_pilot_report
 from .preflight import run_preflight
+from .protocol_freeze import audit_protocol_freeze
 from .reporting import build_compatibility_report
 from .smoke import run_compatibility_smoke
 from .truncation_repair import (
@@ -31,6 +32,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     preflight = commands.add_parser("preflight", help="Validate offline study configuration and dataset evidence")
     preflight.add_argument("--config", type=Path, required=True)
+
+    protocol_audit = commands.add_parser(
+        "protocol-audit",
+        help="Validate the Gate 4 protocol contract and report every unresolved freeze blocker",
+    )
+    protocol_audit.add_argument("--protocol", type=Path, required=True)
+    protocol_audit.add_argument("--output", type=Path, required=True)
 
     validate = commands.add_parser("validate", help="Validate immutable attempt records in a run directory")
     validate.add_argument("--run-dir", type=Path, required=True)
@@ -201,6 +209,10 @@ def main(argv: list[str] | None = None) -> int:
             summary, output_path = run_preflight(args.config)
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))
             return 0 if summary.status == "ready" else 1
+        if args.command == "protocol-audit":
+            summary, output_path = audit_protocol_freeze(args.protocol, args.output)
+            print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))
+            return 0 if summary.status == "freeze_ready" else 1
         if args.command == "validate":
             summary, output_path = validate_run_directory(args.run_dir)
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))

@@ -2,7 +2,7 @@
 
 Last verified: July 19, 2026
 
-Master-plan version: 2.2
+Master-plan version: 2.3
 
 Public repository: `https://github.com/franklinnweke/seo-studio-research`
 
@@ -40,6 +40,7 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Final rubric-v1.1 recalibration: identical 76-claim inventories for R1, R2, and adjudication; 98.7% exact claim-label agreement; nominal Cohen's kappa 0.923; 91.7% exact valid-output disposition agreement; linear-weighted kappa 0.860; median 120 seconds per item for each reviewer.
 - Analysis version 2 distinguishes nominal claim-label kappa from linear-weighted ordinal kappa and returns safe invalid/non-isomorphic reports.
 - Working article scaffold at `docs/publication/seo-studio-manuscript.html`, with primary results explicitly pending.
+- Structurally validated Gate 4 draft at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and blocker-reporting audit command. It is not frozen and does not authorize execution.
 
 The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-claim recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
 
@@ -47,12 +48,13 @@ The first non-common-inventory calibration remains preserved as diagnostic histo
 
 Verified locally on July 19, 2026:
 
-- evaluation suite: 38 tests passed;
+- evaluation suite: 42 tests passed;
 - backend suite: 96 tests passed;
 - frontend ESLint and production build: passed;
 - checked-in OpenAPI contract: matches the generated FastAPI schema;
 - deployed-stack and isolated-amendment preflights: ready on all 20 licensed pilot items;
 - final calibration JSON and Markdown: regenerate byte-for-byte from the accepted inputs;
+- Gate 4 draft audit: structurally valid with three verified prompt hashes, zero errors, and 22 explicit blockers;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
 
@@ -69,7 +71,9 @@ Outstanding decisions and approvals:
 - confirm the DGX data policy, dedicated project workspace, network/firewall posture, and final same-host versus separate-host topology;
 - define the minimum scientifically meaningful effects independently of pilot effect estimates;
 - freeze the final dataset size, RQ1 claim-level population, model/condition matrix, repeats, output limits, prompts, thresholds, statistical methods, and reviewer burden;
-- resolve whether the existing 60-cell blinded package remains pilot evidence, becomes part of a frozen primary population, or is excluded from primary inference.
+- approve the draft decision that the existing 60-cell blinded package remains pilot/calibration evidence and is excluded from primary inference.
+
+The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the proposed primary quality comparison. RQ1 has one proposed primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. These decisions remain proposed until the protocol audit is cleared and the team/supervisor approve the frozen contract.
 
 ## Safety, privacy, and ownership
 

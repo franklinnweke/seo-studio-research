@@ -29,6 +29,8 @@ Exit: administrative Gate 3 and the deferred Gate 1 security/data requirements a
 
 ## 2. Produce the protocol-freeze accounting sheet
 
+Draft created: `docs/publication/protocol-freeze-v1.md` and `evaluation/configs/full-study-protocol-v1.draft.json`. The offline audit validates its structure, prompt hashes, and arithmetic while returning a blocking status until the approvals and final values below are complete.
+
 Before inspecting additional comparative quality outputs, freeze an exact accounting table containing:
 
 - [ ] dataset images by split, domain, purpose, and diagnostic stratum;
@@ -42,7 +44,7 @@ Before inspecting additional comparative quality outputs, freeze an exact accoun
 - [ ] minimum scientifically meaningful effects, statistical tests, multiplicity control, confidence intervals, missingness/failure policy, and tie-breaking rule;
 - [ ] the status of the existing 60-cell package: pilot only, incorporated prospectively into the primary population, or excluded from primary inference.
 
-The current master plan contains a design tension that must be resolved here: the existing blinded package is 20 images × 3 deployed-stack conditions, while the provisional RQ1 design describes five candidates on a 60-image claim-level population. Do not begin the full study until the frozen protocol states exactly which design is primary and how earlier pilot outputs are used.
+The draft resolves the earlier design tension by treating the existing 20-image package as pilot/calibration evidence, reporting five original conditions plus amendments for compatibility, and advancing three conditions to primary quality evaluation. This decision still requires approval before freeze.
 
 Exit: supervisor/team approval of a dated, versioned protocol and run-accounting sheet. Tag the protocol/configuration commit.
 
