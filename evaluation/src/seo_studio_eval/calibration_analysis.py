@@ -28,7 +28,8 @@ class AgreementMetric(BaseModel):
     n: int = Field(ge=0)
     exact_agreement: float | None = Field(default=None, ge=0, le=1)
     mean_absolute_difference: float | None = Field(default=None, ge=0)
-    linear_weighted_kappa: float | None = None
+    kappa: float | None = None
+    kappa_method: str | None = None
     interpretation_note: str = ""
 
 
@@ -48,7 +49,7 @@ class TimingMetric(BaseModel):
 
 
 class CalibrationAnalysis(BaseModel):
-    analysis_version: Literal[1] = 1
+    analysis_version: Literal[2] = 2
     status: Literal["ready", "recalibration_required", "invalid"]
     calibration_items: int
     valid_output_items: int
@@ -57,6 +58,7 @@ class CalibrationAnalysis(BaseModel):
     adjudicated_records: int
     claim_counts: dict[str, int]
     claim_label_agreement_estimable: bool
+    claim_label_agreement: AgreementMetric | None = None
     rating_agreement: dict[str, AgreementMetric]
     disposition_agreement_all_items: AgreementMetric
     disposition_agreement_valid_outputs: AgreementMetric
@@ -95,6 +97,10 @@ def build_calibration_analysis(
     rating_agreement: dict[str, AgreementMetric] = {}
     disposition_all = AgreementMetric(n=0)
     disposition_valid = AgreementMetric(n=0)
+    claim_label_agreement = None
+    isomorphic = False
+    inventory_mismatches = []
+    adjudicated_by_id = {row.review_item_id: row for row in adjudicated}
     if not errors and len(aliases) == 2:
         first, second = (reviewer_maps[alias] for alias in aliases)
         valid_ids = [
@@ -103,24 +109,94 @@ def build_calibration_analysis(
             if item.valid
         ]
         for field in RATING_FIELDS:
-            pairs = [
-                (getattr(first[item_id], field), getattr(second[item_id], field))
-                for item_id in valid_ids
-                if getattr(first[item_id], field) is not None
-                and getattr(second[item_id], field) is not None
-            ]
+            # Guarded lookups for first and second items
+            pairs = []
+            for item_id in valid_ids:
+                r1_item = first.get(item_id)
+                r2_item = second.get(item_id)
+                if r1_item and r2_item:
+                    v1 = getattr(r1_item, field)
+                    v2 = getattr(r2_item, field)
+                    if v1 is not None and v2 is not None:
+                        pairs.append((v1, v2))
             rating_agreement[field] = _agreement(pairs, [1, 2, 3, 4, 5])
         disposition_order = ["reject", "major_edit", "minor_edit", "accept_unchanged"]
+
+        disp_pairs_all = []
+        for item_id in expected:
+            r1_item = first.get(item_id)
+            r2_item = second.get(item_id)
+            if r1_item and r2_item:
+                disp_pairs_all.append((r1_item.disposition, r2_item.disposition))
         disposition_all = _agreement(
-            [(first[item_id].disposition, second[item_id].disposition) for item_id in expected],
+            disp_pairs_all,
             disposition_order,
             include_difference=False,
         )
+
+        disp_pairs_valid = []
+        for item_id in valid_ids:
+            r1_item = first.get(item_id)
+            r2_item = second.get(item_id)
+            if r1_item and r2_item:
+                disp_pairs_valid.append((r1_item.disposition, r2_item.disposition))
         disposition_valid = _agreement(
-            [(first[item_id].disposition, second[item_id].disposition) for item_id in valid_ids],
+            disp_pairs_valid,
             disposition_order,
             include_difference=False,
         )
+
+        # Check claim inventory isomorphism across reviewers and adjudication
+        all_isomorphic = True
+        for item_id in expected:
+            r1_item = first.get(item_id)
+            r2_item = second.get(item_id)
+            r3_item = adjudicated_by_id.get(item_id)
+            if not r1_item or not r2_item or not r3_item:
+                all_isomorphic = False
+                inventory_mismatches.append(f"item {item_id}: missing records in reviewer or adjudicated files")
+                continue
+
+            c1 = {c.claim_id: c.claim_text for c in r1_item.claims}
+            c2 = {c.claim_id: c.claim_text for c in r2_item.claims}
+            c3 = {c.claim_id: c.claim_text for c in r3_item.claims}
+            if set(c1) != set(c2):
+                all_isomorphic = False
+                inventory_mismatches.append(f"item {item_id}: R1 and R2 claim IDs mismatch")
+            else:
+                for cid in c1:
+                    if c1[cid] != c2.get(cid):
+                        all_isomorphic = False
+                        inventory_mismatches.append(f"item {item_id} claim {cid}: R1 and R2 claim text mismatch")
+            if set(c1) != set(c3):
+                all_isomorphic = False
+                inventory_mismatches.append(f"item {item_id}: R1 and Adjudicated claim IDs mismatch")
+            else:
+                for cid in c1:
+                    if c1[cid] != c3.get(cid):
+                        all_isomorphic = False
+                        inventory_mismatches.append(f"item {item_id} claim {cid}: R1 and Adjudicated claim text mismatch")
+
+        if all_isomorphic:
+            isomorphic = True
+            claim_pairs = []
+            for item_id in expected:
+                r1_item = first.get(item_id)
+                r2_item = second.get(item_id)
+                if r1_item and r2_item:
+                    c1_claims = r1_item.claims
+                    c2_claims = r2_item.claims
+                    c1_by_id = {c.claim_id: c for c in c1_claims}
+                    c2_by_id = {c.claim_id: c for c in c2_claims}
+                    for cid in c1_by_id:
+                        claim_pairs.append((c1_by_id[cid].label, c2_by_id[cid].label))
+            if claim_pairs:
+                claim_label_agreement = _agreement(
+                    claim_pairs,
+                    ["supported", "unsupported", "contradicted", "not_verifiable_from_permitted_evidence"],
+                    include_difference=False,
+                    weighted=False,
+                )
 
     timing: dict[str, TimingMetric] = {}
     for alias, timing_path in timing_paths.items():
@@ -138,7 +214,7 @@ def build_calibration_analysis(
         "adjudicated": sum(len(row.claims) for row in adjudicated),
     }
     blocking = []
-    if len(set(claim_counts[alias] for alias in reviewers)) > 1:
+    if not isomorphic or len(aliases) != 2:
         blocking.append(
             "Independent reviewers produced non-isomorphic claim inventories; claim-label agreement is not estimable until both label the same frozen claim units."
         )
@@ -147,14 +223,14 @@ def build_calibration_analysis(
         for field, metric in rating_agreement.items()
         if metric.exact_agreement is not None
         and metric.exact_agreement < 0.80
-        and metric.linear_weighted_kappa is not None
-        and metric.linear_weighted_kappa < 0.60
+        and metric.kappa is not None
+        and metric.kappa < 0.60
     ]
     if (
         disposition_valid.exact_agreement is not None
         and disposition_valid.exact_agreement < 0.80
-        and disposition_valid.linear_weighted_kappa is not None
-        and disposition_valid.linear_weighted_kappa < 0.60
+        and disposition_valid.kappa is not None
+        and disposition_valid.kappa < 0.60
     ):
         low_metrics.append("disposition_valid_outputs")
     if low_metrics:
@@ -177,6 +253,7 @@ def build_calibration_analysis(
             "The 0.60 feasibility marker was not numerically frozen before these ratings and is descriptive, not a post-hoc pass/fail rule.",
             "Kappa can be unstable or undefined under near-perfect prevalence; report exact agreement and score distributions alongside it.",
             "Adjudication duration was not supplied, so workload projections exclude reconciliation overhead.",
+            "Reviewer timings were recorded before reducing the claim inventory, so the 120-minute projection is conservative and does not measure the final workload exactly.",
         ]
     )
     projected = {
@@ -200,7 +277,8 @@ def build_calibration_analysis(
         reviewer_records={alias: len(rows) for alias, rows in reviewers.items()},
         adjudicated_records=len(adjudicated),
         claim_counts=claim_counts,
-        claim_label_agreement_estimable=not any("claim-label" in finding for finding in blocking),
+        claim_label_agreement_estimable=claim_label_agreement is not None,
+        claim_label_agreement=claim_label_agreement,
         rating_agreement=rating_agreement,
         disposition_agreement_all_items=disposition_all,
         disposition_agreement_valid_outputs=disposition_valid,
@@ -252,6 +330,7 @@ def _agreement(
     categories: list[Any],
     *,
     include_difference: bool = True,
+    weighted: bool = True,
 ) -> AgreementMetric:
     if not pairs:
         return AgreementMetric(n=0)
@@ -263,17 +342,38 @@ def _agreement(
         if include_difference
         else None
     )
-    kappa = _linear_weighted_kappa(first, second, categories)
+    kappa = (
+        _linear_weighted_kappa(first, second, categories)
+        if weighted
+        else _nominal_cohens_kappa(first, second, categories)
+    )
     note = ""
     if kappa is None:
-        note = "Kappa undefined because expected weighted disagreement is zero; use exact agreement."
+        note = "Kappa undefined because expected agreement by chance is 1.0 or expected weighted disagreement is zero; use exact agreement."
     return AgreementMetric(
         n=len(pairs),
         exact_agreement=exact,
         mean_absolute_difference=difference,
-        linear_weighted_kappa=kappa,
+        kappa=kappa,
+        kappa_method="linear_weighted" if weighted else "cohens_kappa",
         interpretation_note=note,
     )
+
+
+def _nominal_cohens_kappa(first: list[Any], second: list[Any], categories: list[Any]) -> float | None:
+    n = len(first)
+    if n == 0:
+        return None
+    observed = sum(left == right for left, right in zip(first, second)) / n
+    first_counts = Counter(first)
+    second_counts = Counter(second)
+    expected = sum(
+        (first_counts[cat] / n) * (second_counts[cat] / n)
+        for cat in categories
+    )
+    if expected == 1.0:
+        return None
+    return (observed - expected) / (1.0 - expected)
 
 
 def _linear_weighted_kappa(first: list[Any], second: list[Any], categories: list[Any]) -> float | None:
@@ -359,36 +459,67 @@ def _render_report(analysis: CalibrationAnalysis) -> str:
         "",
         f"Status: **{analysis.status}**.",
         "",
-        "The two independent reviewer files and adjudicated file each contain the complete 15-item blinded calibration population. This report does not open or use the private condition map.",
-        "",
-        "## Population",
-        "",
-        f"- Calibration items: {analysis.calibration_items}",
-        f"- Valid metadata outputs: {analysis.valid_output_items}",
-        f"- Explicit system failures: {analysis.system_failure_items}",
-        f"- Claims segmented by R1/R2/adjudicator: {analysis.claim_counts.get('R1', 0)}/{analysis.claim_counts.get('R2', 0)}/{analysis.claim_counts.get('adjudicated', 0)}",
-        "",
-        "## Rating agreement on valid outputs",
-        "",
-        "| Dimension | n | Exact | Linear weighted kappa | Mean absolute difference |",
-        "|---|---:|---:|---:|---:|",
     ]
+    if analysis.status == "invalid":
+        lines.extend(
+            [
+                "The reviewer files or adjudicated file do not contain a complete, valid 15-item blinded calibration population. Correct the errors listed under Blocking Findings before proceeding.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "The two independent reviewer files and adjudicated file each contain the complete 15-item blinded calibration population. This report does not open or use the private condition map.",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Population",
+            "",
+            f"- Calibration items: {analysis.calibration_items}",
+            f"- Valid metadata outputs: {analysis.valid_output_items}",
+            f"- Explicit system failures: {analysis.system_failure_items}",
+            f"- Claims segmented by R1/R2/adjudicator: {analysis.claim_counts.get('R1', 0)}/{analysis.claim_counts.get('R2', 0)}/{analysis.claim_counts.get('adjudicated', 0)}",
+            "",
+            "## Rating agreement on valid outputs",
+            "",
+            "| Dimension | n | Exact | Linear weighted kappa | Mean absolute difference |",
+            "|---|---:|---:|---:|---:|",
+        ]
+    )
     for field, metric in analysis.rating_agreement.items():
         lines.append(
-            f"| {field.replace('_score', '').replace('_', ' ').title()} | {metric.n} | {_percent(metric.exact_agreement)} | {_number(metric.linear_weighted_kappa)} | {_number(metric.mean_absolute_difference)} |"
+            f"| {field.replace('_score', '').replace('_', ' ').title()} | {metric.n} | {_percent(metric.exact_agreement)} | {_number(metric.kappa)} | {_number(metric.mean_absolute_difference)} |"
         )
     lines.extend(
         [
             "",
             "## Disposition agreement",
             "",
-            f"- All 15 items: {_percent(analysis.disposition_agreement_all_items.exact_agreement)} exact; κw={_number(analysis.disposition_agreement_all_items.linear_weighted_kappa)}.",
-            f"- Twelve valid outputs only: {_percent(analysis.disposition_agreement_valid_outputs.exact_agreement)} exact; κw={_number(analysis.disposition_agreement_valid_outputs.linear_weighted_kappa)}.",
+            f"- All 15 items: {_percent(analysis.disposition_agreement_all_items.exact_agreement)} exact; κw={_number(analysis.disposition_agreement_all_items.kappa)}.",
+            f"- Twelve valid outputs only: {_percent(analysis.disposition_agreement_valid_outputs.exact_agreement)} exact; κw={_number(analysis.disposition_agreement_valid_outputs.kappa)}.",
             "- The all-item value is raised by deterministic agreement on the three null-output rejects; use the valid-output result when judging quality-rubric feasibility.",
             "",
             "## Claim-label feasibility",
             "",
-            "Claim-label agreement is not estimable from this pass because R1 and R2 did not label the same claim units. Rubric v1.1 therefore freezes atomic, deduplicated claim segmentation and requires a common blinded claim inventory before label-agreement analysis.",
+        ]
+    )
+    if analysis.claim_label_agreement_estimable and analysis.claim_label_agreement is not None:
+        lines.extend(
+            [
+                f"Claim-label agreement is estimable from this pass because R1 and R2 evaluated the identical {analysis.claim_counts.get('R1', 0)}-claim inventory.",
+                f"Exact claim-label agreement: **{analysis.claim_label_agreement.exact_agreement * 100:.1f}%**.",
+                f"Cohen's kappa: **{_number(analysis.claim_label_agreement.kappa)}**.",
+            ]
+        )
+    else:
+        lines.append(
+            "Claim-label agreement is not estimable from this pass because R1 and R2 did not label the same claim units. Rubric v1.1 therefore freezes atomic, deduplicated claim segmentation and requires a common blinded claim inventory before label-agreement analysis."
+        )
+    lines.extend(
+        [
             "",
             "## Reviewer time",
             "",
@@ -409,8 +540,27 @@ def _render_report(analysis: CalibrationAnalysis) -> str:
             "",
             "## Decision",
             "",
-            "Human timing feasibility is established, and the completed individual/adjudicated records are valid calibration evidence. Primary annotation should not begin yet. First, have R1 and R2 independently label the same adjudicated claim inventory under rubric v1.1, verify claim-label agreement, and resolve the low salient-coverage, redundancy, and valid-output disposition agreement. Preserve this first pass unchanged.",
-            "",
         ]
     )
+    if analysis.status == "ready":
+        lines.extend(
+            [
+                "Human timing feasibility, rating agreement, and claim-label agreement are established. The calibration status is ready, and primary quality annotation is now authorized to begin under rubric v1.1.",
+                "",
+            ]
+        )
+    elif analysis.status == "invalid":
+        lines.extend(
+            [
+                "The calibration population or reviewer records are invalid. Metrics must not be interpreted until the listed population and input errors are corrected.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "Human timing feasibility is established, and the completed individual/adjudicated records are valid calibration evidence. Primary annotation should not begin yet. First, have R1 and R2 independently label the same adjudicated claim inventory under rubric v1.1, verify claim-label agreement, and resolve the low salient-coverage, redundancy, and valid-output disposition agreement. Preserve this first pass unchanged.",
+                "",
+            ]
+        )
     return "\n".join(lines)

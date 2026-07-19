@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from seo_studio_eval.calibration_analysis import _linear_weighted_kappa
+from seo_studio_eval.calibration_analysis import _linear_weighted_kappa, _nominal_cohens_kappa
 from seo_studio_eval.schemas import AnnotationRecord
 
 
@@ -58,3 +58,45 @@ def test_annotation_rejects_partial_null_rating_pattern() -> None:
 def test_linear_weighted_kappa_handles_agreement_and_prevalence_collapse() -> None:
     assert _linear_weighted_kappa([1, 2, 3], [1, 2, 3], [1, 2, 3, 4, 5]) == 1.0
     assert _linear_weighted_kappa([5, 5], [5, 5], [1, 2, 3, 4, 5]) is None
+
+
+def test_nominal_cohens_kappa() -> None:
+    # 100% agreement
+    assert _nominal_cohens_kappa(["a", "b"], ["a", "b"], ["a", "b"]) == 1.0
+    # 0% agreement
+    assert _nominal_cohens_kappa(["a", "b"], ["b", "a"], ["a", "b"]) == -1.0
+    # Expected chance agreement = 0.5, observed = 0.5 -> Kappa = 0
+    assert _nominal_cohens_kappa(["a", "b"], ["a", "a"], ["a", "b"]) == 0.0
+
+
+def test_agreement_metric_exposes_kappa_fields() -> None:
+    from seo_studio_eval.calibration_analysis import AgreementMetric
+    metric = AgreementMetric(n=10, exact_agreement=0.9, kappa=0.8, kappa_method="cohens_kappa")
+    assert metric.kappa == 0.8
+    assert metric.kappa_method == "cohens_kappa"
+
+
+def test_calibration_analysis_invalid_rendering() -> None:
+    from seo_studio_eval.calibration_analysis import CalibrationAnalysis, _render_report, AgreementMetric
+    analysis = CalibrationAnalysis(
+        status="invalid",
+        calibration_items=15,
+        valid_output_items=12,
+        system_failure_items=3,
+        reviewer_records={"R1": 15, "R2": 14},
+        adjudicated_records=15,
+        claim_counts={"R1": 73, "R2": 68, "adjudicated": 73},
+        claim_label_agreement_estimable=False,
+        claim_label_agreement=None,
+        rating_agreement={},
+        disposition_agreement_all_items=AgreementMetric(n=15),
+        disposition_agreement_valid_outputs=AgreementMetric(n=12),
+        timing={},
+        projected_active_minutes_for_60_items={},
+        source_sha256={},
+        blocking_findings=["R2: review item population does not match calibration package"],
+        cautions=[]
+    )
+    report = _render_report(analysis)
+    assert "do not contain a complete, valid" in report
+    assert "Metrics must not be interpreted until the listed population and input errors are corrected." in report
