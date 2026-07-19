@@ -386,6 +386,24 @@ def _validate_manifest(
         errors.append(
             f"full-study domain counts are {actual_domains}; expected {expected_domains}"
         )
+    production_count = sum(
+        bool(item.analysis_populations and item.analysis_populations.production_metadata)
+        for item in items
+    )
+    context_count = sum(
+        bool(item.analysis_populations and item.analysis_populations.context_ablation)
+        for item in items
+    )
+    if production_count != protocol.dataset.production_metadata_images:
+        errors.append(
+            f"full-study production metadata population is {production_count}; "
+            f"expected {protocol.dataset.production_metadata_images}"
+        )
+    if context_count != protocol.dataset.context_ablation_images:
+        errors.append(
+            f"full-study context-ablation population is {context_count}; "
+            f"expected {protocol.dataset.context_ablation_images}"
+        )
     for item in items:
         errors.extend(verify_dataset_item(root, item))
 

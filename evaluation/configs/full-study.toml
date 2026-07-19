@@ -1,0 +1,16 @@
+schema_version = 1
+experiment_id = "seo-studio-full-study-v1"
+protocol_version = "2.3-gate4-draft-v1"
+study_mode = "full"
+dataset_split = "full"
+dataset_manifest = "dataset/manifest-full-v1.jsonl"
+expected_dataset_items = 128
+required_domains = ["healthcare", "retail_product", "hospitality_local_service", "education_professional_service"]
+required_purposes = ["informative", "decorative", "functional", "text", "complex", "redundant"]
+models_config = "configs/models-full.toml"
+output_dir = "runs/seo-studio-full-study-v1"
+model_ids = ["qwen25vl-3b-baseline", "qwen35-9b", "gemma3-12b"]
+repeats = 3
+seed = 1721844270
+require_frozen_models = true
+allow_dirty_worktree = false

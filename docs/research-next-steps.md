@@ -2,7 +2,7 @@
 
 Last verified: July 19, 2026
 
-Starting point: 128-image estimation-first design approved; manifest and listener-security evidence pending
+Starting point: 128-image candidate draft assembled; project-author review, final manifest, and listener-security evidence pending
 
 This is the short operational view of the canonical master plan. It does not replace `publication-research-architecture.md`.
 
@@ -53,10 +53,12 @@ Exit: supervisor/team approval of a dated, versioned protocol and run-accounting
 ## 3. Complete and freeze the publication dataset
 
 - [x] Select the practical estimation-first sample size before primary output inspection: 128 images, 32 per domain.
-- [ ] Materialize 128 licensed images across the four balanced domains; include all 128 in RQ1 and the controlled Qwen3.5 comparison, a deterministic 64-image subset in other production metadata comparisons, and a nested 36-image context subset.
-- [ ] Preserve source, author, licence, retrieval date, image hash, dimensions, split, domain, purpose, context, reference facts, forbidden claims, and preprocessing evidence.
+- [x] Assemble 128 mechanically licensed candidates across the four balanced domains; assign all 128 to RQ1 and the controlled Qwen3.5 comparison, a deterministic 64-image subset to other production metadata comparisons, and a nested 36-image context subset.
+- [x] Preserve draft source, author, licence, retrieval date, image identity, dimensions, split, domain, purpose, fictional context, and deterministic population evidence.
 - [ ] Keep pilot/development and final evaluation images separate.
-- [ ] Validate all images visually and mechanically; resolve licence or duplicate-hash issues before freeze.
+- [ ] Have a project author inspect all 128 images in the local review workspace, author atomic visible facts/alt examples, confirm purpose/source/licence/quality/sensitivity, and export the completed review artifact.
+- [ ] Resolve every rejected item through an additive, documented replacement from the same domain/query stratum; do not silently substitute candidates.
+- [ ] Materialize fresh 1280px final files and validate image hashes, licence evidence, dimensions, duplicate hashes, and the exact 32-per-domain allocation.
 - [ ] Freeze fictional page contexts, brand profiles, human-confirmed purposes, manifests, and preprocessing hashes.
 
 Exit: immutable dataset manifest and validation report with no unresolved licence or split leakage.

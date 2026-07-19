@@ -12,6 +12,28 @@ from .hashing import sha256_file
 ImagePurpose = Literal["informative", "decorative", "functional", "text", "complex", "redundant", "unknown"]
 
 
+class AnalysisPopulations(BaseModel):
+    rq1_claims: bool
+    controlled_qwen35: bool
+    production_metadata: bool
+    context_ablation: bool
+
+    @model_validator(mode="after")
+    def validate_nesting(self) -> "AnalysisPopulations":
+        if not self.rq1_claims or not self.controlled_qwen35:
+            raise ValueError("every full-study item must enter RQ1 and controlled Qwen3.5")
+        if self.context_ablation and not self.production_metadata:
+            raise ValueError("context-ablation items must be in production metadata")
+        return self
+
+
+class VisualReviewEvidence(BaseModel):
+    status: Literal["accepted"]
+    reviewer_role: str = Field(min_length=1)
+    reviewed_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    notes: str = Field(min_length=1)
+
+
 class DatasetItem(BaseModel):
     id: str = Field(min_length=1, pattern=r"^[a-z0-9][a-z0-9-]*$")
     split: Literal["contract", "pilot", "full"]
@@ -41,6 +63,8 @@ class DatasetItem(BaseModel):
     forbidden_claims: list[str] = Field(min_length=1)
     adjudication_alt_examples: list[str] = Field(min_length=1)
     annotation_notes: str = Field(min_length=1)
+    analysis_populations: AnalysisPopulations | None = None
+    visual_review: VisualReviewEvidence | None = None
 
     @model_validator(mode="after")
     def validate_unique_annotations(self) -> "DatasetItem":
@@ -53,6 +77,18 @@ class DatasetItem(BaseModel):
             values = getattr(self, field_name)
             if len(values) != len(set(values)):
                 raise ValueError(f"{field_name} must not contain duplicates")
+        if self.split == "full":
+            if self.analysis_populations is None:
+                raise ValueError("full-study items require analysis_populations")
+            if self.visual_review is None:
+                raise ValueError("full-study items require accepted human visual_review evidence")
+            pending_values = (
+                self.reference_visible_facts
+                + self.adjudication_alt_examples
+                + [self.annotation_notes]
+            )
+            if any("[PENDING" in value for value in pending_values):
+                raise ValueError("full-study items cannot contain pending human-review placeholders")
         return self
 
 

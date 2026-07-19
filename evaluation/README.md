@@ -36,6 +36,45 @@ python scripts/materialize_pilot.py --retrieved-at <ISO-8601-UTC> --force
 
 The materializer requires explicit network access, retrieves only the declared Wikimedia Commons records, verifies the expected license, and writes image, attribution, context, and hash evidence. The synthetic contract fixture remains separate in `manifest-contract.jsonl`.
 
+## Full-study dataset workflow
+
+The 128 selected Commons page identities, fictional contexts, declared purposes, and deterministic 128/64/36 analysis-population assignments are recorded in `dataset/full-study-catalog.json`. Candidate discovery and contact-sheet screening are preparation evidence, not final human ground truth. The final manifest intentionally remains absent until a project author reviews every image.
+
+Serve the evidence-led reviewer workspace from this directory:
+
+```bash
+python3 -m http.server 8765
+```
+
+Then open `http://127.0.0.1:8765/review/full-study-dataset-review.html`, complete all 128 records, and export the JSONL. The complete procedure and rejection/replacement rule are in [`../docs/publication/full-study-dataset-review-guide.md`](../docs/publication/full-study-dataset-review-guide.md).
+
+Validate the exported review without writing, then deliberately apply it:
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/apply_full_human_review.py \
+  --review-file /path/to/full-study-human-review-completed.jsonl \
+  --reviewer-role project-author \
+  --reviewed-at YYYY-MM-DD
+
+PYTHONPATH=src .venv/bin/python scripts/apply_full_human_review.py \
+  --review-file /path/to/full-study-human-review-completed.jsonl \
+  --reviewer-role project-author \
+  --reviewed-at YYYY-MM-DD \
+  --apply
+```
+
+Only after that succeeds, materialize fresh 1280px evidence and run the full-study preflight and protocol audit:
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/materialize_full.py \
+  --retrieved-at <ISO-8601-UTC>
+
+PYTHONPATH=src .venv/bin/python -m seo_studio_eval preflight \
+  --config configs/full-study.toml
+```
+
+`scripts/discover_full_candidates.py` and `scripts/build_full_catalog.py` are provenance/rebuild tools. Do not rerun discovery to casually replace a rejected item: record an additive replacement decision in the same domain/query stratum. `scripts/materialize_full.py --draft` is diagnostic only and cannot produce the final manifest.
+
 The preflight validates configuration structure, model declarations, dataset balance, source/license evidence, dimensions, paths, and SHA-256 hashes. Compatibility execution sends the actual image bytes but stores only their hash in the sanitized request evidence. Normalization creates a versioned derived artifact without changing raw evidence. Blinding writes reviewer material separately from its ignored private identity map and fails on detected model-name leakage. Run accounting separates analyzed outcomes from raw attempts, bounded transport recoveries, and disclosed legacy deviations while reporting missing, duplicate, unexpected, valid, and failed outcomes. `annotations/templates/rubric-v1.md` defines claim labels, rating anchors, purpose rules, and disposition categories.
 
 `protocol-audit` validates the Gate 4 draft, verifies pinned prompt hashes, recomputes model-call and human-review accounting, and lists every unresolved freeze blocker. When the full-study manifest exists, the audit parses its schema, verifies all referenced files and hashes, and checks its item count, split, and exact domain allocation. The selected 128-image design yields 3,012 model calls, 876 unique review items, and 1,071 reviewer assignments. A `draft_blocked` result remains correct until the full-study manifest and listener-security evidence are complete and the protocol status is deliberately changed. It performs no live DGX access and must never be treated as execution authorization.

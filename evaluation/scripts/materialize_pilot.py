@@ -23,7 +23,9 @@ USER_AGENT = "SEO-Studio-Research/0.1 (https://github.com/franklinnweke/seo-stud
 ALLOWED_LICENSES = {
     "CC0",
     "CC BY 2.0",
+    "CC BY 3.0",
     "CC BY 4.0",
+    "CC BY-SA 2.0",
     "CC BY-SA 3.0",
     "CC BY-SA 4.0",
     "Public domain",
@@ -92,6 +94,7 @@ def materialize_item(
     context_dir: Path,
     retrieved_at: str,
     commons_sources: dict[int, dict[str, str]],
+    reuse_existing_image: bool = False,
 ) -> dict[str, Any]:
     item_id = required_text(entry, "id")
     asset = entry.get("asset")
@@ -107,8 +110,9 @@ def materialize_item(
             raise ValueError(
                 f"{item_id}: expected {expected_license!r}, Commons returned {source['license']!r}"
             )
-        media = download(source["download_url"])
-        image_path.write_bytes(media)
+        if not (reuse_existing_image and image_path.is_file()):
+            media = download(source["download_url"])
+            image_path.write_bytes(media)
         preprocessing = "wikimedia_thumbnail_max_width_1280_v1"
     elif asset.get("kind") == "local":
         source_path = resolve_repository_path(required_text(asset, "path"))

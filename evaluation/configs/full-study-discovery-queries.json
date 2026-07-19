@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "candidates_per_query": 5,
+  "selected_per_query": 4,
+  "domains": {
+    "healthcare": [
+      {"id": "consultation", "purpose": "informative", "query": "medical examination patient hospital"},
+      {"id": "nursing", "purpose": "informative", "query": "nurse patient hospital care"},
+      {"id": "pharmacy", "purpose": "informative", "query": "pharmacist patient"},
+      {"id": "clinic-hero", "purpose": "decorative", "query": "hospital lobby"},
+      {"id": "booking-action", "purpose": "functional", "query": "doctor and patient"},
+      {"id": "health-signage", "purpose": "text", "query": "hospital sign"},
+      {"id": "clinical-complex", "purpose": "complex", "query": "operating room"},
+      {"id": "waiting-area", "purpose": "redundant", "query": "waiting room interior"}
+    ],
+    "retail_product": [
+      {"id": "market-vendor", "purpose": "informative", "query": "farmers market vendor stall"},
+      {"id": "checkout", "purpose": "informative", "query": "supermarket retail checkout shoppers"},
+      {"id": "product-display", "purpose": "informative", "query": "grocery product display store"},
+      {"id": "retail-hero", "purpose": "decorative", "query": "shopping mall interior"},
+      {"id": "shop-action", "purpose": "functional", "query": "shopping basket grocery store"},
+      {"id": "store-signage", "purpose": "text", "query": "market shop sign storefront"},
+      {"id": "busy-market", "purpose": "complex", "query": "busy indoor market stalls people"},
+      {"id": "aisle", "purpose": "redundant", "query": "supermarket aisle shelves"}
+    ],
+    "hospitality_local_service": [
+      {"id": "restaurant-service", "purpose": "informative", "query": "restaurant waiter table service"},
+      {"id": "hotel-reception", "purpose": "informative", "query": "hotel front desk"},
+      {"id": "local-service", "purpose": "informative", "query": "barber hair salon service"},
+      {"id": "hospitality-hero", "purpose": "decorative", "query": "hotel lobby interior"},
+      {"id": "reservation-action", "purpose": "functional", "query": "restaurant reservation dining table"},
+      {"id": "hospitality-signage", "purpose": "text", "query": "hotel entrance sign"},
+      {"id": "dining-complex", "purpose": "complex", "query": "restaurant dining room people"},
+      {"id": "guest-area", "purpose": "redundant", "query": "hotel lobby seating area"}
+    ],
+    "education_professional_service": [
+      {"id": "classroom", "purpose": "informative", "query": "classroom students teacher"},
+      {"id": "library", "purpose": "informative", "query": "library students studying"},
+      {"id": "professional-meeting", "purpose": "informative", "query": "office meeting"},
+      {"id": "education-hero", "purpose": "decorative", "query": "university campus learning space"},
+      {"id": "course-action", "purpose": "functional", "query": "student laptop"},
+      {"id": "education-text", "purpose": "text", "query": "teacher writing whiteboard"},
+      {"id": "workshop-complex", "purpose": "complex", "query": "training workshop classroom"},
+      {"id": "study-area", "purpose": "redundant", "query": "students study room"}
+    ]
+  }
+}

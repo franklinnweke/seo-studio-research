@@ -171,6 +171,8 @@ The revised reviewer burden was approved with the 128-image estimation-first dec
 
 The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. Read-only inspection also verified the dedicated project workspace, available storage, and the supported telemetry scope. `nvidia-smi` is unavailable, so complete GPU-VRAM and measured-energy claims are prohibited. The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
 
+The 128-item Commons candidate catalog and deterministic 128/64/36 population assignments are assembled. This is a review draft, not the frozen publication dataset: a project author must still inspect every item, replace any rejection through a documented same-stratum amendment, and author the visible-fact and alt-example evidence before fresh final materialization. The absence of `evaluation/dataset/manifest-full-v1.jsonl` is intentional at this stage.
+
 - materialize and validate the full-study dataset manifest;
 - resolve the failed private listener-reachability check through an institution-approved mitigation, then verify it without publishing connection details;
 - change protocol status only after the resulting audit has no blockers.

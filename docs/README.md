@@ -38,6 +38,9 @@ Recommended reading order for a new person or agent:
 | [Sample-size sensitivity](publication/sample-size-sensitivity-v1.md) | Pre-data calculation testing whether the provisional population can resolve the approved effects |
 | [Sample-size evidence JSON](../evaluation/results/full-study-sample-size-sensitivity-v1.json) | Reproducible machine-readable sensitivity results and the recorded estimation-first selection |
 | [Approved 128-image decision](../evaluation/configs/full-study-sample-size-decision-20260719.json) | Pre-data selection of the practical estimation-first design, domain allocation, review populations, workload, and inferential limits |
+| [Full-study dataset review guide](publication/full-study-dataset-review-guide.md) | Required 128-item human visual review, export, validation, replacement, and final-materialization procedure |
+| [Draft full-study catalog](../evaluation/dataset/full-study-catalog.json) | Frozen candidate identities, sources, contexts, purposes, and deterministic 128/64/36 population assignments; human ground-truth fields remain pending |
+| [Human-review workbook](../evaluation/dataset/full-study-human-review.jsonl) | Input to the local reviewer workspace; not accepted annotation evidence until a project author completes and exports it |
 | [Rubric v1.1](../evaluation/annotations/templates/rubric-v1.1.md) | Frozen human-check dimensions and labels, purpose rules, and failure handling |
 | [Final calibration report](../evaluation/results/recal_analysis_results.md) | Reviewer feasibility on 15 blinded items and the final 76-item human-check inventory |
 | [Calibration evidence JSON](../evaluation/results/recal-analysis-20260719.json) | Machine-readable analysis version 2, source hashes, agreement, timing, and status |
