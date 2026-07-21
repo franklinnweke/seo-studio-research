@@ -2,7 +2,7 @@
 
 Last verified: July 21, 2026
 
-Starting point: 128-image candidate draft assembled; project-author review, final manifest, and listener-security evidence pending
+Starting point: 128-image candidate draft assembled; project-author checks, final manifest, and listener-security evidence pending
 
 This is the short operational view of the canonical master plan. It does not replace `publication-research-architecture.md`.
 
@@ -56,7 +56,7 @@ Exit: supervisor/team approval of a dated, versioned protocol and run-accounting
 - [x] Assemble 128 mechanically licensed candidates across the four balanced domains; assign all 128 to RQ1 and the controlled Qwen3.5 comparison, a deterministic 64-image subset to other production metadata comparisons, and a nested 36-image context subset.
 - [x] Preserve draft source, author, licence, retrieval date, image identity, dimensions, split, domain, purpose, fictional context, and deterministic population evidence.
 - [ ] Keep pilot/development and final evaluation images separate.
-- [ ] Have a project author inspect all 128 images in the local review workspace, author atomic visible facts/alt examples, confirm purpose/source/licence/quality/sensitivity, and export the completed review artifact.
+- [ ] Have a project author inspect all 128 images in the local human-check workspace, explicitly keep/reject every query-stratum draft, add a correction only when needed, confirm purpose/source/licence/quality/sensitivity, and export the completed check artifact. Treat the drafts as transcription aids, not ground truth.
 - [ ] Resolve every rejected item through an additive, documented replacement from the same domain/query stratum; do not silently substitute candidates.
 - [ ] Materialize fresh 1280px final files and validate image hashes, licence evidence, dimensions, duplicate hashes, and the exact 32-per-domain allocation.
 - [ ] Freeze fictional page contexts, brand profiles, human-confirmed purposes, manifests, and preprocessing hashes.

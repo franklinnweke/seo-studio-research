@@ -1,9 +1,10 @@
 import json
+from datetime import date
 from pathlib import Path
 from typing import Literal
 
 from PIL import Image
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .config import resolve_under_root
 from .hashing import sha256_file
@@ -32,6 +33,17 @@ class VisualReviewEvidence(BaseModel):
     reviewer_role: str = Field(min_length=1)
     reviewed_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     notes: str = Field(min_length=1)
+
+    @field_validator("reviewed_at")
+    @classmethod
+    def validate_reviewed_at(cls, value: str) -> str:
+        try:
+            parsed = date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError("reviewed_at must be a valid ISO calendar date") from exc
+        if parsed.isoformat() != value:
+            raise ValueError("reviewed_at must use canonical YYYY-MM-DD format")
+        return value
 
 
 class DatasetItem(BaseModel):
@@ -81,14 +93,14 @@ class DatasetItem(BaseModel):
             if self.analysis_populations is None:
                 raise ValueError("full-study items require analysis_populations")
             if self.visual_review is None:
-                raise ValueError("full-study items require accepted human visual_review evidence")
+                raise ValueError("full-study items require accepted human-check evidence")
             pending_values = (
                 self.reference_visible_facts
                 + self.adjudication_alt_examples
                 + [self.annotation_notes]
             )
             if any("[PENDING" in value for value in pending_values):
-                raise ValueError("full-study items cannot contain pending human-review placeholders")
+                raise ValueError("full-study items cannot contain pending human-check placeholders")
         return self
 
 

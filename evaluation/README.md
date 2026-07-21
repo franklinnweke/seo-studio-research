@@ -2,7 +2,7 @@
 
 This package is the offline-first research execution path. It does not call the product API, discover product `.env` files, or access the DGX during unit tests.
 
-Current research status and reading order are maintained in [`../docs/research-context.md`](../docs/research-context.md), [`../docs/research-next-steps.md`](../docs/research-next-steps.md), and the canonical [`../docs/publication-research-architecture.md`](../docs/publication-research-architecture.md). As of July 19, 2026, rubric-v1.1 calibration is accepted on 15 blinded items and a common 76-item human-check inventory: exact human-check label agreement is 98.7%, nominal Cohen's kappa is 0.923, and the analysis status is `ready`. This establishes reviewer feasibility, not a model-quality winner. The approved full-study design is estimation-first: 128 images balanced 32 per domain, with 128/64/36-image human-review populations and 3,012 planned model calls. Full-study execution still requires manifest validation, listener-security closure, and explicit protocol freeze.
+Current research status and reading order are maintained in [`../docs/research-context.md`](../docs/research-context.md), [`../docs/research-next-steps.md`](../docs/research-next-steps.md), and the canonical [`../docs/publication-research-architecture.md`](../docs/publication-research-architecture.md). As of July 19, 2026, rubric-v1.1 calibration is accepted on 15 blinded items and a common 76-item human-check inventory: exact human-check label agreement is 98.7%, nominal Cohen's kappa is 0.923, and the analysis status is `ready`. This establishes reviewer feasibility, not a model-quality winner. The approved full-study design is estimation-first: 128 images balanced 32 per domain, with 128/64/36-image human-check populations and 3,012 planned model calls. Full-study execution still requires manifest validation, listener-security closure, and explicit protocol freeze.
 
 Implemented commands:
 
@@ -38,27 +38,27 @@ The materializer requires explicit network access, retrieves only the declared W
 
 ## Full-study dataset workflow
 
-The 128 selected Commons page identities, fictional contexts, declared purposes, and deterministic 128/64/36 analysis-population assignments are recorded in `dataset/full-study-catalog.json`. Candidate discovery and contact-sheet screening are preparation evidence, not final human ground truth. The final manifest intentionally remains absent until a project author reviews every image.
+The 128 selected Commons page identities, fictional contexts, declared purposes, and deterministic 128/64/36 analysis-population assignments are recorded in `dataset/full-study-catalog.json`. Candidate discovery and contact-sheet screening are preparation evidence, not final human ground truth. The workspace pre-populates query-stratum draft statements to reduce typing; they were not derived from Commons descriptions, source titles, or evaluated-model outputs, and each requires an explicit human keep/reject decision. The final manifest intentionally remains absent until a project author checks every image.
 
-Serve the evidence-led reviewer workspace from this directory:
+Serve the evidence-led human-check workspace from this directory:
 
 ```bash
 python3 -m http.server 8765
 ```
 
-Then open `http://127.0.0.1:8765/review/full-study-dataset-review.html`, complete all 128 records, and export the JSONL. The complete procedure and rejection/replacement rule are in [`../docs/publication/full-study-dataset-review-guide.md`](../docs/publication/full-study-dataset-review-guide.md).
+Then open `http://127.0.0.1:8765/review/full-study-dataset-check.html`, complete all 128 records, and export the JSONL. The complete procedure and rejection/replacement rule are in [`../docs/publication/full-study-dataset-check-guide.md`](../docs/publication/full-study-dataset-check-guide.md).
 
-Validate the exported review without writing, then deliberately apply it:
+Validate the exported check without writing, then deliberately apply it:
 
 ```bash
-PYTHONPATH=src .venv/bin/python scripts/apply_full_human_review.py \
-  --review-file /path/to/full-study-human-review-completed.jsonl \
-  --reviewer-role project-author \
+PYTHONPATH=src .venv/bin/python scripts/apply_full_human_check.py \
+  --check-file /path/to/full-study-human-check-completed.jsonl \
+  --checker-role project-author \
   --reviewed-at YYYY-MM-DD
 
-PYTHONPATH=src .venv/bin/python scripts/apply_full_human_review.py \
-  --review-file /path/to/full-study-human-review-completed.jsonl \
-  --reviewer-role project-author \
+PYTHONPATH=src .venv/bin/python scripts/apply_full_human_check.py \
+  --check-file /path/to/full-study-human-check-completed.jsonl \
+  --checker-role project-author \
   --reviewed-at YYYY-MM-DD \
   --apply
 ```

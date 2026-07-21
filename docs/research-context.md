@@ -8,7 +8,7 @@ Public repository: `https://github.com/franklinnweke/seo-studio-research`
 
 Default release branch: `main`; source development lineage: `codex/research-context-aware-metadata`
 
-Current gate: Gate 3 complete; Gate 4 has a 128-item candidate draft and remains blocked by human dataset review/final materialization and listener-security verification
+Current gate: Gate 3 complete; Gate 4 has a 128-item candidate draft and remains blocked by human dataset checks/final materialization and listener-security verification
 
 ## Project in one paragraph
 
@@ -43,8 +43,8 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Structurally validated Gate 4 draft at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and blocker-reporting audit command. It is not frozen and does not authorize execution.
 - All governance approvals were relayed on July 19, 2026 and preserved in a sanitized public record. Exact model digests and Ollama 0.24.0 were reverified read-only through `$davneet-dgx-access`; no mutation occurred.
 - The pre-data sample-size sensitivity found that the original 60-image RQ1 subset could not support the approved five-point target under the displayed scenarios. Before primary output inspection, the project lead selected a practical estimation-first design: 128 licensed images balanced 32 per domain, all 128 in RQ1 and the controlled Qwen3.5 comparison, 64 in the other production metadata comparisons, and 36 in the context ablation.
-- The approved design entails 3,012 model calls and 876 unique human-review items. With three independently calibrated reviewers, 25% RQ1 overlap and 20% metadata overlap produce 1,071 assignments: 357 assignments or 714 active minutes per reviewer, excluding adjudication, breaks, and administration.
-- The 128-image candidate catalog is assembled from licensed Wikimedia Commons records: 32 items per domain, all 128 assigned to RQ1 and the controlled Qwen3.5 comparison, 64 deterministically assigned to production metadata, and a nested 36 assigned to context ablation. Duplicate-image hashes are absent in the draft. A local reviewer workspace and import/export validator are ready. Atomic visible facts, alt examples, sensitivity checks, and final acceptance still require direct review by a project author; therefore `manifest-full-v1.jsonl` intentionally does not exist and Gate 4 is not cleared.
+- The approved design entails 3,012 model calls and 876 unique human-check items. With three independently calibrated reviewers, 25% RQ1 overlap and 20% metadata overlap produce 1,071 assignments: 357 assignments or 714 active minutes per reviewer, excluding adjudication, breaks, and administration.
+- The 128-image candidate catalog is assembled from licensed Wikimedia Commons records: 32 items per domain, all 128 assigned to RQ1 and the controlled Qwen3.5 comparison, 64 deterministically assigned to production metadata, and a nested 36 assigned to context ablation. Duplicate-image hashes are absent in the draft. A local click-assisted human-check workspace and import/export validator are ready. Query-stratum drafts reduce typing but are neither source-derived nor model-derived ground truth; a project author must explicitly keep/reject every draft against the pixels and correct it only when needed. Sensitivity, purpose, source/licence, quality, and final acceptance also remain human decisions. Therefore `manifest-full-v1.jsonl` intentionally does not exist and Gate 4 is not cleared.
 - Product and evaluation CI workflows now enforce backend tests, OpenAPI drift, frontend lint/build, evaluation tests, JSON-schema drift, and licensed-pilot preflight. Ordinary GitHub runners never access the DGX or run model experiments.
 
 The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-item human-check recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
@@ -61,7 +61,7 @@ Verified locally on July 21, 2026:
 - checked-in OpenAPI contract: matches the generated FastAPI schema;
 - deployed-stack and isolated-amendment preflights: ready on all 20 licensed pilot items;
 - final calibration JSON and Markdown: regenerate byte-for-byte from the accepted inputs;
-- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; governance, sample-size, workload, model-identity, workspace, and telemetry blockers are closed; human dataset review/final manifest and listener-security evidence remain;
+- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; governance, sample-size, workload, model-identity, workspace, and telemetry blockers are closed; human dataset checks/final manifest and listener-security evidence remain;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
 - required `$davneet-dgx-access` status check: key authentication and expected host succeeded; shared Ollama 0.24.0 was active; the three frozen study packages remained installed; no model was loaded; the all-interfaces listener and security blocker remain; no DGX mutation occurred.
@@ -74,7 +74,7 @@ Technical calibration has passed, the review protocol is feasible, and the 128-i
 
 Outstanding technical freeze work:
 
-- complete the 128-item project-author visual review, resolve any rejected item through an additive same-stratum replacement record, and materialize/validate the final full-study manifest;
+- complete the 128-item project-author visual check, resolve any rejected item through an additive same-stratum replacement record, and materialize/validate the final full-study manifest;
 - resolve the failed private listener-reachability check through an approved mitigation; the dedicated workspace and limited non-GPU telemetry path are verified;
 - regenerate the audit and freeze only when it reports no blockers.
 
@@ -102,7 +102,7 @@ The Gate 4 draft resolves the design hierarchy: five original deployed-stack con
 1. Read `docs/README.md`, this file, and `docs/research-next-steps.md`.
 2. Read only the master-plan sections relevant to the current gate.
 3. Inspect `git status`, the active branch, recent commits, and existing uncommitted work.
-4. Treat calibration as final at 76 claims, 98.7% exact agreement, and Cohen's kappa 0.923.
+4. Treat calibration as final at 76 human-check items, 98.7% exact agreement, and Cohen's kappa 0.923.
 5. Do not name a winning model or infer primary quality results.
-6. Treat the cataloged 128 candidates, 32-per-domain balance, and deterministic 128/64/36 populations as fixed pending human review; do not silently substitute rejected items or run the full study until Gate 4 is explicitly frozen.
+6. Treat the cataloged 128 candidates, 32-per-domain balance, and deterministic 128/64/36 populations as fixed pending human checks; do not silently substitute rejected items or run the full study until Gate 4 is explicitly frozen.
 7. For any DGX action, invoke `$davneet-dgx-access` and preserve the no-deletion boundary.

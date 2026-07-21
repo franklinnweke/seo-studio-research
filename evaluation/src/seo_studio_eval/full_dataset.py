@@ -1,5 +1,7 @@
 import hashlib
 from collections import defaultdict
+from copy import deepcopy
+from datetime import date
 from typing import Any
 
 
@@ -113,3 +115,137 @@ def required_text(payload: dict[str, Any], key: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{key} must be a non-empty string")
     return value.strip()
+
+
+def apply_human_check_records(
+    catalog: list[dict[str, Any]],
+    checks: list[dict[str, Any]],
+    *,
+    reviewer_role: str,
+    checked_at: str,
+) -> list[dict[str, Any]]:
+    """Validate a complete check population and return an updated catalog copy."""
+    if not isinstance(reviewer_role, str) or not reviewer_role.strip():
+        raise ValueError("reviewer_role must be a non-empty public role label")
+    role = reviewer_role.strip()
+    if not isinstance(checked_at, str):
+        raise ValueError("checked_at must be a valid ISO calendar date")
+    try:
+        parsed_date = date.fromisoformat(checked_at)
+    except ValueError as exc:
+        raise ValueError("checked_at must be a valid ISO calendar date") from exc
+    if parsed_date.isoformat() != checked_at:
+        raise ValueError("checked_at must use canonical YYYY-MM-DD format")
+
+    catalog_ids = [required_text(row, "id") for row in catalog]
+    if len(catalog_ids) != len(set(catalog_ids)):
+        raise ValueError("full-study catalog ids must be unique")
+    if any(row.get("visual_review", {}).get("status") == "accepted" for row in catalog):
+        raise ValueError("refusing to overwrite accepted human-check evidence")
+
+    checks_by_id: dict[str, dict[str, Any]] = {}
+    for check in checks:
+        if not isinstance(check, dict):
+            raise ValueError("every human-check record must be an object")
+        candidate_id = required_text(check, "candidate_id")
+        if candidate_id in checks_by_id:
+            raise ValueError(f"duplicate human-check candidate_id: {candidate_id}")
+        checks_by_id[candidate_id] = check
+
+    expected_ids = set(catalog_ids)
+    if set(checks_by_id) != expected_ids:
+        missing = sorted(expected_ids - set(checks_by_id))
+        extra = sorted(set(checks_by_id) - expected_ids)
+        raise ValueError(f"human-check population mismatch; missing={missing}, extra={extra}")
+
+    updated = deepcopy(catalog)
+    rejected: list[str] = []
+    incomplete: list[str] = []
+    mismatched: list[str] = []
+    for row in updated:
+        item_id = required_text(row, "id")
+        check = checks_by_id[item_id]
+        if check.get("domain") != row.get("domain") or check.get("purpose") != row.get("purpose"):
+            mismatched.append(item_id)
+            continue
+        if check.get("human_decision") == "rejected":
+            rejected.append(item_id)
+            continue
+
+        visible_facts = _text_list(check.get("reference_visible_facts"))
+        forbidden_additions = _text_list(check.get("forbidden_claims_additions"))
+        alt_examples = _text_list(check.get("adjudication_alt_examples"))
+        required_checks = (
+            "purpose_fit_confirmed",
+            "privacy_and_sensitivity_checked",
+            "duplicate_and_quality_checked",
+            "source_and_license_checked",
+        )
+        alt_ok = row.get("purpose") in {"decorative", "redundant"} or bool(alt_examples)
+        suggestions_decided = all(
+            _suggestion_decisions_complete(check, suggestions_field, decisions_field)
+            for suggestions_field, decisions_field in (
+                ("suggested_visible_facts", "visible_fact_decisions"),
+                ("suggested_forbidden_claims", "forbidden_claim_decisions"),
+                ("suggested_alt_examples", "alt_example_decisions"),
+            )
+        )
+        complete = (
+            check.get("human_decision") == "accepted"
+            and all(check.get(field) is True for field in required_checks)
+            and bool(visible_facts)
+            and alt_ok
+            and suggestions_decided
+        )
+        if not complete:
+            incomplete.append(item_id)
+            continue
+
+        row["reference_visible_facts"] = visible_facts
+        row["forbidden_claims"] = _deduplicate_text(
+            _text_list(row.get("forbidden_claims")) + forbidden_additions
+        )
+        row["adjudication_alt_examples"] = (
+            [""] if row["purpose"] in {"decorative", "redundant"} else alt_examples
+        )
+        notes = check.get("human_notes")
+        row["annotation_notes"] = (
+            notes.strip() if isinstance(notes, str) and notes.strip() else "No additional check note."
+        )
+        row["visual_review"] = {
+            "notes": row["annotation_notes"],
+            "reviewed_at": checked_at,
+            "reviewer_role": role,
+            "status": "accepted",
+        }
+
+    if rejected or incomplete or mismatched:
+        raise ValueError(
+            "human checks cannot be applied; "
+            f"rejected={rejected}, incomplete={incomplete}, metadata_mismatch={mismatched}"
+        )
+    return updated
+
+
+def _text_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return _deduplicate_text(value)
+
+
+def _suggestion_decisions_complete(
+    check: dict[str, Any], suggestions_field: str, decisions_field: str
+) -> bool:
+    suggestions = check.get(suggestions_field, [])
+    decisions = check.get(decisions_field, {})
+    if not isinstance(suggestions, list) or not isinstance(decisions, dict):
+        return False
+    return all(
+        decisions.get(str(index), decisions.get(index)) in {"kept", "rejected"}
+        for index in range(len(suggestions))
+    )
+
+
+def _deduplicate_text(values: list[Any]) -> list[str]:
+    cleaned = [value.strip() for value in values if isinstance(value, str) and value.strip()]
+    return list(dict.fromkeys(cleaned))

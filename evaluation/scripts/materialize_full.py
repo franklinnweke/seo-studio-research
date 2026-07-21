@@ -43,7 +43,7 @@ def main() -> int:
             raise ValueError(
                 f"{entry['id']}: catalog analysis populations do not match the frozen seed"
             )
-    _validate_review_states(catalog, allow_pending=args.draft)
+    _validate_check_states(catalog, allow_pending=args.draft)
 
     manifest_path = DRAFT_MANIFEST_PATH if args.draft else FINAL_MANIFEST_PATH
     if manifest_path.exists() and not args.force:
@@ -112,16 +112,16 @@ def main() -> int:
     return 0
 
 
-def _validate_review_states(catalog: list[dict[str, Any]], *, allow_pending: bool) -> None:
-    permitted = {"accepted", "pending_human_review"} if allow_pending else {"accepted"}
+def _validate_check_states(catalog: list[dict[str, Any]], *, allow_pending: bool) -> None:
+    permitted = {"accepted", "pending_human_check"} if allow_pending else {"accepted"}
     invalid: list[str] = []
     for row in catalog:
-        review = row.get("visual_review")
-        if not isinstance(review, dict) or review.get("status") not in permitted:
+        check = row.get("visual_review")
+        if not isinstance(check, dict) or check.get("status") not in permitted:
             invalid.append(str(row.get("id", "<missing-id>")))
     if invalid:
         requirement = "accepted or pending" if allow_pending else "human-accepted"
-        raise ValueError(f"{requirement} visual review missing for: {', '.join(invalid)}")
+        raise ValueError(f"{requirement} visual check missing for: {', '.join(invalid)}")
 
 
 def _validate_final_rows(rows: list[dict[str, Any]]) -> None:

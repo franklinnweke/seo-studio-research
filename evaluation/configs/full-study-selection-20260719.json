@@ -11,7 +11,7 @@
     "avoid unnecessary sensitive, graphic, or personally identifying detail",
     "retain useful diversity in people, interiors, objects, visible text, and scene complexity"
   ],
-  "screened_by": "Codex-assisted contact-sheet screen; not a substitute for final human item review",
+  "screened_by": "Codex-assisted contact-sheet screen; not a substitute for final human item checks",
   "rejected_candidate_ids": [
     "education-professional-service-01-p118446455",
     "education-professional-service-02-p58896321",
