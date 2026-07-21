@@ -1,6 +1,6 @@
 # SEO Studio research continuation checklist
 
-Last verified: July 19, 2026
+Last verified: July 21, 2026
 
 Starting point: 128-image candidate draft assembled; project-author review, final manifest, and listener-security evidence pending
 
@@ -11,7 +11,7 @@ This is the short operational view of the canonical master plan. It does not rep
 - [x] Synchronize every public document and manuscript occurrence to the final accepted 76-item human-check/98.7% calibration figures.
 - [x] Keep the final calibration JSON and Markdown together and verify their hashes and byte-for-byte regeneration.
 - [x] Run evaluation tests, backend tests, frontend lint/build, OpenAPI drift checks, schema validation, dataset validation, and `git diff --check`.
-- [ ] Review the working tree carefully and commit only the intended research/calibration/documentation changes. Do not stage `submissions/`, browser output, screenshots, caches, or unrelated teammate files.
+- [x] Review the working tree carefully and commit only intended research/calibration/documentation changes. Keep `submissions/`, browser output, screenshots, caches, generated full-study draft binaries, and unrelated teammate files unstaged.
 - [x] Record the accepted calibration state in the durable compact handoff; repeat it in the eventual commit message.
 
 Exit: the accepted evidence and documentation are consistent, tested, and intentionally committed.
@@ -23,7 +23,7 @@ Exit: the accepted evidence and documentation are consistent, tested, and intent
 - [x] Confirm the institutional publication route and course-based ethics determination with no external participant recruitment.
 - [ ] Through `$davneet-dgx-access` and the institution/supervisor, close the remaining listener/firewall security finding. DGX identity, allowed-data policy, dedicated workspace, limited supported telemetry, and SSH-tunnel topology are confirmed.
 - [x] Choose the approved SSH-tunnel path to the shared Ollama runtime for the evaluated deployed-stack system; public direct access is not required.
-- [ ] Add missing CI gates for backend tests, frontend lint/build, evaluation tests, and OpenAPI drift.
+- [x] Add CI gates for backend tests, OpenAPI drift, frontend lint/build, evaluation tests, JSON-schema drift, and licensed-pilot preflight; prohibit DGX inference on ordinary hosted runners.
 
 Exit: the deferred Gate 1 listener-security requirement is documented as passed or explicitly constrained; Gate 3 administration is already complete.
 

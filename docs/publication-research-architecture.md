@@ -1579,7 +1579,7 @@ The full-study tag must point to a clean commit. The harness must refuse full-st
 
 ### 20.4 CI workflows
 
-Add:
+Implemented on July 21, 2026:
 
 ```text
 .github/workflows/ci.yml
@@ -1603,6 +1603,8 @@ Add:
 - never run full GPU experiments on ordinary GitHub-hosted runners.
 
 Staging deployment should depend on CI success.
+
+The implemented workflows use read-only repository permissions. Product CI runs backend tests, rejects OpenAPI drift, and runs frontend lint/build. Evaluation validation runs the offline unit suite, rejects generated-schema drift, and preflights the committed licensed pilot. Neither workflow contains DGX credentials, live connection details, Ollama calls, or full-study execution.
 
 ## 21. Security, privacy, and operational controls
 

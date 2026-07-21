@@ -1,6 +1,6 @@
 # SEO Studio compact research context
 
-Last verified: July 19, 2026
+Last verified: July 21, 2026
 
 Master-plan version: 2.3
 
@@ -45,6 +45,7 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - The pre-data sample-size sensitivity found that the original 60-image RQ1 subset could not support the approved five-point target under the displayed scenarios. Before primary output inspection, the project lead selected a practical estimation-first design: 128 licensed images balanced 32 per domain, all 128 in RQ1 and the controlled Qwen3.5 comparison, 64 in the other production metadata comparisons, and 36 in the context ablation.
 - The approved design entails 3,012 model calls and 876 unique human-review items. With three independently calibrated reviewers, 25% RQ1 overlap and 20% metadata overlap produce 1,071 assignments: 357 assignments or 714 active minutes per reviewer, excluding adjudication, breaks, and administration.
 - The 128-image candidate catalog is assembled from licensed Wikimedia Commons records: 32 items per domain, all 128 assigned to RQ1 and the controlled Qwen3.5 comparison, 64 deterministically assigned to production metadata, and a nested 36 assigned to context ablation. Duplicate-image hashes are absent in the draft. A local reviewer workspace and import/export validator are ready. Atomic visible facts, alt examples, sensitivity checks, and final acceptance still require direct review by a project author; therefore `manifest-full-v1.jsonl` intentionally does not exist and Gate 4 is not cleared.
+- Product and evaluation CI workflows now enforce backend tests, OpenAPI drift, frontend lint/build, evaluation tests, JSON-schema drift, and licensed-pilot preflight. Ordinary GitHub runners never access the DGX or run model experiments.
 
 The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-item human-check recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
 
@@ -52,7 +53,7 @@ Terminology rule for all future code comments, reports, documentation, and manus
 
 ## Verification snapshot
 
-Verified locally on July 19, 2026:
+Verified locally on July 21, 2026:
 
 - evaluation suite: 51 tests passed after the full-study dataset workflow changes;
 - backend suite: 96 tests passed;
@@ -63,6 +64,7 @@ Verified locally on July 19, 2026:
 - Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; governance, sample-size, workload, model-identity, workspace, and telemetry blockers are closed; human dataset review/final manifest and listener-security evidence remain;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
+- required `$davneet-dgx-access` status check: key authentication and expected host succeeded; shared Ollama 0.24.0 was active; the three frozen study packages remained installed; no model was loaded; the all-interfaces listener and security blocker remain; no DGX mutation occurred.
 
 The deployed-stack preflight still warns that the five legacy screening model identities are not protocol-frozen. This is expected for the preserved pilot configuration and must be resolved for whichever conditions enter the frozen full study.
 

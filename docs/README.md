@@ -1,6 +1,6 @@
 # SEO Studio documentation index
 
-Last verified: July 19, 2026
+Last verified: July 21, 2026
 
 Public repository: [`franklinnweke/seo-studio-research`](https://github.com/franklinnweke/seo-studio-research)
 
