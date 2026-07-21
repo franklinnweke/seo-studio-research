@@ -65,7 +65,7 @@
     .check { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:start; }
     .check input { margin-top:3px; accent-color:var(--green); }
     .check-all { width:100%; margin-top:10px; }
-    .footer-nav { position:fixed; z-index:9; right:0; bottom:0; width:min(40.65%, 650px); display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:10px 22px; background:rgba(255,253,248,.97); border-top:1px solid var(--line); }
+    .footer-nav { position:fixed; z-index:9; right:0; bottom:0; width:clamp(390px,32.5vw,650px); display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:10px 22px; background:rgba(255,253,248,.97); border-top:1px solid var(--line); }
     .save-state { text-align:center; color:var(--green); font-size:12px; font-weight:800; }
     .save-state.error { color:var(--red); }
     .empty { max-width:720px; margin:80px auto; padding:28px; background:var(--panel); border:1px solid var(--line); }
@@ -86,7 +86,9 @@
       .inspector { padding:16px 13px 92px; }
       .suggestion { grid-template-columns:1fr; }
       .decision-buttons .mini-button { flex:1; }
-      .footer-nav { padding:9px 12px; }
+      .footer-nav { grid-template-columns:1fr 1fr; padding:9px 12px; }
+      .save-state { grid-column:1/-1; grid-row:1; }
+      .footer-nav .button { width:100%; }
     }
   </style>
 </head>
