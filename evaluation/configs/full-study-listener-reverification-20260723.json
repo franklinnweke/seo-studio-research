@@ -1,0 +1,26 @@
+{
+  "access_authority": "$davneet-dgx-access",
+  "checked_at": "2026-07-23T08:34:24-04:00",
+  "evidence_version": 1,
+  "expected_host_verified": true,
+  "external_ollama_version_endpoint_reachable": true,
+  "listener_binding": "all_interfaces",
+  "listener_security_verified": false,
+  "method": [
+    "required read-only status check",
+    "read-only external reachability request to the Ollama version endpoint"
+  ],
+  "mutations_performed": [],
+  "no_models_loaded": true,
+  "ollama_api_version": "0.24.0",
+  "ollama_service_active": true,
+  "preservation_boundary_observed": true,
+  "protocol_effect": "Gate 4 remains draft_blocked until an approved listener or firewall mitigation is applied and verified.",
+  "research_model_packages_present": [
+    "qwen2.5vl:3b",
+    "qwen3.5:latest",
+    "gemma3:12b"
+  ],
+  "sensitive_connection_details_included": false,
+  "status": "failed_private_access_boundary"
+}

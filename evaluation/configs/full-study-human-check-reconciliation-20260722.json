@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "record_type": "full_study_human_check_reconciliation",
+  "recorded_at": "2026-07-22",
+  "status": "replacement_required",
+  "authority": {
+    "final_decision_maker": "project-author",
+    "diagnostic_rater_authoritative": false,
+    "automatic_label_changes": false
+  },
+  "inputs": {
+    "initial_export": {
+      "original_filename": "full-study-human-check-completed (2).jsonl",
+      "sha256": "70db7af4b81dde1cd2fe40438b015f4757570f4b15cb118f85b5090518b269c1"
+    },
+    "rechecked_export": {
+      "repository_path": "evaluation/dataset/full-study-human-check-recheck-20260722.jsonl",
+      "original_filename": "full-study-human-check-completed (3).jsonl",
+      "sha256": "d080622a657ee8182b096b8e104856394e0b0c912817a282234461ce2406ecf5"
+    },
+    "internal_diagnostic": "evaluation/results/full-study-human-check-blind-diagnostic-20260722.json"
+  },
+  "population": {
+    "rows": 128,
+    "unique_candidate_ids": 128,
+    "accepted": 120,
+    "rejected": 8,
+    "pending": 0,
+    "domain_counts": {
+      "education_professional_service": 32,
+      "healthcare": 32,
+      "hospitality_local_service": 32,
+      "retail_product": 32
+    },
+    "purpose_counts": {
+      "complex": 16,
+      "decorative": 16,
+      "functional": 16,
+      "informative": 48,
+      "redundant": 16,
+      "text": 16
+    }
+  },
+  "reconciliation": {
+    "whole_image_items_rechecked": 8,
+    "whole_image_decisions_changed_to_rejected": 8,
+    "proposal_only_items_rechecked": 2,
+    "proposal_only_items_corrected": 2,
+    "all_required_check_flags_present": 128,
+    "notes_present": 128,
+    "note_provenance": "Agent-assisted wording that records the project-author decision or completion confirmation; excluded from substantive analysis."
+  },
+  "rejected_candidates": [
+    {
+      "candidate_id": "education-professional-service-04-p45407708",
+      "domain": "education_professional_service",
+      "query_id": "education-hero",
+      "purpose": "decorative",
+      "reason": "High-altitude municipality view does not resolve campus buildings or study spaces.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "context_ablation": false
+      }
+    },
+    {
+      "candidate_id": "healthcare-05-p31233936",
+      "domain": "healthcare",
+      "query_id": "booking-action",
+      "purpose": "functional",
+      "reason": "Nineteenth-century caricature is a domain and purpose mismatch for a modern healthcare booking placement.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "context_ablation": false
+      }
+    },
+    {
+      "candidate_id": "healthcare-07-p17612961",
+      "domain": "healthcare",
+      "query_id": "clinical-complex",
+      "purpose": "complex",
+      "reason": "Severe blur, harsh lighting, low usable detail, and poor fit for the proposed clinical placement.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "context_ablation": true
+      }
+    },
+    {
+      "candidate_id": "healthcare-08-p15423478",
+      "domain": "healthcare",
+      "query_id": "waiting-area",
+      "purpose": "redundant",
+      "reason": "Railway-station waiting room is a healthcare-domain mismatch.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "context_ablation": true
+      }
+    },
+    {
+      "candidate_id": "hospitality-local-service-04-p11211711",
+      "domain": "hospitality_local_service",
+      "query_id": "hospitality-hero",
+      "purpose": "decorative",
+      "reason": "Derelict interior with rubble and construction debris is unusable as a hospitality hero image.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "context_ablation": false
+      }
+    },
+    {
+      "candidate_id": "hospitality-local-service-05-p25376838",
+      "domain": "hospitality_local_service",
+      "query_id": "reservation-action",
+      "purpose": "functional",
+      "reason": "Close-up coffee-cup snapshot is a poor fit for the general reservation action.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "context_ablation": true
+      }
+    },
+    {
+      "candidate_id": "hospitality-local-service-08-p27554645",
+      "domain": "hospitality_local_service",
+      "query_id": "guest-area",
+      "purpose": "redundant",
+      "reason": "Exterior building wall does not show a guest seating or common area.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": false,
+        "context_ablation": false
+      }
+    },
+    {
+      "candidate_id": "retail-product-06-p104282087",
+      "domain": "retail_product",
+      "query_id": "store-signage",
+      "purpose": "text",
+      "reason": "Ghost sign on a converted residential storefront is a poor fit for the active retail-guide placement.",
+      "inherit_analysis_populations": {
+        "rq1_claims": true,
+        "controlled_qwen35": true,
+        "production_metadata": false,
+        "context_ablation": false
+      }
+    }
+  ],
+  "proposal_only_corrections": [
+    {
+      "candidate_id": "healthcare-01-p192668490",
+      "result": "accepted_with_revised_visible_facts_and_alt_examples"
+    },
+    {
+      "candidate_id": "retail-product-04-p147675226",
+      "result": "accepted_with_second_proposal_rejected_and_corrected_visible_fact_added"
+    }
+  ],
+  "importer_result": {
+    "applied": false,
+    "outcome": "expected_rejection",
+    "reason": "The importer prohibits reducing the frozen 128-item population and requires same-stratum replacements before application."
+  },
+  "next_action": "Select and human-check one additive replacement for each rejected domain/query/purpose stratum. Each accepted replacement inherits the rejected candidate's preassigned analysis-population flags. Then assemble and validate a 128-accepted-item application artifact."
+}

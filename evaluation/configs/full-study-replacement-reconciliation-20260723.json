@@ -1,0 +1,165 @@
+{
+  "analysis_version": 1,
+  "assignment_seed": 1721844270,
+  "catalog": {
+    "path": "dataset/full-study-catalog.json",
+    "sha256": "c3bcdc56c38a0716e3e7ba04a240c01e453a5ba8fa7a56d75d783230a68d3cd9"
+  },
+  "checker_role": "project-author",
+  "final_check": {
+    "path": "dataset/full-study-human-check-final-20260723.jsonl",
+    "sha256": "4a59df585780a98ec24f7e5c9335a803be19ef9774ddd8e1d4b844c60f5e4f29"
+  },
+  "final_items": 128,
+  "metadata_normalization": {
+    "affected_candidate_ids": [
+      "healthcare-05-p24034674",
+      "healthcare-07-p33628031",
+      "hospitality-local-service-05-p1742033"
+    ],
+    "field": "license_url",
+    "reason": "Wikimedia Commons returns no LicenseUrl for these public-domain records; the evaluation materializer uses the canonical Commons public-domain documentation URL.",
+    "substantive_human_decisions_changed": false,
+    "value": "https://commons.wikimedia.org/wiki/Commons:Copyright_tags#Public_domain"
+  },
+  "prior_check": {
+    "path": "dataset/full-study-human-check-recheck-20260722.jsonl",
+    "sha256": "d080622a657ee8182b096b8e104856394e0b0c912817a282234461ce2406ecf5"
+  },
+  "raw_replacement_check": {
+    "path": "dataset/full-study-human-check-replacements-completed-20260723.jsonl",
+    "sha256": "c1225130387c9d0ce1f35b518ca549c4cb8e31e7ebacff6f0877885e263dcd3a"
+  },
+  "replacement_check": {
+    "path": "dataset/full-study-human-check-replacements-completed-20260723.jsonl",
+    "sha256": "c1225130387c9d0ce1f35b518ca549c4cb8e31e7ebacff6f0877885e263dcd3a"
+  },
+  "replacement_template": {
+    "path": "dataset/full-study-human-check-replacements.jsonl",
+    "sha256": "e5edfa164d328e66ad30a42b7f4aac39eb70b78e202afd5edf40ecd310f62cfd"
+  },
+  "replacements": [
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": false,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "healthcare-05-p24034674",
+      "replacement_for": "healthcare-05-p31233936",
+      "stratum": {
+        "domain": "healthcare",
+        "purpose": "functional",
+        "query_id": "booking-action"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "healthcare-07-p33628031",
+      "replacement_for": "healthcare-07-p17612961",
+      "stratum": {
+        "domain": "healthcare",
+        "purpose": "complex",
+        "query_id": "clinical-complex"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "healthcare-08-p25704217",
+      "replacement_for": "healthcare-08-p15423478",
+      "stratum": {
+        "domain": "healthcare",
+        "purpose": "redundant",
+        "query_id": "waiting-area"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": false,
+        "controlled_qwen35": true,
+        "production_metadata": false,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "retail-product-06-p131568312",
+      "replacement_for": "retail-product-06-p104282087",
+      "stratum": {
+        "domain": "retail_product",
+        "purpose": "text",
+        "query_id": "store-signage"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": false,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "hospitality-local-service-04-p129550452",
+      "replacement_for": "hospitality-local-service-04-p11211711",
+      "stratum": {
+        "domain": "hospitality_local_service",
+        "purpose": "decorative",
+        "query_id": "hospitality-hero"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": true,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "hospitality-local-service-05-p1742033",
+      "replacement_for": "hospitality-local-service-05-p25376838",
+      "stratum": {
+        "domain": "hospitality_local_service",
+        "purpose": "functional",
+        "query_id": "reservation-action"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": false,
+        "controlled_qwen35": true,
+        "production_metadata": false,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "hospitality-local-service-08-p81593039",
+      "replacement_for": "hospitality-local-service-08-p27554645",
+      "stratum": {
+        "domain": "hospitality_local_service",
+        "purpose": "redundant",
+        "query_id": "guest-area"
+      }
+    },
+    {
+      "inherited_analysis_populations": {
+        "context_ablation": false,
+        "controlled_qwen35": true,
+        "production_metadata": true,
+        "rq1_claims": true
+      },
+      "replacement_candidate_id": "education-professional-service-04-p111439436",
+      "replacement_for": "education-professional-service-04-p45407708",
+      "stratum": {
+        "domain": "education_professional_service",
+        "purpose": "decorative",
+        "query_id": "education-hero"
+      }
+    }
+  ],
+  "reviewed_at": "2026-07-23",
+  "status": "ready"
+}

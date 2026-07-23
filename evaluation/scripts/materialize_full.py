@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 import shutil
+import time
 from typing import Any
 
 from materialize_pilot import fetch_commons_metadata_batch, materialize_item
@@ -27,12 +28,25 @@ def main() -> int:
     parser.add_argument("--retrieved-at", required=True, help="ISO-8601 retrieval timestamp")
     parser.add_argument("--force", action="store_true", help="Replace generated full-study artifacts")
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reuse only images with matching partial evidence from this retrieval timestamp",
+    )
+    parser.add_argument(
+        "--request-delay-seconds",
+        type=float,
+        default=1.0,
+        help="Delay between Commons media requests to avoid rate limiting",
+    )
+    parser.add_argument(
         "--draft",
         action="store_true",
         help="Allow pending visual review and write only the non-executable draft manifest",
     )
     args = parser.parse_args()
     datetime.fromisoformat(args.retrieved_at.replace("Z", "+00:00"))
+    if args.request_delay_seconds < 0:
+        raise ValueError("request-delay-seconds cannot be negative")
 
     catalog = json.loads(CATALOG_PATH.read_text())
     if not isinstance(catalog, list) or len(catalog) != 128:
@@ -68,8 +82,20 @@ def main() -> int:
     sources: dict[int, dict[str, str]] = {}
     for start in range(0, len(pageids), 50):
         sources.update(fetch_commons_metadata_batch(pageids[start : start + 50]))
+        if args.request_delay_seconds:
+            time.sleep(args.request_delay_seconds)
     rows: list[dict[str, Any]] = []
     for entry in catalog:
+        reuse_existing_image = args.draft or (
+            args.resume
+            and _has_matching_partial_evidence(
+                entry,
+                image_dir=image_dir,
+                license_dir=license_dir,
+                context_dir=context_dir,
+                retrieved_at=args.retrieved_at,
+            )
+        )
         row = materialize_item(
             entry,
             image_dir,
@@ -77,8 +103,10 @@ def main() -> int:
             context_dir,
             args.retrieved_at,
             sources,
-            reuse_existing_image=args.draft,
+            reuse_existing_image=reuse_existing_image,
         )
+        if args.request_delay_seconds and not reuse_existing_image:
+            time.sleep(args.request_delay_seconds)
         row["split"] = "full"
         if args.draft:
             row["preprocessing"] = "wikimedia_candidate_thumbnail_640_draft_v1"
@@ -101,6 +129,7 @@ def main() -> int:
             row["analysis_populations"]["production_metadata"] for row in rows
         ),
         "retrieved_at": args.retrieved_at,
+        "resumed": args.resume,
         "rq1_items": sum(row["analysis_populations"]["rq1_claims"] for row in rows),
         "seed": SEED,
     }
@@ -110,6 +139,38 @@ def main() -> int:
     )
     print(json.dumps(summary, sort_keys=True))
     return 0
+
+
+def _has_matching_partial_evidence(
+    entry: dict[str, Any],
+    *,
+    image_dir: Path,
+    license_dir: Path,
+    context_dir: Path,
+    retrieved_at: str,
+) -> bool:
+    item_id = entry.get("id")
+    filename = entry.get("filename")
+    context = entry.get("page_context")
+    if not isinstance(item_id, str) or not isinstance(filename, str):
+        return False
+    if not isinstance(context, dict):
+        return False
+    image_path = image_dir / filename
+    license_path = license_dir / f"{item_id}.json"
+    context_path = context_dir / f"{item_id}.json"
+    if not all(path.is_file() for path in (image_path, license_path, context_path)):
+        return False
+    try:
+        license_payload = json.loads(license_path.read_text())
+        context_payload = json.loads(context_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return False
+    return (
+        license_payload.get("item_id") == item_id
+        and license_payload.get("retrieved_at") == retrieved_at
+        and context_payload.get("id") == context.get("id")
+    )
 
 
 def _validate_check_states(catalog: list[dict[str, Any]], *, allow_pending: bool) -> None:

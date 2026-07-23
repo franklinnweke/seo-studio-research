@@ -27,7 +27,6 @@ def test_current_protocol_draft_is_structurally_valid_but_blocked(tmp_path: Path
     assert summary.verified_prompt_hashes == 3
     assert summary.blockers == [
         "protocol status is draft",
-        "full-study dataset manifest is not materialized",
         "listener security verification is pending",
     ]
     assert "listener security verification is pending" in summary.blockers
@@ -69,6 +68,10 @@ def test_protocol_contract_rejects_domain_total_mismatch(tmp_path: Path) -> None
 
 def test_protocol_audit_rejects_empty_materialized_manifest(tmp_path: Path) -> None:
     payload = json.loads(PROTOCOL.read_text())
+    payload["dataset"]["manifest_sha256"] = (
+        "e3b0c44298fc1c149afbf4c8996fb924"
+        "27ae41e4649b934ca495991b7852b855"
+    )
     invalid = write_protocol_fixture(tmp_path, payload)
     manifest = invalid.parents[1] / payload["dataset"]["manifest_path"]
     manifest.parent.mkdir(parents=True)
@@ -78,6 +81,33 @@ def test_protocol_audit_rejects_empty_materialized_manifest(tmp_path: Path) -> N
 
     assert summary.status == "invalid"
     assert "Dataset manifest is empty" in "\n".join(summary.errors)
+
+
+def test_protocol_audit_rejects_manifest_hash_drift(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    payload["dataset"]["manifest_sha256"] = "0" * 64
+    invalid = write_protocol_fixture(tmp_path, payload)
+    manifest = invalid.parents[1] / payload["dataset"]["manifest_path"]
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("{}\n")
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "full-study dataset manifest SHA-256 mismatch" in summary.errors
+
+
+def test_protocol_audit_rejects_manifest_path_escape(tmp_path: Path) -> None:
+    payload = json.loads(PROTOCOL.read_text())
+    payload["dataset"]["manifest_path"] = "../../outside-manifest.jsonl"
+    invalid = write_protocol_fixture(tmp_path, payload)
+    outside = invalid.parents[2] / "outside-manifest.jsonl"
+    outside.write_text("{}\n")
+
+    summary, _ = audit_protocol_freeze(invalid, tmp_path / "audit.json")
+
+    assert summary.status == "invalid"
+    assert "full-study dataset manifest path escapes evaluation root" in summary.errors
 
 
 def test_protocol_audit_rejects_sample_size_decision_hash_drift(tmp_path: Path) -> None:

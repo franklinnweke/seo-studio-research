@@ -1,12 +1,11 @@
 {
   "blockers": [
     "protocol status is draft",
-    "full-study dataset manifest is not materialized",
     "listener security verification is pending"
   ],
   "errors": [],
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_sha256": "334f415e6383c90095f50baa552b01e4c738e17d4a254cf35454d144ec2978ad",
+  "protocol_sha256": "64b076be00b3e2e03b12a68c8caa7a6a518c23a6c10cf5c2d8d38b724b1dc7bc",
   "status": "draft_blocked",
   "verified_prompt_hashes": 3
 }

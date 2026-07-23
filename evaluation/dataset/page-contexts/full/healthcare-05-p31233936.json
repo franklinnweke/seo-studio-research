@@ -1,0 +1,11 @@
+{
+  "audience": "Patients and caregivers",
+  "functional_action": "Open the relevant service or registration page",
+  "id": "healthcare-05-p31233936-context",
+  "language": "en-CA",
+  "link_destination": "/actions/healthcare-05-p31233936",
+  "nearby_text": "Selecting the image opens the relevant service or registration action.",
+  "page_title": "Northstar Health Services",
+  "page_url": "https://example.invalid/full-study/healthcare/healthcare-05-p31233936",
+  "section_heading": "Booking Action"
+}

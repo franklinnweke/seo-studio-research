@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "record_type": "full_study_human_check_provenance",
+  "recorded_at": "2026-07-22",
+  "dataset_population": 128,
+  "reviewer_role": "project-author",
+  "decision_provenance": {
+    "image_acceptance": "manually_reviewed",
+    "visible_fact_decisions": "manually_reviewed",
+    "forbidden_boundary_decisions": "manually_reviewed",
+    "alt_example_decisions": "manually_reviewed",
+    "purpose_fit_confirmation": "manually_reviewed",
+    "privacy_and_sensitivity_confirmation": "manually_reviewed",
+    "duplicate_and_quality_confirmation": "manually_reviewed",
+    "source_and_license_confirmation": "manually_reviewed"
+  },
+  "note_provenance": {
+    "generation": "agent_assisted",
+    "scope": "mechanical completion confirmation only",
+    "influenced_review_decisions": false,
+    "eligible_as_observational_evidence": false,
+    "analysis_policy": "Exclude the note text from substantive human-check analysis. It may be retained only as an audit stamp."
+  },
+  "completed_export": {
+    "original_filename": "full-study-human-check-completed (2).jsonl",
+    "sha256": "70db7af4b81dde1cd2fe40438b015f4757570f4b15cb118f85b5090518b269c1",
+    "rows": 128,
+    "unique_candidate_ids": 128,
+    "accepted": 128,
+    "rejected": 0,
+    "pending": 0,
+    "repository_import_status": "pending_targeted_diagnostic_recheck"
+  },
+  "validation": {
+    "no_write_import_status": "ready",
+    "structural_custom_field_audit": "passed",
+    "notes_present": 128,
+    "notes_substantive": false
+  },
+  "research_use": {
+    "status": "human_generated_with_disclosed_mechanical_note_assistance",
+    "publication_policy": "Describe all substantive decisions as project-author human checks. Disclose the narrow agent-assisted note generation if the notes are retained in released evidence.",
+    "caveat": "This provenance record does not by itself freeze or apply the dataset."
+  }
+}

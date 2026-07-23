@@ -69,3 +69,12 @@ frontend/*.tsbuildinfo
 # Temporary files
 /tmp/
 /temp/
+
+# Local browser QA, rendered previews, and submission bundles
+/.playwright-mcp/
+/output/
+/submissions/
+/full-study-human-check-click-ui-final.png
+/full-study-human-check-click-workflow.png
+/seo-studio-manuscript-desktop.png
+/seo-studio-manuscript-mobile.png

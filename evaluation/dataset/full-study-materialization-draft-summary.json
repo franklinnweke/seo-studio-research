@@ -1,0 +1,11 @@
+{
+  "catalog": "dataset/full-study-catalog.json",
+  "context_ablation_items": 36,
+  "draft": true,
+  "items": 128,
+  "manifest": "dataset/manifest-full-v1.draft.jsonl",
+  "production_metadata_items": 64,
+  "retrieved_at": "2026-07-19T17:30:00Z",
+  "rq1_items": 128,
+  "seed": 1721844270
+}
