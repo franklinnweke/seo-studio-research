@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "protocol_id": "seo-studio-full-study-v1",
+  "protocol_version": "2.3-gate4-draft-v3",
+  "status": "frozen",
+  "canonical_document": "../docs/publication/protocol-freeze-v1.md",
+  "model_identities": [
+    {
+      "model_id": "qwen25vl-3b-baseline",
+      "expected_digest": "fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+      "role": "below-gate reference vision condition",
+      "identity_frozen": true,
+      "live_reverification_required": false
+    },
+    {
+      "model_id": "qwen35-9b",
+      "expected_digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+      "role": "eligible vision challenger, fixed writer, and controlled direct baseline",
+      "identity_frozen": true,
+      "live_reverification_required": false
+    },
+    {
+      "model_id": "gemma3-12b",
+      "expected_digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
+      "role": "eligible deployed-stack legacy-generation vision challenger",
+      "identity_frozen": true,
+      "live_reverification_required": false
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "vision-facts-v1",
+      "path": "prompts/vision-facts-v1.txt",
+      "sha256": "333e98e1e24a63030674ae39066b48a0eb52e4b6affd4a7b86fb23dd8a7a43a3"
+    },
+    {
+      "prompt_id": "context-writer-v1",
+      "path": "prompts/context-writer-v1.txt",
+      "sha256": "21e6bc16b4929c5e274354dc4a8148d8b3744e1c24c1b146480790a2776a7ae4"
+    },
+    {
+      "prompt_id": "direct-metadata-v1",
+      "path": "prompts/direct-metadata-v1.txt",
+      "sha256": "0fc08eeae5d9d2908ae5fa0d1d337629e44493c4957c604851ed5450672bb3b4"
+    }
+  ],
+  "dataset": {
+    "pilot_disposition": "excluded_from_primary_inference",
+    "split": "full",
+    "manifest_path": "dataset/manifest-full-v1.jsonl",
+    "manifest_sha256": "1eb4842442fafb80642d43bdc74252d5cfdfbf75bdcf52a476975ca921f87e56",
+    "provisional_items": 128,
+    "final_items": 128,
+    "primary_claim_images": 128,
+    "production_metadata_images": 64,
+    "context_ablation_images": 36,
+    "domains": {
+      "healthcare": 32,
+      "retail_product": 32,
+      "hospitality_local_service": 32,
+      "education_professional_service": 32
+    },
+    "sample_size_approved": true,
+    "analysis_intent": "estimation_first",
+    "sample_size_decision_path": "configs/full-study-sample-size-decision-20260719.json",
+    "sample_size_decision_sha256": "b5f40ea3d70c5502af6b2ca9ee578ebd490df664466d5d0668756a7b45ca8e91"
+  },
+  "execution": {
+    "repeats": 3,
+    "human_repeat": 1,
+    "randomization_seed": 1721844270,
+    "temperature": 0,
+    "thinking_mode": "disabled",
+    "context_window": 8192,
+    "facts_output_token_limit": 768,
+    "metadata_output_token_limit": 420,
+    "per_attempt_timeout_seconds": 240,
+    "keep_alive": "10m",
+    "hidden_retries_allowed": 0
+  },
+  "meaningful_effects": [
+    {
+      "rq_id": "RQ1",
+      "metric": "hallucinated_claim_rate",
+      "threshold": 0.05,
+      "unit": "absolute proportion",
+      "approved": true
+    },
+    {
+      "rq_id": "RQ2",
+      "metric": "acceptable_disposition_rate",
+      "threshold": 0.1,
+      "unit": "absolute proportion",
+      "approved": true
+    },
+    {
+      "rq_id": "RQ3",
+      "metric": "contextual_usefulness_rating",
+      "threshold": 0.5,
+      "unit": "points on the five-point scale",
+      "approved": true
+    }
+  ],
+  "approvals": {
+    "private_supervisor_record_complete": true,
+    "authorship_credit_agreed": true,
+    "publication_route_confirmed": true,
+    "ethics_determination_recorded": true,
+    "data_and_network_policy_confirmed": true,
+    "reviewer_burden_approved": true,
+    "full_study_execution_approved": true
+  },
+  "infrastructure": {
+    "runtime_version": "0.24.0",
+    "runtime_reverified": true,
+    "approved_access_path": "ssh_tunnel",
+    "listener_binding": "all_interfaces",
+    "listener_security_verified": false,
+    "dedicated_workspace_verified": true,
+    "telemetry_path_verified": true,
+    "telemetry_scope": [
+      "Ollama native load, prompt-evaluation, generation, token, and wall durations",
+      "process and system memory",
+      "filesystem capacity"
+    ],
+    "telemetry_limitations": [
+      "nvidia-smi is unavailable on the current driver path",
+      "no complete GPU VRAM claim",
+      "no measured energy claim without a validated sensor or wall meter"
+    ],
+    "evidence_path": "configs/full-study-runtime-reverification-20260719.json"
+  },
+  "operational_readiness": {
+    "study_config_path": "configs/full-study.toml",
+    "execution_plan_path": "configs/full-study-execution-plan-v1.jsonl",
+    "execution_plan_sha256": "87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc",
+    "execution_plan_verified": true,
+    "checkpoint_resume_verified": true,
+    "stop_conditions_verified": true,
+    "projected_dgx_hours": 34.0,
+    "reserved_dgx_hours": 40.0,
+    "projected_run_evidence_gib": 0.1,
+    "minimum_free_storage_gib": 5.0,
+    "backup_location_reference": "supervisor-backup-01",
+    "backup_verified": true,
+    "evidence_path": "configs/full-study-operational-readiness-v1.json",
+    "evidence_sha256": "36c1a717c1d5013f3cab96402656de945a735dbc89a415fb4dc85ada5d4c5883"
+  },
+  "run_accounting": {
+    "provisional_final_images": 128,
+    "primary_claim_images": 128,
+    "production_metadata_images": 64,
+    "context_ablation_images": 36,
+    "finalist_models": 3,
+    "repeats": 3,
+    "vision_fact_calls": 1152,
+    "decomposed_writer_calls": 1152,
+    "direct_metadata_calls": 384,
+    "incremental_context_calls": 324,
+    "total_model_calls": 3012,
+    "unique_human_review_items": 876,
+    "total_reviewer_assignments": 1071,
+    "reviewers": 3,
+    "rq1_overlap_rate": 0.25,
+    "metadata_overlap_rate": 0.2,
+    "review_seconds_per_item": 120,
+    "projected_minutes_per_reviewer": 714,
+    "adjudication_minutes_included": false
+  },
+  "condition_ids": [
+    "facts-qwen25vl-3b",
+    "facts-qwen35-9b",
+    "facts-gemma3-12b",
+    "decomposed-qwen25vl-3b-to-qwen35",
+    "decomposed-qwen35-to-qwen35",
+    "decomposed-gemma3-12b-to-qwen35",
+    "direct-qwen35-full-context",
+    "context-selected-vision-visual-only",
+    "context-selected-vision-brand-only",
+    "context-selected-vision-page-purpose",
+    "context-selected-vision-brand-page-purpose"
+  ],
+  "primary_outcomes": {
+    "RQ1": "hallucinated-claim rate on every claim in the complete 128-image primary population",
+    "RQ2": "accept-unchanged-or-minor-edit disposition rate",
+    "RQ3": "contextual-usefulness rating",
+    "RQ4": "predeclared quality-reliability-latency-operational-cost Pareto position"
+  }
+}

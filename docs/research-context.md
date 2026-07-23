@@ -8,7 +8,7 @@ Public repository: `https://github.com/franklinnweke/seo-studio-research`
 
 Default release branch: `main`; source development lineage: `codex/research-context-aware-metadata`
 
-Current gate: Gate 3 complete; the Gate 4 dataset, deterministic execution plan, checkpoint controls, and separate backup are ready, while protocol freeze remains blocked by listener-security verification and the deliberate draft-to-frozen transition
+Current gate: Gate 4 frozen and `freeze_ready`; Gate 5 measured primary-generation collection is next
 
 ## Project in one paragraph
 
@@ -40,7 +40,7 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Final rubric-v1.1 recalibration: identical 76-item human-check inventories for R1, R2, and adjudication; 98.7% exact human-check label agreement; nominal Cohen's kappa 0.923; 91.7% exact valid-output disposition agreement; linear-weighted kappa 0.860; median 120 seconds per item for each reviewer.
 - Analysis version 2 distinguishes nominal human-check label kappa from linear-weighted ordinal kappa and returns safe invalid/non-isomorphic reports.
 - Working article scaffold at `docs/publication/seo-studio-manuscript.html`, with primary results explicitly pending.
-- Structurally validated Gate 4 draft at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and blocker-reporting audit command. It is not frozen and does not authorize execution.
+- Frozen Gate 4 protocol at `docs/publication/protocol-freeze-v1.md` with a machine-readable contract and zero-blocker audit.
 - All governance approvals were relayed on July 19, 2026 and preserved in a sanitized public record. Exact model digests and Ollama 0.24.0 were reverified read-only through `$davneet-dgx-access`; no mutation occurred.
 - The pre-data sample-size sensitivity found that the original 60-image RQ1 subset could not support the approved five-point target under the displayed scenarios. Before primary output inspection, the project lead selected a practical estimation-first design: 128 licensed images balanced 32 per domain, all 128 in RQ1 and the controlled Qwen3.5 comparison, 64 in the other production metadata comparisons, and 36 in the context ablation.
 - The approved design entails 3,012 planned stage cells and 876 unique human-check items. With three independently calibrated reviewers, 25% RQ1 overlap and 20% metadata overlap produce 1,071 assignments: 357 assignments or 714 active minutes per reviewer, excluding adjudication, breaks, and administration. Invalid upstream facts suppress the corresponding writer request while retaining an explicit failed downstream cell.
@@ -76,23 +76,20 @@ Verified locally on July 23, 2026:
 - final manifest: 128 rows, 128 unique IDs, 128 unique image hashes, exact 32-per-domain balance, SHA-256 `1eb4842442fafb80642d43bdc74252d5cfdfbf75bdcf52a476975ca921f87e56`;
 - full-study preflight: `ready`, 128 items checked, three selected models checked, zero errors and zero warnings;
 - execution-plan validation: `valid`, 3,012 cells checked, zero errors, SHA-256 `87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc`;
-- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; only `protocol status is draft` and `listener security verification is pending` remain;
+- Gate 4 audit: `freeze_ready`, three verified prompt hashes, zero blockers, and zero errors;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
-- required `$davneet-dgx-access` status check: key authentication and expected host succeeded; shared Ollama 0.24.0 was active; the three frozen study packages remained installed; no model was loaded; the all-interfaces version endpoint was externally reachable; the security blocker remains; no DGX mutation occurred. Sanitized evidence is in `evaluation/configs/full-study-listener-reverification-20260723.json`.
+- required `$davneet-dgx-access` status check: key authentication and expected host succeeded; shared Ollama 0.24.0 was active; the three frozen study packages remained installed; no model was loaded; and no DGX mutation occurred. The observed all-interface listener remains operational context rather than a scientific freeze criterion. Sanitized evidence is in `evaluation/configs/full-study-listener-reverification-20260723.json`.
 
 The deployed-stack preflight still warns that the five legacy screening model identities are not protocol-frozen. This is expected for the preserved pilot configuration and must be resolved for whichever conditions enter the frozen full study.
 
 ## Current research boundary
 
-Technical calibration has passed; the review protocol is feasible; and the final dataset, deterministic plan, and checkpoint controls are ready. Full-study execution remains prohibited until the protocol audit reports `freeze_ready`.
+Technical calibration has passed; the review protocol is feasible; and the final dataset, deterministic plan, checkpoint controls, and protocol freeze are ready. Gate 5 may proceed in bounded append-only collection segments.
 
-Outstanding technical freeze work:
+Immediate work: start primary-generation collection through the approved SSH tunnel, validate each append-only segment, and copy completed evidence to the verified backup destination.
 
-- resolve the failed private listener-reachability check through an approved mitigation; the dedicated workspace and limited non-GPU telemetry path are verified;
-- deliberately change the protocol from draft to frozen only after listener-security evidence is recorded, then regenerate the audit and require `freeze_ready`.
-
-The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. The study is estimation-first: report effect sizes and uncertainty, and do not reinterpret an underpowered null as evidence of equivalence.
+The frozen Gate 4 design resolves the hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. The study is estimation-first: report effect sizes and uncertainty, and do not reinterpret an underpowered null as evidence of equivalence.
 
 ## Safety, privacy, and ownership
 
@@ -118,5 +115,5 @@ The Gate 4 draft resolves the design hierarchy: five original deployed-stack con
 3. Inspect `git status`, the active branch, recent commits, and existing uncommitted work.
 4. Treat calibration as final at 76 human-check items, 98.7% exact agreement, and Cohen's kappa 0.923.
 5. Do not name a winning model or infer primary quality results.
-6. Treat the final 128 accepted items, preserved eight rejections, eight additive same-stratum replacements, exact 32-per-domain balance, and frozen 128/64/36 populations as final dataset evidence. Do not rematerialize or substitute an image without an additive protocol amendment, and do not run the full study until Gate 4 is explicitly frozen.
+6. Treat the final 128 accepted items, preserved eight rejections, eight additive same-stratum replacements, exact 32-per-domain balance, and frozen 128/64/36 populations as final dataset evidence. Do not rematerialize or substitute an image without an additive protocol amendment.
 7. For any DGX action, invoke `$davneet-dgx-access` and preserve the no-deletion boundary.

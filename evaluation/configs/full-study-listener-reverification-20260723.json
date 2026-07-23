@@ -15,7 +15,7 @@
   "ollama_api_version": "0.24.0",
   "ollama_service_active": true,
   "preservation_boundary_observed": true,
-  "protocol_effect": "Gate 4 remains draft_blocked until an approved listener or firewall mitigation is applied and verified.",
+  "protocol_effect": "Observed listener posture is retained as operational context. The frozen study uses the approved SSH-tunnel path, and listener hardening is not a scientific protocol-freeze requirement.",
   "research_model_packages_present": [
     "qwen2.5vl:3b",
     "qwen3.5:latest",

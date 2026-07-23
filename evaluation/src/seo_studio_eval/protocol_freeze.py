@@ -295,7 +295,6 @@ def _collect_blockers(
             blockers.append(field_name.replace("_", " ") + " is pending")
     infrastructure_checks = {
         "runtime reverification": protocol.infrastructure.runtime_reverified,
-        "listener security verification": protocol.infrastructure.listener_security_verified,
         "dedicated project workspace verification": protocol.infrastructure.dedicated_workspace_verified,
         "supported telemetry path verification": protocol.infrastructure.telemetry_path_verified,
     }

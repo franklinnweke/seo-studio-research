@@ -5,7 +5,7 @@ from seo_studio_eval.sample_size import build_sample_size_sensitivity
 
 
 EVALUATION_ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.draft.json"
+PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.json"
 
 
 def test_sample_size_sensitivity_is_deterministic_and_pre_data(tmp_path: Path) -> None:

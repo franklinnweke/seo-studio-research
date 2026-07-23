@@ -15,7 +15,7 @@ This page is the entry point for project documentation. Chat history is useful b
 | [Compact research context](research-context.md) | Fast handoff containing the current scope, evidence, decisions, gate, and safety boundaries | Current-state summary; update after every gate |
 | [Research next steps](research-next-steps.md) | Ordered execution checklist from the present gate through publication | Operational view derived from the master plan |
 | [Research master architecture](publication-research-architecture.md) | Complete architecture, protocol, governance, paper plan, and definitions of done | Canonical project and research source of truth |
-| [Gate 4 protocol-freeze draft](publication/protocol-freeze-v1.md) | Exact proposed full-study conditions, controls, accounting, statistics, and remaining blockers | Operational draft; not executable until the audit reports `freeze_ready` |
+| [Frozen Gate 4 protocol](publication/protocol-freeze-v1.md) | Exact full-study conditions, controls, accounting, statistics, and amendment rule | Frozen operational authority |
 | [Working manuscript](publication/seo-studio-manuscript.html) | Evidence-honest article draft with pending primary-results sections | Draft only; generated evidence outranks prose |
 
 Recommended reading order for a new person or agent:
@@ -31,15 +31,15 @@ Recommended reading order for a new person or agent:
 | Artifact | What it establishes |
 |---|---|
 | [Evaluation harness guide](../evaluation/README.md) | Commands, evidence boundaries, immutable-run rules, and completed compatibility stages |
-| [Machine-readable Gate 4 draft](../evaluation/configs/full-study-protocol-v1.draft.json) | Auditable models, prompt hashes, dataset plan, execution controls, outcomes, accounting, and approvals |
-| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Zero-error blocker report; only draft status and listener-security verification remain |
+| [Machine-readable Gate 4 protocol](../evaluation/configs/full-study-protocol-v1.json) | Frozen models, prompt hashes, dataset plan, execution controls, outcomes, accounting, and approvals |
+| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Machine verification that the protocol is `freeze_ready` |
 | [Deterministic execution plan](../evaluation/configs/full-study-execution-plan-v1.jsonl) | Exact seeded order and dependencies for all 3,012 planned stage cells |
 | [Execution-plan validation](../evaluation/results/full-study-execution-plan-validation-v1.json) | Confirms byte-stable regeneration, exact cell counts, and zero plan errors |
 | [Operational-readiness evidence](../evaluation/configs/full-study-operational-readiness-v1.json) | Pilot-derived runtime/storage estimates, checkpoint controls, stop conditions, and verified backup reference |
-| [Infrastructure update](../evaluation/configs/full-study-infrastructure-update-20260723.json) | Sanitized DGX backup verification, SSH-tunnel confirmation, and remaining privileged listener blocker |
+| [Infrastructure update](../evaluation/configs/full-study-infrastructure-update-20260723.json) | Sanitized DGX backup verification, SSH-tunnel confirmation, and observed listener posture |
 | [All-approvals relay](../evaluation/configs/full-study-approval-20260719.json) | Sanitized record of governance approvals; private names and communications remain outside Git |
 | [Full-study runtime reverification](../evaluation/configs/full-study-runtime-reverification-20260719.json) | Read-only Ollama/runtime and exact three-model digest evidence |
-| [Listener-security reverification](../evaluation/configs/full-study-listener-reverification-20260723.json) | Sanitized read-only confirmation that the all-interface Ollama listener remains externally reachable; Gate 4 remains blocked |
+| [Listener-state reverification](../evaluation/configs/full-study-listener-reverification-20260723.json) | Sanitized read-only confirmation of the observed all-interface Ollama listener; operational context only |
 | [Sample-size sensitivity](publication/sample-size-sensitivity-v1.md) | Pre-data calculation testing whether the provisional population can resolve the approved effects |
 | [Sample-size evidence JSON](../evaluation/results/full-study-sample-size-sensitivity-v1.json) | Reproducible machine-readable sensitivity results and the recorded estimation-first selection |
 | [Approved 128-image decision](../evaluation/configs/full-study-sample-size-decision-20260719.json) | Pre-data selection of the practical estimation-first design, domain allocation, review populations, workload, and inferential limits |

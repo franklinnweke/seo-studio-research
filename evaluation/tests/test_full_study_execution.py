@@ -13,7 +13,7 @@ from seo_studio_eval.records import attempt_record_paths
 
 
 EVALUATION_ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.draft.json"
+PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.json"
 CONFIG = EVALUATION_ROOT / "configs" / "full-study.toml"
 PINNED_PLAN = EVALUATION_ROOT / "configs" / "full-study-execution-plan-v1.jsonl"
 
@@ -246,9 +246,14 @@ def test_collection_refuses_draft_protocol_before_network_use(
     monkeypatch.setattr("seo_studio_eval.full_study._git_state", lambda _path: ("abc123", False))
     transport = FakeFullStudyTransport()
 
+    draft_payload = json.loads(PROTOCOL.read_text())
+    draft_payload["status"] = "draft"
+    draft_protocol = tmp_path / "draft-protocol.json"
+    draft_protocol.write_text(json.dumps(draft_payload))
+
     with pytest.raises(ValueError, match="freeze_ready"):
         collect_full_study_phase(
-            PROTOCOL,
+            draft_protocol,
             CONFIG,
             PINNED_PLAN,
             phase="primary_generation",

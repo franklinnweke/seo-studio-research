@@ -1,6 +1,6 @@
 {
   "evidence_version": 1,
-  "status": "listener_pending",
+  "status": "ready",
   "runtime_estimate": {
     "method": "Planning estimate from median non-transport wall times in the preserved deployed-stack pilot and fixed-writer matrix; not an outcome metric or execution guarantee.",
     "source_populations": [

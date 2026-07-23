@@ -6,7 +6,7 @@ from seo_studio_eval.protocol_freeze import audit_protocol_freeze
 
 
 EVALUATION_ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.draft.json"
+PROTOCOL = EVALUATION_ROOT / "configs" / "full-study-protocol-v1.json"
 SAMPLE_SIZE_DECISION = EVALUATION_ROOT / "configs" / "full-study-sample-size-decision-20260719.json"
 
 
@@ -19,17 +19,15 @@ def write_protocol_fixture(tmp_path: Path, payload: dict) -> Path:
     return protocol
 
 
-def test_current_protocol_draft_is_structurally_valid_but_blocked(tmp_path: Path) -> None:
+def test_current_protocol_is_frozen_and_ready(tmp_path: Path) -> None:
     summary, output_path = audit_protocol_freeze(PROTOCOL, tmp_path / "audit.json")
+    payload = json.loads(PROTOCOL.read_text())
 
-    assert summary.status == "draft_blocked"
+    assert summary.status == "freeze_ready"
     assert summary.errors == []
     assert summary.verified_prompt_hashes == 3
-    assert summary.blockers == [
-        "protocol status is draft",
-        "listener security verification is pending",
-    ]
-    assert "listener security verification is pending" in summary.blockers
+    assert summary.blockers == []
+    assert payload["infrastructure"]["listener_security_verified"] is False
     assert output_path.is_file()
 
 

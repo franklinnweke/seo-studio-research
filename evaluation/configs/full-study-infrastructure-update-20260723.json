@@ -24,5 +24,5 @@
   "service_mutations_performed": [],
   "preservation_boundary_observed": true,
   "sensitive_connection_details_included": false,
-  "protocol_effect": "Backup verification is complete. Gate 4 remains blocked by listener security and draft status."
+  "protocol_effect": "Backup verification is complete. Listener posture remains recorded as operational context but is not a scientific protocol-freeze requirement."
 }

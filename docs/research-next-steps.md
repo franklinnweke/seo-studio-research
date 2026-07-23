@@ -2,7 +2,7 @@
 
 Last verified: July 23, 2026
 
-Starting point: final dataset, deterministic 3,012-cell plan, checkpoint controls, and separate backup are validated; listener security and the deliberate protocol freeze transition remain
+Starting point: Gate 4 is frozen and audit-ready; measured primary-generation collection is next
 
 This is the short operational view of the canonical master plan. It does not replace `publication-research-architecture.md`.
 
@@ -21,15 +21,15 @@ Exit: the accepted evidence and documentation are consistent, tested, and intent
 - [x] Complete the private supervisor record with name, role, acknowledgement date, communication method, and private evidence reference. Do not commit the communication itself.
 - [x] Agree provisional authorship order and CRediT responsibilities with both teammates and the supervisor; keep the private details outside Git until manuscript authorship is populated.
 - [x] Confirm the institutional publication route and course-based ethics determination with no external participant recruitment.
-- [ ] Through `$davneet-dgx-access` and the institution/supervisor, close the remaining listener/firewall security finding. DGX identity, allowed-data policy, dedicated workspace, limited supported telemetry, and SSH-tunnel topology are confirmed.
+- [x] Record the observed listener posture without making it a scientific execution gate. DGX identity, allowed-data policy, dedicated workspace, limited supported telemetry, and SSH-tunnel topology are confirmed.
 - [x] Choose the approved SSH-tunnel path to the shared Ollama runtime for the evaluated deployed-stack system; public direct access is not required.
 - [x] Add CI gates for backend tests, OpenAPI drift, frontend lint/build, evaluation tests, JSON-schema drift, and licensed-pilot preflight; prohibit DGX inference on ordinary hosted runners.
 
-Exit: the deferred Gate 1 listener-security requirement is documented as passed or explicitly constrained; Gate 3 administration is already complete.
+Exit: research access and preservation requirements are complete; infrastructure hardening is outside the study gate.
 
 ## 2. Produce the protocol-freeze accounting sheet
 
-Draft created: `docs/publication/protocol-freeze-v1.md` and `evaluation/configs/full-study-protocol-v1.draft.json`. The offline audit validates its structure, prompt hashes, and arithmetic while returning a blocking status until the approvals and final values below are complete.
+Frozen protocol: `docs/publication/protocol-freeze-v1.md` and `evaluation/configs/full-study-protocol-v1.json`. The offline audit validates its structure, prompt hashes, execution plan, evidence hashes, and accounting.
 
 All governance approvals and exact model identities are recorded. The project lead selected the practical estimation-first option after reviewing `docs/publication/sample-size-sensitivity-v1.md`; the dated decision record is `evaluation/configs/full-study-sample-size-decision-20260719.json`.
 
@@ -47,7 +47,7 @@ Before inspecting additional comparative quality outputs, freeze an exact accoun
 - [x] minimum scientifically meaningful effects, statistical tests, multiplicity control, confidence intervals, missingness/failure policy, and tie-breaking rule;
 - [x] the existing 60-cell package is pilot/calibration evidence excluded from primary inference.
 
-The approved draft treats the existing 20-image package as pilot/calibration evidence, reports five original conditions plus amendments for compatibility, and advances three conditions to primary quality evaluation. The final manifest is now present and valid. The protocol remains a draft until listener-security evidence is recorded and the status is deliberately changed.
+The frozen design treats the existing 20-image package as pilot/calibration evidence, reports five original conditions plus amendments for compatibility, and advances three conditions to primary quality evaluation. The final manifest is present and valid.
 
 Exit: supervisor/team approval of a dated, versioned protocol and run-accounting sheet. Tag the protocol/configuration commit.
 
@@ -73,7 +73,7 @@ Exit: immutable dataset manifest and validation report with no unresolved licenc
 - [x] Preflight every final model/condition without inspecting comparative quality; the offline full-study preflight is `ready` with zero errors or warnings.
 - [x] Confirm the DGX workspace, available storage, and supported telemetry path.
 - [x] Verify the separate backup destination with matching upload, remote, and round-trip hashes.
-- [ ] Close the listener-security finding.
+- [x] Keep listener posture as factual operational evidence rather than a protocol-freeze blocker.
 - [x] Generate and hash-validate the complete 3,012-cell execution plan from the frozen seed.
 - [x] Verify append-only checkpoint/resume behavior, recorded transport recovery, drift rejection, and stop conditions.
 

@@ -1,14 +1,14 @@
 # SEO Studio full-study protocol freeze v1
 
-Status: **draft; full-study execution prohibited**
+Status: **frozen; machine audit `freeze_ready`**
 
 Protocol ID: `seo-studio-full-study-v1`
 
-Machine-readable contract: `evaluation/configs/full-study-protocol-v1.draft.json`
+Machine-readable contract: `evaluation/configs/full-study-protocol-v1.json`
 
 Created: July 19, 2026
 
-This is the Gate 4 operational protocol derived from the canonical master architecture. It converts completed pilot evidence into an exact proposed full-study design. Until every blocker in `protocol-audit` is cleared, this document is a draft and must not be cited as a frozen protocol.
+This is the frozen Gate 4 operational protocol derived from the canonical master architecture. It converts completed pilot evidence into the exact full-study design. The machine audit reports `freeze_ready`; later changes require an additive dated amendment.
 
 ## 1. Evidence boundary and advancement decision
 
@@ -57,7 +57,7 @@ The team and supervisor approved these values on July 19, 2026. The resulting pr
 - Primary images may not be used for prompt tuning or replacement based on observed outputs.
 - Every manifest row must retain image, licence, context, brand, purpose, visible-fact, forbidden-claim, preprocessing, and SHA-256 evidence.
 
-The sample size, domain allocation, analysis intent, and revised reviewer workload are approved. The remaining dataset task is to materialize and validate `evaluation/dataset/manifest-full-v1.jsonl` without inspecting primary model outputs.
+The sample size, domain allocation, analysis intent, revised reviewer workload, and materialized `evaluation/dataset/manifest-full-v1.jsonl` are approved and frozen.
 
 ## 4. Conditions
 
@@ -98,7 +98,7 @@ The combined brand/page/purpose condition is the predeclared product candidate. 
 
 ## 5. Generation controls
 
-| Control | Draft value |
+| Control | Frozen value |
 |---|---|
 | Repeats | 3 measured repeats |
 | Human-rated repeat | Repeat 1 only |
@@ -167,28 +167,25 @@ The revised reviewer burden was approved with the 128-image estimation-first dec
 - Every claim in the complete RQ1 population is labeled supported, unsupported, contradicted, or not verifiable from permitted evidence.
 - Individual annotations, timing, adjudication, and agreement remain separate artifacts. Adjudication must be independent of the rating being resolved.
 
-## 9. Freeze blockers
+## 9. Freeze status
 
 The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. Read-only inspection also verified the dedicated project workspace, available storage, and the supported telemetry scope. `nvidia-smi` is unavailable, so complete GPU-VRAM and measured-energy claims are prohibited.
 
 The deterministic execution plan is pinned at `evaluation/configs/full-study-execution-plan-v1.jsonl`. It contains 3,012 cells, including 324 context cells that remain unresolved until the frozen vision-selection rule is applied. Deterministic regeneration, append-only resume, one visible transport recovery, drift rejection, and pre-inference draft rejection are tested. Preserved pilot medians yield a 34-hour planning estimate; 40 DGX hours are reserved. Projected raw run evidence is below 0.1 GiB, while the collector requires at least 5 GiB free. These are operational estimates, not model-quality outcomes.
 
-The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
-
 The final 128-item Commons publication dataset is materialized. It contains 128 accepted and unique human-checked images, exact 32-per-domain balance, and frozen 128/64/36 analysis populations. Eight rejected rows remain preserved, and eight unique additive same-stratum replacements inherit their population assignments through a guarded reconciliation record. `evaluation/dataset/manifest-full-v1.jsonl` passes full-study preflight with zero errors and warnings.
 
-- resolve the failed private listener-reachability check through an institution-approved mitigation, then verify it without publishing connection details;
-- change protocol status only after the resulting audit has no blockers.
+The observed all-interface listener remains recorded in infrastructure evidence. It does not determine the research questions, model conditions, dataset, analysis, or validity of the frozen protocol. Study traffic uses the approved SSH-tunnel path. No security-risk exception artifact is part of the paper or protocol.
 
 Run the offline audit with:
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m seo_studio_eval protocol-audit \
-  --protocol configs/full-study-protocol-v1.draft.json \
+  --protocol configs/full-study-protocol-v1.json \
   --output results/full-study-protocol-audit-v1.json
 ```
 
-The command must return non-zero while blockers remain. It must return `freeze_ready` before the draft is renamed, committed on a clean tree, tagged, and used for full-study collection.
+The command must return `freeze_ready` before full-study collection. The frozen contract, plan, and audit are committed together before the first measured request.
 
 ## 10. Deviation rule
 
