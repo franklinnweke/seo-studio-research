@@ -1,0 +1,15 @@
+{
+  "cells": 3012,
+  "context_ablation_cells": 324,
+  "decomposed_writer_cells": 1152,
+  "deferred_selection_cells": 324,
+  "experiment_id": "seo-studio-full-study-v1",
+  "human_review_items": 876,
+  "manifest_sha256": "1eb4842442fafb80642d43bdc74252d5cfdfbf75bdcf52a476975ca921f87e56",
+  "plan_sha256": "87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc",
+  "plan_version": 1,
+  "primary_generation_cells": 1536,
+  "protocol_version": "2.3-gate4-draft-v3",
+  "randomization_seed": 1721844270,
+  "status": "ready"
+}

@@ -44,6 +44,12 @@ class AttemptSpec(BaseModel):
     criteria_sha256: str = ""
     collection_attempt: int = Field(default=1, ge=1)
     supersedes_attempt_id: str = ""
+    plan_sha256: str = ""
+    plan_cell_id: str = ""
+    condition_id: str = ""
+    stage: str = ""
+    source_plan_cell_id: str = ""
+    context_mode: str = ""
 
 
 def execute_attempt(

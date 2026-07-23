@@ -9,6 +9,11 @@ from .accounting import build_run_accounting
 from .blinding import build_blinded_package
 from .calibration import build_calibration_package
 from .calibration_analysis import build_calibration_analysis
+from .execution_plan import (
+    build_full_study_execution_plan,
+    validate_full_study_execution_plan,
+)
+from .full_study import collect_full_study_phase
 from .normalization import normalize_metadata_pipeline, normalize_run_directories
 from .pilot import run_compatibility_pilot
 from .pilot_reporting import build_pilot_report
@@ -47,6 +52,43 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sample_size.add_argument("--protocol", type=Path, required=True)
     sample_size.add_argument("--output", type=Path, required=True)
+
+    full_plan = commands.add_parser(
+        "full-study-plan",
+        help="Generate the deterministic full-study execution plan without model inference",
+    )
+    full_plan.add_argument("--protocol", type=Path, required=True)
+    full_plan.add_argument("--config", type=Path, required=True)
+    full_plan.add_argument("--output", type=Path, required=True)
+    full_plan.add_argument("--summary", type=Path, required=True)
+
+    full_plan_validate = commands.add_parser(
+        "full-study-plan-validate",
+        help="Verify the full-study plan against the protocol, dataset, and frozen seed",
+    )
+    full_plan_validate.add_argument("--protocol", type=Path, required=True)
+    full_plan_validate.add_argument("--config", type=Path, required=True)
+    full_plan_validate.add_argument("--plan", type=Path, required=True)
+    full_plan_validate.add_argument("--output", type=Path, required=True)
+
+    full_collect = commands.add_parser(
+        "full-study-collect",
+        help="Collect one frozen full-study phase with append-only checkpoints",
+    )
+    full_collect.add_argument("--protocol", type=Path, required=True)
+    full_collect.add_argument("--config", type=Path, required=True)
+    full_collect.add_argument("--plan", type=Path, required=True)
+    full_collect.add_argument(
+        "--phase",
+        choices=["primary_generation", "decomposed_writer", "context_ablation"],
+        required=True,
+    )
+    full_collect.add_argument("--base-url", required=True)
+    full_collect.add_argument("--run-dir", type=Path, required=True)
+    full_collect.add_argument("--run-id", required=True)
+    full_collect.add_argument("--system-snapshot-ref", required=True)
+    full_collect.add_argument("--max-new-attempts", type=int)
+    full_collect.add_argument("--vision-selection-record", type=Path)
 
     validate = commands.add_parser("validate", help="Validate immutable attempt records in a run directory")
     validate.add_argument("--run-dir", type=Path, required=True)
@@ -225,6 +267,54 @@ def main(argv: list[str] | None = None) -> int:
             summary, output_path = build_sample_size_sensitivity(args.protocol, args.output)
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))
             return 0
+        if args.command == "full-study-plan":
+            summary, plan_path = build_full_study_execution_plan(
+                args.protocol,
+                args.config,
+                args.output,
+                args.summary,
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(), "plan_path": str(plan_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.command == "full-study-plan-validate":
+            summary, output_path = validate_full_study_execution_plan(
+                args.protocol,
+                args.config,
+                args.plan,
+                args.output,
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(), "summary_path": str(output_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status == "valid" else 1
+        if args.command == "full-study-collect":
+            summary, output_path = collect_full_study_phase(
+                args.protocol,
+                args.config,
+                args.plan,
+                phase=args.phase,
+                base_url=args.base_url,
+                run_dir=args.run_dir,
+                run_id=args.run_id,
+                system_snapshot_ref=args.system_snapshot_ref,
+                max_new_attempts=args.max_new_attempts,
+                vision_selection_path=args.vision_selection_record,
+            )
+            print(
+                json.dumps(
+                    {**summary.model_dump(), "summary_path": str(output_path)},
+                    sort_keys=True,
+                )
+            )
+            return 0 if summary.status == "complete" else 2
         if args.command == "validate":
             summary, output_path = validate_run_directory(args.run_dir)
             print(json.dumps({**summary.model_dump(), "summary_path": str(output_path)}, sort_keys=True))

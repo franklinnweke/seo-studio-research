@@ -28,6 +28,7 @@ def test_current_protocol_draft_is_structurally_valid_but_blocked(tmp_path: Path
     assert summary.blockers == [
         "protocol status is draft",
         "listener security verification is pending",
+        "backup verification is pending",
     ]
     assert "listener security verification is pending" in summary.blockers
     assert output_path.is_file()

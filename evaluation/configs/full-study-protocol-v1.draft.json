@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_version": "2.3-gate4-draft-v2",
+  "protocol_version": "2.3-gate4-draft-v3",
   "status": "draft",
   "canonical_document": "../docs/publication/protocol-freeze-v1.md",
   "model_identities": [
@@ -129,6 +129,22 @@
       "no measured energy claim without a validated sensor or wall meter"
     ],
     "evidence_path": "configs/full-study-runtime-reverification-20260719.json"
+  },
+  "operational_readiness": {
+    "study_config_path": "configs/full-study.toml",
+    "execution_plan_path": "configs/full-study-execution-plan-v1.jsonl",
+    "execution_plan_sha256": "87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc",
+    "execution_plan_verified": true,
+    "checkpoint_resume_verified": true,
+    "stop_conditions_verified": true,
+    "projected_dgx_hours": 34.0,
+    "reserved_dgx_hours": 40.0,
+    "projected_run_evidence_gib": 0.1,
+    "minimum_free_storage_gib": 5.0,
+    "backup_location_reference": null,
+    "backup_verified": false,
+    "evidence_path": "configs/full-study-operational-readiness-v1.json",
+    "evidence_sha256": "8e3c99aee34ff0120239bd5180fc2b0daed67022af84122c8a5a1e262f91548a"
   },
   "run_accounting": {
     "provisional_final_images": 128,

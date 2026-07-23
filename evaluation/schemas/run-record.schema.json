@@ -221,6 +221,16 @@
       "title": "Collection Attempt",
       "type": "integer"
     },
+    "condition_id": {
+      "default": "",
+      "title": "Condition Id",
+      "type": "string"
+    },
+    "context_mode": {
+      "default": "",
+      "title": "Context Mode",
+      "type": "string"
+    },
     "criteria_sha256": {
       "default": "",
       "title": "Criteria Sha256",
@@ -312,6 +322,16 @@
       "title": "Parser Version",
       "type": "string"
     },
+    "plan_cell_id": {
+      "default": "",
+      "title": "Plan Cell Id",
+      "type": "string"
+    },
+    "plan_sha256": {
+      "default": "",
+      "title": "Plan Sha256",
+      "type": "string"
+    },
     "prompt": {
       "$ref": "#/$defs/PromptEvidence"
     },
@@ -353,6 +373,16 @@
       "additionalProperties": true,
       "title": "Sanitized Request",
       "type": "object"
+    },
+    "source_plan_cell_id": {
+      "default": "",
+      "title": "Source Plan Cell Id",
+      "type": "string"
+    },
+    "stage": {
+      "default": "",
+      "title": "Stage",
+      "type": "string"
     },
     "started_at": {
       "format": "date-time",

@@ -2,7 +2,7 @@
 
 Last verified: July 23, 2026
 
-Starting point: final 128-item publication dataset materialized and preflight-ready; listener-security evidence and the deliberate protocol freeze transition remain
+Starting point: final dataset and deterministic 3,012-cell execution plan are validated; listener security, separate backup, and the deliberate protocol freeze transition remain
 
 This is the short operational view of the canonical master plan. It does not replace `publication-research-architecture.md`.
 
@@ -41,7 +41,8 @@ Before inspecting additional comparative quality outputs, freeze an exact accoun
 - [x] which repeat enters human quality review and why;
 - [x] the complete 128-image RQ1 claim-level population;
 - [x] expected valid/failure denominators and system-failure treatment;
-- [ ] projected DGX hours, disk space, and backup location;
+- [x] projected DGX hours and disk space, based on preserved pilot timing and record-size evidence;
+- [ ] private reference to a verified backup destination outside the active run directory;
 - [x] 876 unique outputs, 1,071 assignments, three reviewers, 25%/20% overlap, 714 active minutes per reviewer, independent adjudication, and predeclared reduction priority;
 - [x] minimum scientifically meaningful effects, statistical tests, multiplicity control, confidence intervals, missingness/failure policy, and tie-breaking rule;
 - [x] the existing 60-cell package is pilot/calibration evidence excluded from primary inference.
@@ -70,9 +71,10 @@ Exit: immutable dataset manifest and validation report with no unresolved licenc
 - [x] Freeze model/config files and full digests.
 - [x] Freeze direct, decomposed, production-system, and context-ablation prompts and schemas.
 - [x] Preflight every final model/condition without inspecting comparative quality; the offline full-study preflight is `ready` with zero errors or warnings.
-- [ ] Confirm the DGX workspace, storage, backups, secure access, and telemetry path.
-- [ ] Generate the complete randomized execution plan from the frozen seed.
-- [ ] Verify append-only checkpoint/resume behavior and stop conditions.
+- [x] Confirm the DGX workspace, available storage, and supported telemetry path.
+- [ ] Verify the separate backup destination and close the listener-security finding.
+- [x] Generate and hash-validate the complete 3,012-cell execution plan from the frozen seed.
+- [x] Verify append-only checkpoint/resume behavior, recorded transport recovery, drift rejection, and stop conditions.
 
 Exit: Gate 4 passed. No later convenience change may overwrite the frozen protocol; deviations require an additive record.
 

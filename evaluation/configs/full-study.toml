@@ -1,6 +1,6 @@
 schema_version = 1
 experiment_id = "seo-studio-full-study-v1"
-protocol_version = "2.3-gate4-draft-v1"
+protocol_version = "2.3-gate4-draft-v3"
 study_mode = "full"
 dataset_split = "full"
 dataset_manifest = "dataset/manifest-full-v1.jsonl"

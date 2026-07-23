@@ -112,6 +112,35 @@ class InfrastructureState(BaseModel):
     evidence_path: Path
 
 
+class OperationalReadiness(BaseModel):
+    study_config_path: Path
+    execution_plan_path: Path
+    execution_plan_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
+    execution_plan_verified: bool
+    checkpoint_resume_verified: bool
+    stop_conditions_verified: bool
+    projected_dgx_hours: float = Field(gt=0)
+    reserved_dgx_hours: float = Field(gt=0)
+    projected_run_evidence_gib: float = Field(gt=0)
+    minimum_free_storage_gib: float = Field(gt=0)
+    backup_location_reference: str | None = None
+    backup_verified: bool
+    evidence_path: Path
+    evidence_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
+
+    @model_validator(mode="after")
+    def validate_capacity(self) -> "OperationalReadiness":
+        if self.reserved_dgx_hours < self.projected_dgx_hours:
+            raise ValueError("reserved_dgx_hours cannot be below projected_dgx_hours")
+        if self.minimum_free_storage_gib < self.projected_run_evidence_gib:
+            raise ValueError(
+                "minimum_free_storage_gib cannot be below projected_run_evidence_gib"
+            )
+        if self.backup_verified and not self.backup_location_reference:
+            raise ValueError("verified backup requires a private location reference")
+        return self
+
+
 class RunAccounting(BaseModel):
     provisional_final_images: int = Field(gt=0)
     primary_claim_images: int = Field(gt=0)
@@ -147,6 +176,7 @@ class ProtocolFreezeContract(BaseModel):
     meaningful_effects: list[MeaningfulEffect] = Field(min_length=3)
     approvals: ApprovalState
     infrastructure: InfrastructureState
+    operational_readiness: OperationalReadiness
     run_accounting: RunAccounting
     condition_ids: list[str] = Field(min_length=1)
     primary_outcomes: dict[str, str]
@@ -207,6 +237,7 @@ def audit_protocol_freeze(
         _collect_blockers(protocol, root, blockers)
         _validate_decision_record(protocol, root, errors)
         _validate_manifest(protocol, root, errors)
+        _validate_operational_readiness(protocol, protocol_path, root, errors)
 
     if errors:
         status = "invalid"
@@ -269,6 +300,17 @@ def _collect_blockers(
         "supported telemetry path verification": protocol.infrastructure.telemetry_path_verified,
     }
     for label, complete in infrastructure_checks.items():
+        if not complete:
+            blockers.append(label + " is pending")
+    operational_checks = {
+        "execution plan verification": protocol.operational_readiness.execution_plan_verified,
+        "checkpoint and resume verification": (
+            protocol.operational_readiness.checkpoint_resume_verified
+        ),
+        "stop-condition verification": protocol.operational_readiness.stop_conditions_verified,
+        "backup verification": protocol.operational_readiness.backup_verified,
+    }
+    for label, complete in operational_checks.items():
         if not complete:
             blockers.append(label + " is pending")
 
@@ -433,3 +475,66 @@ def _validate_decision_record(
         return
     if sha256_file(decision_path) != protocol.dataset.sample_size_decision_sha256:
         errors.append("sample-size decision record SHA-256 mismatch")
+
+
+def _validate_operational_readiness(
+    protocol: ProtocolFreezeContract,
+    protocol_path: Path,
+    root: Path,
+    errors: list[str],
+) -> None:
+    readiness = protocol.operational_readiness
+    evidence_path = _validated_path(
+        root,
+        readiness.evidence_path,
+        "operational-readiness evidence",
+        errors,
+    )
+    if evidence_path is not None and evidence_path.is_file():
+        if readiness.evidence_sha256 is None:
+            errors.append("operational-readiness evidence SHA-256 is not frozen")
+        elif sha256_file(evidence_path) != readiness.evidence_sha256:
+            errors.append("operational-readiness evidence SHA-256 mismatch")
+
+    plan_path = _validated_path(
+        root,
+        readiness.execution_plan_path,
+        "execution plan",
+        errors,
+    )
+    config_path = _validated_path(
+        root,
+        readiness.study_config_path,
+        "full-study configuration",
+        errors,
+    )
+    if plan_path is None or config_path is None:
+        return
+    if not plan_path.is_file():
+        return
+    if readiness.execution_plan_sha256 is None:
+        errors.append("execution plan SHA-256 is not frozen")
+        return
+    if sha256_file(plan_path) != readiness.execution_plan_sha256:
+        errors.append("execution plan SHA-256 mismatch")
+        return
+    from .execution_plan import inspect_full_study_execution_plan
+
+    validation = inspect_full_study_execution_plan(protocol_path, config_path, plan_path)
+    if validation.status != "valid":
+        errors.extend(f"execution plan: {error}" for error in validation.errors)
+
+
+def _validated_path(
+    root: Path,
+    relative_path: Path,
+    label: str,
+    errors: list[str],
+) -> Path | None:
+    candidate = (root / relative_path).resolve()
+    if root != candidate and root not in candidate.parents:
+        errors.append(f"{label} path escapes evaluation root")
+        return None
+    if not candidate.is_file():
+        errors.append(f"{label} file is missing")
+    return candidate

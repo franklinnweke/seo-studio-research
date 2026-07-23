@@ -118,15 +118,15 @@ Prompt candidates are hash-pinned in the machine-readable contract. A read-only 
 
 For 128 final images, three models, and three repeats:
 
-| Stage | Formula | Calls |
+| Stage | Formula | Planned stage cells |
 |---|---:|---:|
 | Vision facts | 128 × 3 × 3 | 1,152 |
 | Fixed-writer metadata | 128 × 3 × 3 | 1,152 |
 | Direct Qwen3.5 metadata | 128 × 3 | 384 |
 | Incremental context calls | 36 × 3 non-duplicate contexts × 3 | 324 |
-| Total unique model calls | Sum | **3,012** |
+| Total planned outcome population | Sum | **3,012** |
 
-The combined-context condition for the selected vision model already exists in the fixed-writer stage and is not counted twice.
+The combined-context condition for the selected vision model already exists in the fixed-writer stage and is not counted twice. A downstream writer request is not sent when its frozen upstream facts outcome is invalid; that downstream cell remains an explicit system failure. Therefore 3,012 is the complete planned stage-cell population and maximum inference-request count.
 
 The human-rated repeat-1 population contains:
 
@@ -169,11 +169,16 @@ The revised reviewer burden was approved with the 128-image estimation-first dec
 
 ## 9. Freeze blockers
 
-The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. Read-only inspection also verified the dedicated project workspace, available storage, and the supported telemetry scope. `nvidia-smi` is unavailable, so complete GPU-VRAM and measured-energy claims are prohibited. The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
+The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. Read-only inspection also verified the dedicated project workspace, available storage, and the supported telemetry scope. `nvidia-smi` is unavailable, so complete GPU-VRAM and measured-energy claims are prohibited.
+
+The deterministic execution plan is pinned at `evaluation/configs/full-study-execution-plan-v1.jsonl`. It contains 3,012 cells, including 324 context cells that remain unresolved until the frozen vision-selection rule is applied. Deterministic regeneration, append-only resume, one visible transport recovery, drift rejection, and pre-inference draft rejection are tested. Preserved pilot medians yield a 34-hour planning estimate; 40 DGX hours are reserved. Projected raw run evidence is below 0.1 GiB, while the collector requires at least 5 GiB free. These are operational estimates, not model-quality outcomes.
+
+The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
 
 The final 128-item Commons publication dataset is materialized. It contains 128 accepted and unique human-checked images, exact 32-per-domain balance, and frozen 128/64/36 analysis populations. Eight rejected rows remain preserved, and eight unique additive same-stratum replacements inherit their population assignments through a guarded reconciliation record. `evaluation/dataset/manifest-full-v1.jsonl` passes full-study preflight with zero errors and warnings.
 
 - resolve the failed private listener-reachability check through an institution-approved mitigation, then verify it without publishing connection details;
+- verify a separate backup destination outside the active run directory and record only its private reference;
 - change protocol status only after the resulting audit has no blockers.
 
 Run the offline audit with:

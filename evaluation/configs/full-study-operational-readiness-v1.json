@@ -1,0 +1,82 @@
+{
+  "evidence_version": 1,
+  "status": "backup_and_listener_pending",
+  "runtime_estimate": {
+    "method": "Planning estimate from median non-transport wall times in the preserved deployed-stack pilot and fixed-writer matrix; not an outcome metric or execution guarantee.",
+    "source_populations": [
+      {
+        "path": "runs/pilot-compatibility-clean6-20260716",
+        "purpose": "vision and conservative direct-generation timing",
+        "non_transport_records_per_selected_model": 20
+      },
+      {
+        "path": "runs/writer-matrix-20260718",
+        "purpose": "fixed-writer timing",
+        "non_transport_records": 54
+      }
+    ],
+    "median_seconds": {
+      "qwen25vl_3b_vision": 49.39499706249626,
+      "qwen35_9b_vision": 62.03880950000894,
+      "gemma3_12b_vision": 40.439204291498754,
+      "qwen35_9b_writer": 25.677299083472462
+    },
+    "component_hours": {
+      "vision_qwen25vl_3b": 5.268799686666267,
+      "vision_qwen35_9b": 6.617473013334287,
+      "vision_gemma3_12b": 4.313515124426534,
+      "decomposed_writers": 8.216735706711187,
+      "direct_qwen35_9b": 6.617473013334287,
+      "context_writers": 2.3109569175125215
+    },
+    "projected_dgx_hours_rounded_up": 34.0,
+    "reserved_dgx_hours": 40.0,
+    "limitations": [
+      "The estimate excludes human review, adjudication, breaks, tunnel incidents, backups, and administrative pauses.",
+      "Actual calls avoided after an invalid upstream fact outcome remain explicit failed stage cells.",
+      "The 240-second frozen timeout, not the planning median, governs each attempted inference."
+    ]
+  },
+  "storage_estimate": {
+    "observed_attempt_records": 174,
+    "observed_median_record_bytes": 10241.5,
+    "observed_max_record_bytes": 17311,
+    "projected_raw_records_at_observed_max_mib": 49.7,
+    "projected_run_evidence_gib": 0.1,
+    "minimum_free_storage_gib": 5.0,
+    "available_project_filesystem_gib_at_last_dgx_check": 268
+  },
+  "execution_plan": {
+    "path": "configs/full-study-execution-plan-v1.jsonl",
+    "sha256": "87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc",
+    "cells": 3012,
+    "primary_generation_cells": 1536,
+    "decomposed_writer_cells": 1152,
+    "context_ablation_cells": 324,
+    "human_review_items": 876,
+    "deferred_vision_selection_cells": 324,
+    "deterministic_regeneration_verified": true
+  },
+  "checkpoint_and_stop_controls": {
+    "append_only_create": true,
+    "completed_cells_skipped_on_resume": true,
+    "transport_recovery_records_preserved": true,
+    "maximum_recorded_transport_recoveries_per_cell": 1,
+    "schema_or_quality_retry_allowed": false,
+    "dirty_worktree_rejected": true,
+    "plan_or_record_drift_rejected": true,
+    "mixed_run_identity_rejected": true,
+    "live_digest_mismatch_rejected": true,
+    "insufficient_storage_rejected": true,
+    "draft_protocol_rejected_before_inference": true,
+    "context_phase_requires_immutable_vision_selection_record": true,
+    "model_unloaded_at_block_or_segment_boundary": true,
+    "verified_by": "evaluation/tests/test_full_study_execution.py"
+  },
+  "backup": {
+    "required": true,
+    "location_reference": null,
+    "verified": false,
+    "rule": "Use a separately verified destination outside the active run directory; preserve append-only records and checksums after every segment."
+  }
+}

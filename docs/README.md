@@ -32,7 +32,10 @@ Recommended reading order for a new person or agent:
 |---|---|
 | [Evaluation harness guide](../evaluation/README.md) | Commands, evidence boundaries, immutable-run rules, and completed compatibility stages |
 | [Machine-readable Gate 4 draft](../evaluation/configs/full-study-protocol-v1.draft.json) | Auditable models, prompt hashes, dataset plan, execution controls, outcomes, accounting, and approvals |
-| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Zero-error blocker report; only draft status and listener-security verification remain |
+| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Zero-error blocker report; draft status, listener security, and separate-backup verification remain |
+| [Deterministic execution plan](../evaluation/configs/full-study-execution-plan-v1.jsonl) | Exact seeded order and dependencies for all 3,012 planned stage cells |
+| [Execution-plan validation](../evaluation/results/full-study-execution-plan-validation-v1.json) | Confirms byte-stable regeneration, exact cell counts, and zero plan errors |
+| [Operational-readiness evidence](../evaluation/configs/full-study-operational-readiness-v1.json) | Pilot-derived runtime/storage estimates, checkpoint controls, stop conditions, and pending backup boundary |
 | [All-approvals relay](../evaluation/configs/full-study-approval-20260719.json) | Sanitized record of governance approvals; private names and communications remain outside Git |
 | [Full-study runtime reverification](../evaluation/configs/full-study-runtime-reverification-20260719.json) | Read-only Ollama/runtime and exact three-model digest evidence |
 | [Listener-security reverification](../evaluation/configs/full-study-listener-reverification-20260723.json) | Sanitized read-only confirmation that the all-interface Ollama listener remains externally reachable; Gate 4 remains blocked |

@@ -1,11 +1,12 @@
 {
   "blockers": [
     "protocol status is draft",
-    "listener security verification is pending"
+    "listener security verification is pending",
+    "backup verification is pending"
   ],
   "errors": [],
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_sha256": "64b076be00b3e2e03b12a68c8caa7a6a518c23a6c10cf5c2d8d38b724b1dc7bc",
+  "protocol_sha256": "d5c5065bf6c4111241e2eccb8c6734ec27bfd2a2b857b940113c2d97e9b8e4f0",
   "status": "draft_blocked",
   "verified_prompt_hashes": 3
 }
