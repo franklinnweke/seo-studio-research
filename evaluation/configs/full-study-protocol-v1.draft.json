@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "protocol_id": "seo-studio-full-study-v1",
-  "protocol_version": "2.3-gate4-draft-v1",
+  "protocol_version": "2.3-gate4-draft-v2",
   "status": "draft",
   "canonical_document": "../docs/publication/protocol-freeze-v1.md",
   "model_identities": [
@@ -48,6 +48,7 @@
     "pilot_disposition": "excluded_from_primary_inference",
     "split": "full",
     "manifest_path": "dataset/manifest-full-v1.jsonl",
+    "manifest_sha256": "1eb4842442fafb80642d43bdc74252d5cfdfbf75bdcf52a476975ca921f87e56",
     "provisional_items": 128,
     "final_items": 128,
     "primary_claim_images": 128,

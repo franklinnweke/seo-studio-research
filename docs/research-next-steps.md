@@ -1,8 +1,8 @@
 # SEO Studio research continuation checklist
 
-Last verified: July 21, 2026
+Last verified: July 23, 2026
 
-Starting point: 128-image candidate draft assembled; project-author checks, final manifest, and listener-security evidence pending
+Starting point: final 128-item publication dataset materialized and preflight-ready; listener-security evidence and the deliberate protocol freeze transition remain
 
 This is the short operational view of the canonical master plan. It does not replace `publication-research-architecture.md`.
 
@@ -35,7 +35,7 @@ All governance approvals and exact model identities are recorded. The project le
 
 Before inspecting additional comparative quality outputs, freeze an exact accounting table containing:
 
-- [ ] dataset images by split, domain, purpose, and diagnostic stratum;
+- [x] dataset images by split, domain, purpose, and diagnostic stratum;
 - [x] model and condition IDs, immutable digests, runtime, context window, prompt/output limits, seed, temperature, thinking mode, preprocessing, and keep-alive policy;
 - [x] attempts per model × image × architecture × context condition × repeat;
 - [x] which repeat enters human quality review and why;
@@ -46,7 +46,7 @@ Before inspecting additional comparative quality outputs, freeze an exact accoun
 - [x] minimum scientifically meaningful effects, statistical tests, multiplicity control, confidence intervals, missingness/failure policy, and tie-breaking rule;
 - [x] the existing 60-cell package is pilot/calibration evidence excluded from primary inference.
 
-The approved draft treats the existing 20-image package as pilot/calibration evidence, reports five original conditions plus amendments for compatibility, and advances three conditions to primary quality evaluation. The protocol remains a draft until the manifest and security blockers are cleared.
+The approved draft treats the existing 20-image package as pilot/calibration evidence, reports five original conditions plus amendments for compatibility, and advances three conditions to primary quality evaluation. The final manifest is now present and valid. The protocol remains a draft until listener-security evidence is recorded and the status is deliberately changed.
 
 Exit: supervisor/team approval of a dated, versioned protocol and run-accounting sheet. Tag the protocol/configuration commit.
 
@@ -55,19 +55,21 @@ Exit: supervisor/team approval of a dated, versioned protocol and run-accounting
 - [x] Select the practical estimation-first sample size before primary output inspection: 128 images, 32 per domain.
 - [x] Assemble 128 mechanically licensed candidates across the four balanced domains; assign all 128 to RQ1 and the controlled Qwen3.5 comparison, a deterministic 64-image subset to other production metadata comparisons, and a nested 36-image context subset.
 - [x] Preserve draft source, author, licence, retrieval date, image identity, dimensions, split, domain, purpose, fictional context, and deterministic population evidence.
-- [ ] Keep pilot/development and final evaluation images separate.
-- [ ] Have a project author inspect all 128 images in the local human-check workspace, explicitly keep/reject every query-stratum draft, add a correction only when needed, confirm purpose/source/licence/quality/sensitivity, and export the completed check artifact. Treat the drafts as transcription aids, not ground truth.
-- [ ] Resolve every rejected item through an additive, documented replacement from the same domain/query stratum; do not silently substitute candidates.
-- [ ] Materialize fresh 1280px final files and validate image hashes, licence evidence, dimensions, duplicate hashes, and the exact 32-per-domain allocation.
-- [ ] Freeze fictional page contexts, brand profiles, human-confirmed purposes, manifests, and preprocessing hashes.
+- [x] Keep pilot/development and final evaluation images separate.
+- [x] Have a project author inspect all 128 images in the local human-check workspace, explicitly keep/reject every query-stratum draft, add a correction only when needed, confirm purpose/source/licence/quality/sensitivity, and export the completed check artifact. The project author confirms that every substantive decision was manual. Agentic help generated only the non-substantive completion note, which is disclosed and excluded from analysis.
+- [x] Reopen the eight whole-image disagreements and two additional proposal-only differences listed in `evaluation/results/full-study-human-check-blind-diagnostic-20260722.md`. The project author rejected all eight whole-image items and corrected both proposal-only items; no label was changed automatically.
+- [x] Resolve the eight rejected items through additive, documented replacements from the same domain/query/purpose strata; preserve the rejected evidence and inherit each rejected item's analysis-population flags.
+- [x] Apply the rechecked export with the guarded replacement reconciler and preserve the applied evidence hash.
+- [x] Materialize fresh 1280px final files and validate image hashes, licence evidence, dimensions, duplicate hashes, and the exact 32-per-domain allocation.
+- [x] Freeze fictional page contexts, brand profiles, human-confirmed purposes, manifests, and preprocessing hashes.
 
 Exit: immutable dataset manifest and validation report with no unresolved licence or split leakage.
 
 ## 4. Freeze and preflight the experiment
 
-- [ ] Freeze model/config files and full digests.
-- [ ] Freeze direct, decomposed, production-system, and context-ablation prompts and schemas.
-- [ ] Preflight every final model/condition without inspecting comparative quality.
+- [x] Freeze model/config files and full digests.
+- [x] Freeze direct, decomposed, production-system, and context-ablation prompts and schemas.
+- [x] Preflight every final model/condition without inspecting comparative quality; the offline full-study preflight is `ready` with zero errors or warnings.
 - [ ] Confirm the DGX workspace, storage, backups, secure access, and telemetry path.
 - [ ] Generate the complete randomized execution plan from the frozen seed.
 - [ ] Verify append-only checkpoint/resume behavior and stop conditions.

@@ -1,6 +1,6 @@
 # SEO Studio documentation index
 
-Last verified: July 21, 2026
+Last verified: July 22, 2026
 
 Public repository: [`franklinnweke/seo-studio-research`](https://github.com/franklinnweke/seo-studio-research)
 
@@ -32,15 +32,24 @@ Recommended reading order for a new person or agent:
 |---|---|
 | [Evaluation harness guide](../evaluation/README.md) | Commands, evidence boundaries, immutable-run rules, and completed compatibility stages |
 | [Machine-readable Gate 4 draft](../evaluation/configs/full-study-protocol-v1.draft.json) | Auditable models, prompt hashes, dataset plan, execution controls, outcomes, accounting, and approvals |
-| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Generated blocker report; `draft_blocked` is required until every freeze condition is satisfied |
+| [Current Gate 4 audit](../evaluation/results/full-study-protocol-audit-v1.json) | Zero-error blocker report; only draft status and listener-security verification remain |
 | [All-approvals relay](../evaluation/configs/full-study-approval-20260719.json) | Sanitized record of governance approvals; private names and communications remain outside Git |
 | [Full-study runtime reverification](../evaluation/configs/full-study-runtime-reverification-20260719.json) | Read-only Ollama/runtime and exact three-model digest evidence |
+| [Listener-security reverification](../evaluation/configs/full-study-listener-reverification-20260723.json) | Sanitized read-only confirmation that the all-interface Ollama listener remains externally reachable; Gate 4 remains blocked |
 | [Sample-size sensitivity](publication/sample-size-sensitivity-v1.md) | Pre-data calculation testing whether the provisional population can resolve the approved effects |
 | [Sample-size evidence JSON](../evaluation/results/full-study-sample-size-sensitivity-v1.json) | Reproducible machine-readable sensitivity results and the recorded estimation-first selection |
 | [Approved 128-image decision](../evaluation/configs/full-study-sample-size-decision-20260719.json) | Pre-data selection of the practical estimation-first design, domain allocation, review populations, workload, and inferential limits |
 | [Full-study dataset check guide](publication/full-study-dataset-check-guide.md) | Required 128-item human visual check, export, validation, replacement, and final-materialization procedure |
-| [Draft full-study catalog](../evaluation/dataset/full-study-catalog.json) | Frozen candidate identities, sources, contexts, purposes, and deterministic 128/64/36 population assignments; human ground-truth fields remain pending |
-| [Human-check workbook](../evaluation/dataset/full-study-human-check.jsonl) | Input to the local check workspace; not accepted annotation evidence until a project author completes and exports it |
+| [Final full-study catalog](../evaluation/dataset/full-study-catalog.json) | Final 128 accepted identities, sources, contexts, purposes, additive replacement links, and frozen 128/64/36 population assignments |
+| [Original human-check workbook](../evaluation/dataset/full-study-human-check.jsonl) | Preserved pending input to the original local check workspace; historical preparation evidence only |
+| [Human-check provenance record](../evaluation/configs/full-study-human-check-provenance-20260722.json) | Records that all substantive decisions were manual and that agentic help generated only the non-substantive completion note |
+| [Blind diagnostic report](../evaluation/results/full-study-human-check-blind-diagnostic-20260722.md) | Internal 24-cell quality-control comparison and targeted recheck list; explicitly excluded from publication evidence |
+| [Human-check reconciliation](../evaluation/configs/full-study-human-check-reconciliation-20260722.json) | Records the project-author recheck, eight whole-image rejections, two proposal corrections, and the required additive replacement boundary |
+| [Rechecked human-check export](../evaluation/dataset/full-study-human-check-recheck-20260722.jsonl) | Immutable 128-row recheck evidence: 120 accepted and eight rejected; not directly applicable until replacements are accepted |
+| [Replacement reconciliation](../evaluation/configs/full-study-replacement-reconciliation-20260723.json) | Eight same-stratum replacements, inherited population assignments, metadata normalization, and source/final hashes |
+| [Final human-check evidence](../evaluation/dataset/full-study-human-check-final-20260723.jsonl) | Final 128-row project-author population: 128 accepted and 128 unique IDs |
+| [Final publication manifest](../evaluation/dataset/manifest-full-v1.jsonl) | Executable 128-item manifest with unique image hashes, accepted human-check evidence, and verified licence/context/brand hashes |
+| [Final materialization summary](../evaluation/dataset/full-study-materialization-summary.json) | Retrieval timestamp, population counts, assignment seed, and final manifest path |
 | [Rubric v1.1](../evaluation/annotations/templates/rubric-v1.1.md) | Frozen human-check dimensions and labels, purpose rules, and failure handling |
 | [Final calibration report](../evaluation/results/recal_analysis_results.md) | Reviewer feasibility on 15 blinded items and the final 76-item human-check inventory |
 | [Calibration evidence JSON](../evaluation/results/recal-analysis-20260719.json) | Machine-readable analysis version 2, source hashes, agreement, timing, and status |

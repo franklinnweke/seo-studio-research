@@ -1,0 +1,11 @@
+{
+  "audience": "Local shoppers",
+  "functional_action": "Open the relevant service or registration page",
+  "id": "retail-product-05-p6450607-context",
+  "language": "en-CA",
+  "link_destination": "/actions/retail-product-05-p6450607",
+  "nearby_text": "Selecting the image opens the relevant service or registration action.",
+  "page_title": "Cedar Market Shopping Guide",
+  "page_url": "https://example.invalid/full-study/retail-product/retail-product-05-p6450607",
+  "section_heading": "Shop Action"
+}

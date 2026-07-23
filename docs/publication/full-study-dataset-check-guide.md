@@ -1,8 +1,8 @@
 # Full-study dataset human-check guide
 
-Status: **128-item draft materialized; human item check required**
+Status: **complete; final 128-item accepted manifest materialized July 23, 2026**
 
-The current draft contains 128 mechanically licensed and contact-sheet-screened Wikimedia Commons items. Query-stratum suggestions reduce typing, but they are not ground truth. Gate 4 remains blocked until a project author checks every suggestion against the displayed pixels.
+The publication dataset contains 128 human-accepted Wikimedia Commons items after a complete project-author check, a targeted recheck, and eight additive same-stratum replacements. The rejected evidence and duplicate-candidate diagnostic attempts remain preserved. The final manifest is `evaluation/dataset/manifest-full-v1.jsonl`.
 
 If `evaluation/dataset/images/full/` is not present in a fresh checkout, first create check copies and non-executable draft evidence. This requires Wikimedia Commons network access and still does not create the final manifest:
 
@@ -63,6 +63,26 @@ PYTHONPATH=src .venv/bin/python scripts/apply_full_human_check.py \
   --reviewed-at YYYY-MM-DD
 ```
 
-If all 128 items are accepted and complete, repeat with `--apply`. If any item is rejected, do not reduce the population or substitute an item informally. Record an additive replacement decision, select a new candidate from the same domain/query stratum, and repeat the check for that item. Accepted check evidence cannot be overwritten by rerunning the importer.
+If all 128 items are accepted and complete, repeat with `--apply`. If any item is rejected, do not reduce the population or substitute an item informally. Record an additive replacement decision, select a genuinely new candidate from the same domain/query/purpose stratum, verify both catalog-ID and image-hash uniqueness, and repeat the check for that item. Accepted check evidence cannot be overwritten by rerunning the importer.
 
-After application, materialize the final 1280px dataset, run `preflight`, and run `protocol-audit`. The final manifest must never be created from the pending draft placeholders.
+When replacements are required, validate first and then apply them with:
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/reconcile_full_human_check_replacements.py \
+  --replacement-check-file dataset/full-study-human-check-replacements-completed-YYYYMMDD.jsonl \
+  --raw-replacement-check-file dataset/full-study-human-check-replacements-completed-raw-YYYYMMDD.jsonl \
+  --checker-role project-author \
+  --reviewed-at YYYY-MM-DD
+
+# Repeat only after the dry run reports ready:
+PYTHONPATH=src .venv/bin/python scripts/reconcile_full_human_check_replacements.py \
+  --replacement-check-file dataset/full-study-human-check-replacements-completed-YYYYMMDD.jsonl \
+  --raw-replacement-check-file dataset/full-study-human-check-replacements-completed-raw-YYYYMMDD.jsonl \
+  --checker-role project-author \
+  --reviewed-at YYYY-MM-DD \
+  --apply
+```
+
+The reconciler requires exact rejected-target coverage, immutable template metadata, complete reviewer decisions, same-stratum replacements, unique catalog IDs, and unchanged frozen analysis assignments.
+
+After application, materialize the final 1280px dataset, run `preflight`, and run `protocol-audit`. Use `--resume` with the identical retrieval timestamp after an interrupted or rate-limited run; only timestamp-matched partial evidence is reused. The final manifest must never be created from pending draft placeholders.

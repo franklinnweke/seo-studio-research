@@ -2,7 +2,7 @@
 
 This package is the offline-first research execution path. It does not call the product API, discover product `.env` files, or access the DGX during unit tests.
 
-Current research status and reading order are maintained in [`../docs/research-context.md`](../docs/research-context.md), [`../docs/research-next-steps.md`](../docs/research-next-steps.md), and the canonical [`../docs/publication-research-architecture.md`](../docs/publication-research-architecture.md). As of July 19, 2026, rubric-v1.1 calibration is accepted on 15 blinded items and a common 76-item human-check inventory: exact human-check label agreement is 98.7%, nominal Cohen's kappa is 0.923, and the analysis status is `ready`. This establishes reviewer feasibility, not a model-quality winner. The approved full-study design is estimation-first: 128 images balanced 32 per domain, with 128/64/36-image human-check populations and 3,012 planned model calls. Full-study execution still requires manifest validation, listener-security closure, and explicit protocol freeze.
+Current research status and reading order are maintained in [`../docs/research-context.md`](../docs/research-context.md), [`../docs/research-next-steps.md`](../docs/research-next-steps.md), and the canonical [`../docs/publication-research-architecture.md`](../docs/publication-research-architecture.md). Rubric-v1.1 calibration is accepted on 15 blinded items and a common 76-item human-check inventory: exact human-check label agreement is 98.7%, nominal Cohen's kappa is 0.923, and the analysis status is `ready`. This establishes reviewer feasibility, not a model-quality winner. As of July 23, 2026, the final estimation-first publication dataset is materialized: 128 accepted and unique images balanced 32 per domain, with frozen 128/64/36 analysis populations and 3,012 planned model calls. The offline full-study preflight is `ready`. Full-study execution still requires listener-security closure and explicit protocol freeze.
 
 Implemented commands:
 
@@ -38,7 +38,7 @@ The materializer requires explicit network access, retrieves only the declared W
 
 ## Full-study dataset workflow
 
-The 128 selected Commons page identities, fictional contexts, declared purposes, and deterministic 128/64/36 analysis-population assignments are recorded in `dataset/full-study-catalog.json`. Candidate discovery and contact-sheet screening are preparation evidence, not final human ground truth. The workspace pre-populates query-stratum draft statements to reduce typing; they were not derived from Commons descriptions, source titles, or evaluated-model outputs, and each requires an explicit human keep/reject decision. The final manifest intentionally remains absent until a project author checks every image.
+The final 128 selected Commons page identities, fictional contexts, declared purposes, accepted human-check evidence, additive replacement links, and frozen 128/64/36 analysis-population assignments are recorded in `dataset/full-study-catalog.json`. Candidate discovery and contact-sheet screening remain preparation evidence, not human ground truth. The final executable manifest is `dataset/manifest-full-v1.jsonl`; the original pending workbook, initial export, recheck, rejected records, replacement attempts, and reconciliation hashes remain preserved separately.
 
 Serve the evidence-led human-check workspace from this directory:
 
@@ -63,7 +63,7 @@ PYTHONPATH=src .venv/bin/python scripts/apply_full_human_check.py \
   --apply
 ```
 
-Only after that succeeds, materialize fresh 1280px evidence and run the full-study preflight and protocol audit:
+Only after that succeeds, materialize fresh 1280px evidence and run the full-study preflight and protocol audit. If Commons rate-limits or interrupts a run, repeat with the identical retrieval timestamp and `--resume`; only matching partial evidence is reused:
 
 ```bash
 PYTHONPATH=src .venv/bin/python scripts/materialize_full.py \

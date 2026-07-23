@@ -31,6 +31,7 @@ class DatasetPlan(BaseModel):
     pilot_disposition: Literal["excluded_from_primary_inference"]
     split: Literal["full"]
     manifest_path: Path
+    manifest_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
     provisional_items: int = Field(gt=0)
     final_items: int | None = Field(default=None, gt=0)
     primary_claim_images: int = Field(gt=0)
@@ -241,6 +242,8 @@ def _collect_blockers(
     manifest_path = (root / protocol.dataset.manifest_path).resolve()
     if not manifest_path.is_file():
         blockers.append("full-study dataset manifest is not materialized")
+    elif protocol.dataset.manifest_sha256 is None:
+        blockers.append("full-study dataset manifest hash is not frozen")
     decision_path = (root / protocol.dataset.sample_size_decision_path).resolve()
     if not decision_path.is_file():
         blockers.append("sample-size decision record is not materialized")
@@ -360,7 +363,16 @@ def _validate_manifest(
     errors: list[str],
 ) -> None:
     manifest_path = (root / protocol.dataset.manifest_path).resolve()
+    if root != manifest_path and root not in manifest_path.parents:
+        errors.append("full-study dataset manifest path escapes evaluation root")
+        return
     if not manifest_path.is_file():
+        return
+    if (
+        protocol.dataset.manifest_sha256 is not None
+        and sha256_file(manifest_path) != protocol.dataset.manifest_sha256
+    ):
+        errors.append("full-study dataset manifest SHA-256 mismatch")
         return
     try:
         items = load_manifest(root, protocol.dataset.manifest_path)

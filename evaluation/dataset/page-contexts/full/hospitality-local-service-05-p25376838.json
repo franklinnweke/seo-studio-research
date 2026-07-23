@@ -1,0 +1,11 @@
+{
+  "audience": "Prospective guests and local-service customers",
+  "functional_action": "Open the relevant service or registration page",
+  "id": "hospitality-local-service-05-p25376838-context",
+  "language": "en-CA",
+  "link_destination": "/actions/hospitality-local-service-05-p25376838",
+  "nearby_text": "Selecting the image opens the relevant service or registration action.",
+  "page_title": "Harbour House Guest Services",
+  "page_url": "https://example.invalid/full-study/hospitality-local-service/hospitality-local-service-05-p25376838",
+  "section_heading": "Reservation Action"
+}

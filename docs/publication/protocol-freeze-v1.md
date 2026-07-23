@@ -171,9 +171,8 @@ The revised reviewer burden was approved with the 128-image estimation-first dec
 
 The July 19 approval relay closes supervisor record, authorship/CRediT, publication route, ethics, data/network policy, reviewer burden, meaningful effects, and full-study authorization subject to technical freeze. Read-only inspection also verified the dedicated project workspace, available storage, and the supported telemetry scope. `nvidia-smi` is unavailable, so complete GPU-VRAM and measured-energy claims are prohibited. The machine audit must continue returning `draft_blocked` until all remaining technical requirements are complete:
 
-The 128-item Commons candidate catalog and deterministic 128/64/36 population assignments are assembled. This is a human-check draft, not the frozen publication dataset: query-stratum statements are only transcription aids, and a project author must still inspect every item, explicitly keep/reject each statement, correct it when needed, and replace any rejected image through a documented same-stratum amendment before fresh final materialization. The aids are not sourced from Commons descriptions or evaluated-model outputs and are not ground truth until human-verified. The absence of `evaluation/dataset/manifest-full-v1.jsonl` is intentional at this stage.
+The final 128-item Commons publication dataset is materialized. It contains 128 accepted and unique human-checked images, exact 32-per-domain balance, and frozen 128/64/36 analysis populations. Eight rejected rows remain preserved, and eight unique additive same-stratum replacements inherit their population assignments through a guarded reconciliation record. `evaluation/dataset/manifest-full-v1.jsonl` passes full-study preflight with zero errors and warnings.
 
-- materialize and validate the full-study dataset manifest;
 - resolve the failed private listener-reachability check through an institution-approved mitigation, then verify it without publishing connection details;
 - change protocol status only after the resulting audit has no blockers.
 

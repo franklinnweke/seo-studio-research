@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "record_type": "internal_human_check_blind_diagnostic",
+  "recorded_at": "2026-07-22",
+  "publication_evidence": false,
+  "purpose": "Internal quality control of the completed project-author dataset check.",
+  "method": {
+    "rater": "context-isolated Codex agent",
+    "sample_rule": "Lexicographically first candidate in each domain-by-purpose cell.",
+    "sample_size": 24,
+    "strata": {
+      "domains": 4,
+      "purposes": 6,
+      "items_per_cell": 1
+    },
+    "available_to_diagnostic_rater": [
+      "candidate pixels",
+      "fictional placement",
+      "pending visible-fact proposals",
+      "pending forbidden-boundary proposals",
+      "pending alt-example proposals"
+    ],
+    "withheld_from_diagnostic_rater": [
+      "completed human-check export",
+      "human decisions",
+      "human notes",
+      "Commons title and description",
+      "private model map",
+      "prior chat conclusions"
+    ],
+    "interpretation": "The diagnostic rater is neither a replacement reviewer nor ground truth. Disagreements identify candidates for a targeted project-author second look."
+  },
+  "human_provenance": {
+    "substantive_decisions": "manually reviewed by the project author",
+    "human_check_note": "agent-assisted mechanical completion stamp",
+    "note_used_in_comparison": false,
+    "completed_export_sha256": "70db7af4b81dde1cd2fe40438b015f4757570f4b15cb118f85b5090518b269c1"
+  },
+  "sample_candidate_ids": [
+    "education-professional-service-07-p117771211",
+    "education-professional-service-04-p45407708",
+    "education-professional-service-05-p19516525",
+    "education-professional-service-01-p118395419",
+    "education-professional-service-08-p36352163",
+    "education-professional-service-06-p112410873",
+    "healthcare-07-p17612961",
+    "healthcare-04-p10757659",
+    "healthcare-05-p31233936",
+    "healthcare-01-p192668490",
+    "healthcare-08-p15423478",
+    "healthcare-06-p28167196",
+    "hospitality-local-service-07-p24312112",
+    "hospitality-local-service-04-p11211711",
+    "hospitality-local-service-05-p25376838",
+    "hospitality-local-service-01-p19085820",
+    "hospitality-local-service-08-p27554645",
+    "hospitality-local-service-06-p20484576",
+    "retail-product-07-p189488031",
+    "retail-product-04-p147675226",
+    "retail-product-05-p20088802",
+    "retail-product-01-p190207508",
+    "retail-product-08-p10589659",
+    "retail-product-06-p104282087"
+  ],
+  "agreement": {
+    "image_decision": {
+      "agreements": 16,
+      "population": 24,
+      "proportion": 0.666667
+    },
+    "visible_fact_decision": {
+      "agreements": 35,
+      "population": 48,
+      "proportion": 0.729167
+    },
+    "forbidden_boundary_decision": {
+      "agreements": 72,
+      "population": 72,
+      "proportion": 1.0
+    },
+    "alt_example_decision": {
+      "agreements": 15,
+      "population": 16,
+      "proportion": 0.9375
+    }
+  },
+  "diagnostic_rater_summary": {
+    "image_decisions": {
+      "accepted": 16,
+      "rejected": 8
+    },
+    "visible_fact_decisions": {
+      "kept": 36,
+      "rejected": 12
+    },
+    "forbidden_boundary_decisions": {
+      "kept": 72,
+      "rejected": 0
+    },
+    "alt_example_decisions": {
+      "kept": 16,
+      "rejected": 0
+    },
+    "confidence": {
+      "high": 22,
+      "medium": 2
+    }
+  },
+  "targeted_image_recheck": [
+    {
+      "candidate_id": "education-professional-service-04-p45407708",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The cityscape did not independently establish a campus or learning environment."
+    },
+    {
+      "candidate_id": "healthcare-07-p17612961",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The clinical-room image was judged too dim or blurry for the frozen quality requirement, although its proposed facts were kept."
+    },
+    {
+      "candidate_id": "healthcare-05-p31233936",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The historical domestic gathering did not provide an unmistakable healthcare visual or functional healthcare cue."
+    },
+    {
+      "candidate_id": "healthcare-08-p15423478",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The corridor or rail-station scene did not visibly establish the proposed healthcare waiting-area placement."
+    },
+    {
+      "candidate_id": "hospitality-local-service-04-p11211711",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The dusty, partially dismantled interior was judged a poor fit for the frozen hospitality placement."
+    },
+    {
+      "candidate_id": "hospitality-local-service-05-p25376838",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The close-up food and drink showed dining items but did not independently establish the proposed booking action or service."
+    },
+    {
+      "candidate_id": "hospitality-local-service-08-p27554645",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The building exterior did not visibly establish a guest or common area."
+    },
+    {
+      "candidate_id": "retail-product-06-p104282087",
+      "human_decision": "accepted",
+      "diagnostic_decision": "rejected",
+      "diagnostic_reason": "The storefront sign was judged too faint or partially legible for the text/readability stratum."
+    }
+  ],
+  "visible_fact_disagreements": [
+    {
+      "candidate_id": "education-professional-service-04-p45407708",
+      "proposal_index": 0,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "healthcare-05-p31233936",
+      "proposal_index": 0,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "healthcare-05-p31233936",
+      "proposal_index": 1,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "healthcare-01-p192668490",
+      "proposal_index": 0,
+      "human_decision": "rejected",
+      "diagnostic_decision": "kept"
+    },
+    {
+      "candidate_id": "healthcare-08-p15423478",
+      "proposal_index": 0,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "healthcare-08-p15423478",
+      "proposal_index": 1,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "hospitality-local-service-04-p11211711",
+      "proposal_index": 0,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "hospitality-local-service-04-p11211711",
+      "proposal_index": 1,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "hospitality-local-service-05-p25376838",
+      "proposal_index": 0,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "hospitality-local-service-08-p27554645",
+      "proposal_index": 0,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "hospitality-local-service-08-p27554645",
+      "proposal_index": 1,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "retail-product-04-p147675226",
+      "proposal_index": 1,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    },
+    {
+      "candidate_id": "retail-product-06-p104282087",
+      "proposal_index": 1,
+      "human_decision": "kept",
+      "diagnostic_decision": "rejected"
+    }
+  ],
+  "alt_example_disagreements": [
+    {
+      "candidate_id": "healthcare-01-p192668490",
+      "proposal_index": 0,
+      "human_decision": "rejected",
+      "diagnostic_decision": "kept"
+    }
+  ],
+  "decision": {
+    "human_authority_preserved": true,
+    "automatic_changes_to_human_labels": false,
+    "next_action": "The project author reopens only the eight whole-image disagreements, checks the cited concern against the pixels and frozen placement, and either confirms the original decision or records a correction. Apply the completed export only after that targeted recheck.",
+    "manuscript_policy": "Do not report the diagnostic agreement rates as study results or reviewer reliability."
+  }
+}

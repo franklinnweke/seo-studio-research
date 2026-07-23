@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEO Studio — Replacement Dataset Check (8 Affected Strata)</title>
+  <style>
+    :root { --ink:#17211d; --muted:#68736d; --paper:#f4f1e9; --panel:#fffdf8; --line:#d9d5ca; --green:#176044; --green-soft:#e5f2e9; --red:#a13b36; --red-soft:#f8e9e6; --blue:#285d71; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:14px/1.45 Inter, ui-sans-serif, system-ui, sans-serif; }
+    button, textarea, input { font:inherit; }
+    button { cursor:pointer; }
+    .topbar { position:sticky; top:0; z-index:10; min-height:66px; display:grid; grid-template-columns:1fr minmax(260px,420px) 1fr; align-items:center; gap:22px; padding:10px 24px; background:rgba(255,253,248,.96); border-bottom:1px solid var(--line); backdrop-filter:blur(15px); }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .mark { width:32px; height:32px; color:var(--green); }
+    .brand strong, .brand span { display:block; }
+    .brand span { color:var(--muted); font-size:12px; }
+    .progress-wrap { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; color:var(--muted); font-size:12px; }
+    .track { height:7px; overflow:hidden; border-radius:10px; background:#e3dfd5; }
+    .fill { width:0; height:100%; background:var(--green); transition:width .25s ease; }
+    .actions { display:flex; justify-content:flex-end; gap:8px; }
+    .button { min-height:38px; padding:8px 13px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:8px; font-weight:700; }
+    .button:hover { border-color:#9aa59f; transform:translateY(-1px); }
+    .button.primary { color:white; background:var(--green); border-color:var(--green); }
+    .workspace { min-height:calc(100vh - 124px); display:grid; grid-template-columns:minmax(0,1.35fr) minmax(390px,.65fr); }
+    .visual-stage { min-width:0; border-right:1px solid var(--line); background:#e9e5dc; }
+    .image-plane { position:sticky; top:66px; min-height:calc(100vh - 230px); display:grid; place-items:center; padding:24px; background:#222724; }
+    .image-plane img { display:block; max-width:100%; max-height:calc(100vh - 280px); object-fit:contain; border-radius:3px; box-shadow:0 18px 50px rgba(0,0,0,.28); }
+    .image-index { position:absolute; right:18px; bottom:18px; padding:5px 9px; color:white; background:rgba(0,0,0,.62); border-radius:99px; font-size:12px; }
+    .source-block { display:grid; grid-template-columns:1.2fr .8fr; gap:24px; padding:20px 24px; background:var(--panel); }
+    .source-block h1 { margin:3px 0 6px; font:600 25px/1.1 Georgia,serif; }
+    .source-block p { margin:4px 0; color:var(--muted); }
+    .source-details { align-self:start; padding:10px 12px; border:1px solid var(--line); border-radius:8px; }
+    .source-details summary { font-weight:800; cursor:pointer; }
+    .source-link { color:var(--blue); font-weight:750; }
+    .inspector { padding:22px 22px 92px; overflow:auto; background:var(--paper); }
+    .eyebrow { color:var(--green); font-size:11px; font-weight:850; letter-spacing:.09em; text-transform:uppercase; }
+    .meta-row { display:flex; gap:7px; margin:8px 0 13px; }
+    .meta-row span { padding:4px 8px; background:#e6e2d8; border-radius:99px; color:#4b5650; font-size:12px; }
+    .review-intro { margin-bottom:12px; padding:13px 14px; background:#edf2ef; border-left:4px solid var(--green); }
+    .review-intro p { margin:4px 0 0; color:#52615a; }
+    fieldset { margin:0 0 13px; padding:13px; background:var(--panel); border:1px solid var(--line); border-radius:9px; }
+    legend, .heading { padding:0 5px; font-weight:850; }
+    .hint { margin:2px 0 10px; color:var(--muted); font-size:12px; }
+    .choice-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .choice input { position:absolute; opacity:0; }
+    .choice label { display:block; padding:10px; text-align:center; border:1px solid var(--line); border-radius:7px; font-weight:800; cursor:pointer; }
+    .choice input:checked + label { color:var(--green); background:var(--green-soft); border-color:var(--green); }
+    .choice.reject input:checked + label { color:var(--red); background:var(--red-soft); border-color:var(--red); }
+    .suggestion-list { display:grid; gap:8px; }
+    .suggestion { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px; border:1px solid var(--line); border-radius:8px; background:#faf8f2; }
+    .suggestion.kept { background:var(--green-soft); border-color:#8fbaa5; }
+    .suggestion.rejected { background:var(--red-soft); border-color:#d6aaa5; }
+    .suggestion p { margin:0 0 3px; }
+    .suggestion-state { color:var(--muted); font-size:11px; }
+    .decision-buttons { display:flex; gap:5px; }
+    .mini-button { padding:6px 9px; background:white; border:1px solid var(--line); border-radius:6px; font-size:12px; font-weight:800; }
+    .mini-button.keep.active { color:white; background:var(--green); border-color:var(--green); }
+    .mini-button.reject.active { color:white; background:var(--red); border-color:var(--red); }
+    .empty-proposal { padding:9px; color:var(--muted); background:#f0ede5; border-radius:7px; }
+    .correction { margin-top:9px; }
+    .correction summary { color:var(--blue); cursor:pointer; font-weight:750; }
+    textarea { width:100%; min-height:72px; margin-top:8px; padding:9px; resize:vertical; color:var(--ink); background:white; border:1px solid var(--line); border-radius:7px; }
+    .checks { display:grid; gap:7px; }
+    .check { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:start; }
+    .check input { margin-top:3px; accent-color:var(--green); }
+    .check-all { width:100%; margin-top:10px; }
+    .footer-nav { position:fixed; z-index:9; right:0; bottom:0; width:clamp(390px,32.5vw,650px); display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:10px 22px; background:rgba(255,253,248,.97); border-top:1px solid var(--line); }
+    .save-state { text-align:center; color:var(--green); font-size:12px; font-weight:800; }
+    .save-state.error { color:var(--red); }
+    .empty { max-width:720px; margin:80px auto; padding:28px; background:var(--panel); border:1px solid var(--line); }
+    code { padding:2px 4px; background:#ece8de; }
+    @media (max-width:900px) {
+      .topbar { grid-template-columns:1fr auto; }
+      .progress-wrap { grid-column:1/-1; grid-row:2; }
+      .workspace { grid-template-columns:1fr; }
+      .visual-stage { border-right:0; }
+      .image-plane { position:relative; top:0; min-height:420px; }
+      .footer-nav { width:100%; }
+    }
+    @media (max-width:560px) {
+      .topbar { padding:10px 13px; }
+      .brand span, .actions .button:first-child { display:none; }
+      .source-block { grid-template-columns:1fr; }
+      .image-plane { min-height:340px; padding:12px; }
+      .inspector { padding:16px 13px 92px; }
+      .suggestion { grid-template-columns:1fr; }
+      .decision-buttons .mini-button { flex:1; }
+      .footer-nav { grid-template-columns:1fr 1fr; padding:9px 12px; }
+      .save-state { grid-column:1/-1; grid-row:1; }
+      .footer-nav .button { width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 9.5 16 3l11 6.5v13L16 29 5 22.5v-13Z" stroke="currentColor" stroke-width="2"/><path d="m10 18 4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>SEO Studio research</strong><span>Full-study dataset check</span></div></div>
+    <div class="progress-wrap"><span id="doneCount">0 checked</span><div class="track"><div class="fill" id="progressFill"></div></div><span id="remainingCount">128 remaining</span></div>
+    <div class="actions"><button class="button" id="importButton" type="button">Import</button><button class="button primary" id="exportButton" type="button">Export JSONL</button><input id="importFile" type="file" accept=".jsonl,.json" hidden></div>
+  </header>
+  <main id="app"></main>
+  <script>
+    const SOURCE = "../dataset/full-study-human-check-replacements.jsonl?v=20260723-2";
+    const STORAGE_KEY = "seo-studio-full-study-replacements-v1";
+    const state = { items: [], index: 0, responses: {} };
+    const app = document.getElementById("app");
+    const GROUPS = {
+      facts: { suggestions:"suggested_visible_facts", decisions:"visible_fact_decisions", custom:"custom_visible_facts" },
+      forbidden: { suggestions:"suggested_forbidden_claims", decisions:"forbidden_claim_decisions", custom:"custom_forbidden_claims" },
+      alt: { suggestions:"suggested_alt_examples", decisions:"alt_example_decisions", custom:"custom_alt_examples" }
+    };
+    const lines = value => (value || "").split("\n").map(v => v.trim()).filter(Boolean);
+    const escapeHtml = (value="") => String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+    function selected(response, name) { const g=GROUPS[name]; return (response[g.suggestions]||[]).filter((_,i)=>response[g.decisions]?.[i]==="kept"); }
+    function syncDerived(r) {
+      r.reference_visible_facts=[...selected(r,"facts"),...lines(r.custom_visible_facts)];
+      r.forbidden_claims_additions=[...selected(r,"forbidden"),...lines(r.custom_forbidden_claims)];
+      r.adjudication_alt_examples=[...selected(r,"alt"),...lines(r.custom_alt_examples)];
+    }
+    function responseFor(item) {
+      const saved=state.responses[item.candidate_id]||{};
+      const r={human_decision:"pending",purpose_fit_confirmed:false,privacy_and_sensitivity_checked:false,duplicate_and_quality_checked:false,source_and_license_checked:false,human_notes:"",...item,...saved,
+        visible_fact_decisions:saved.visible_fact_decisions||item.visible_fact_decisions||{},forbidden_claim_decisions:saved.forbidden_claim_decisions||item.forbidden_claim_decisions||{},alt_example_decisions:saved.alt_example_decisions||item.alt_example_decisions||{},
+        custom_visible_facts:saved.custom_visible_facts||item.custom_visible_facts||"",custom_forbidden_claims:saved.custom_forbidden_claims||item.custom_forbidden_claims||"",custom_alt_examples:saved.custom_alt_examples||item.custom_alt_examples||"",verification_ui_version:2};
+      syncDerived(r); return r;
+    }
+    function groupDecided(r,name) { const g=GROUPS[name]; return (r[g.suggestions]||[]).every((_,i)=>["kept","rejected"].includes(r[g.decisions]?.[i])); }
+    function isComplete(r) {
+      if(r.human_decision==="rejected") return Boolean(r.human_notes.trim());
+      const altOkay=["decorative","redundant"].includes(r.purpose)||r.adjudication_alt_examples.length>0;
+      return r.human_decision==="accepted"&&r.purpose_fit_confirmed&&r.privacy_and_sensitivity_checked&&r.duplicate_and_quality_checked&&r.source_and_license_checked&&groupDecided(r,"facts")&&groupDecided(r,"forbidden")&&groupDecided(r,"alt")&&r.reference_visible_facts.length>0&&altOkay;
+    }
+    function statusMessage(r) {
+      if(isComplete(r)) return "Complete · saved locally";
+      if(r.human_decision==="rejected"&&!r.human_notes.trim()) return "Add a rejection reason";
+      const pending=["facts","forbidden","alt"].reduce((n,name)=>{const g=GROUPS[name];return n+(r[g.suggestions]||[]).filter((_,i)=>!["kept","rejected"].includes(r[g.decisions]?.[i])).length;},0);
+      if(pending) return `${pending} draft statement${pending===1?"":"s"} undecided`;
+      if(r.human_decision==="pending") return "Accept or reject the item";
+      if(!r.reference_visible_facts.length) return "Keep or add at least one visible fact";
+      if(!["decorative","redundant"].includes(r.purpose)&&!r.adjudication_alt_examples.length) return "Keep or add an alt example";
+      return "Confirm the required checks";
+    }
+    function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify({responses:state.responses,index:state.index}));updateProgress();}
+    function updateProgress(){const done=state.items.filter(i=>isComplete(responseFor(i))).length;doneCount.textContent=`${done} checked`;remainingCount.textContent=`${state.items.length-done} remaining`;progressFill.style.width=`${state.items.length?done/state.items.length*100:0}%`;}
+    function saveCurrent(){const item=state.items[state.index];if(!item||!document.getElementById("customFacts"))return;const r=responseFor(item);r.human_decision=document.querySelector('input[name="decision"]:checked')?.value||"pending";r.purpose_fit_confirmed=purposeFit.checked;r.privacy_and_sensitivity_checked=privacyCheck.checked;r.duplicate_and_quality_checked=qualityCheck.checked;r.source_and_license_checked=sourceCheck.checked;r.custom_visible_facts=customFacts.value.trim();r.custom_forbidden_claims=customForbidden.value.trim();r.custom_alt_examples=customAlt.value.trim();r.human_notes=notes.value.trim();syncDerived(r);state.responses[item.candidate_id]=r;persist();saveState.textContent=statusMessage(r);saveState.classList.toggle("error",!isComplete(r));}
+    function decide(name,index,decision){const top=document.querySelector(".inspector")?.scrollTop||0;saveCurrent();const item=state.items[state.index],r=responseFor(item);r[GROUPS[name].decisions][index]=decision;syncDerived(r);state.responses[item.candidate_id]=r;persist();render();document.querySelector(".inspector").scrollTop=top;}
+    function suggestionGroup(r,name,title,hint,keepLabel,correctionLabel,id){const g=GROUPS[name],suggestions=r[g.suggestions]||[],decisions=r[g.decisions]||{};const rows=suggestions.length?suggestions.map((text,i)=>{const d=decisions[i]||"pending";return `<div class="suggestion ${d}"><div><p>${escapeHtml(text)}</p><span class="suggestion-state">${d==="kept"?"Will be included":d==="rejected"?"Will be excluded":"Needs your decision"}</span></div><div class="decision-buttons"><button class="mini-button keep ${d==="kept"?"active":""}" data-group="${name}" data-index="${i}" data-decision="kept" type="button">${keepLabel}</button><button class="mini-button reject ${d==="rejected"?"active":""}" data-group="${name}" data-index="${i}" data-decision="rejected" type="button">Reject</button></div></div>`;}).join(""):'<div class="empty-proposal">No statement is required for this image purpose.</div>';return `<fieldset><legend>${title}</legend><p class="hint">${hint}</p><div class="suggestion-list">${rows}</div><details class="correction" ${r[g.custom]?"open":""}><summary>${correctionLabel}</summary><textarea id="${id}" placeholder="One short, atomic correction per line.">${escapeHtml(r[g.custom]||"")}</textarea></details></fieldset>`;}
+    function render(){const item=state.items[state.index];if(!item)return;const r=responseFor(item);app.innerHTML=`<div class="workspace"><section class="visual-stage"><div class="image-plane"><img src="../${item.thumbnail_path}" alt="Candidate being checked"><span class="image-index">${state.index+1} / ${state.items.length}</span></div><div class="source-block"><div><span class="eyebrow">Fictional placement</span><h1>${escapeHtml(item.page_context.page_title)}</h1><p><strong>${escapeHtml(item.page_context.section_heading)}</strong> · ${escapeHtml(item.page_context.audience)}</p><p>${escapeHtml(item.page_context.nearby_text)}</p></div><details class="source-details"><summary>Verify source after recording visible facts</summary><p><strong>Source title:</strong> ${escapeHtml(item.source_title)}</p><p>${escapeHtml(item.description)}</p><a class="source-link" href="${item.source_url}" target="_blank" rel="noreferrer">Open Commons source</a></details></div></section><aside class="inspector"><span class="eyebrow">${escapeHtml(item.candidate_id)}</span><div class="meta-row"><span>${escapeHtml(item.domain)}</span><span>${escapeHtml(item.purpose)}</span></div><div class="review-intro"><strong>Verify pixels before provenance.</strong><p>These are query-stratum drafts, not ground truth. Keep only what the pixels support. Open source details afterward; never import identity, diagnosis, location, quality, price, outcome, or affiliation.</p></div><fieldset><legend>Dataset decision</legend><p class="hint">Reject the whole image for unacceptable sensitivity, watermark/corruption, material duplication, source mismatch, or poor purpose fit.</p><div class="choice-row"><div class="choice"><input id="accept" name="decision" type="radio" value="accepted" ${r.human_decision==="accepted"?"checked":""}><label for="accept">Accept image</label></div><div class="choice reject"><input id="reject" name="decision" type="radio" value="rejected" ${r.human_decision==="rejected"?"checked":""}><label for="reject">Reject image</label></div></div></fieldset>${suggestionGroup(r,"facts","Proposed visible facts","Keep only statements fully supported by pixels.","Keep","Add a missing or corrected visible fact","customFacts")}${suggestionGroup(r,"forbidden","Proposed forbidden claims","Keep useful boundaries the evaluated model must not cross.","Keep prohibited","Add another unsupported or sensitive boundary","customForbidden")}${suggestionGroup(r,"alt","Proposed alt example","Keep an accurate purpose-aware example. Decorative and redundant images require none.","Keep","Add a corrected alt example","customAlt")}<fieldset><legend>Required checks</legend><div class="checks"><label class="check"><input id="purposeFit" type="checkbox" ${r.purpose_fit_confirmed?"checked":""}><span>The frozen purpose fits this fictional placement.</span></label><label class="check"><input id="privacyCheck" type="checkbox" ${r.privacy_and_sensitivity_checked?"checked":""}><span>No unacceptable private, graphic, sensitive, or identifying detail.</span></label><label class="check"><input id="qualityCheck" type="checkbox" ${r.duplicate_and_quality_checked?"checked":""}><span>No watermark, corruption, material duplicate, or unusable crop.</span></label><label class="check"><input id="sourceCheck" type="checkbox" ${r.source_and_license_checked?"checked":""}><span>The item was verified against its Commons source and licence evidence.</span></label></div><button class="button check-all" id="confirmAll" type="button">All four checks pass</button></fieldset><fieldset><label class="heading" for="notes">Human-check note</label><p class="hint">Optional for accepted images; required for rejection.</p><textarea id="notes">${escapeHtml(r.human_notes)}</textarea></fieldset></aside></div><nav class="footer-nav"><button class="button" id="previous" type="button" ${state.index===0?"disabled":""}>← Previous</button><span class="save-state ${isComplete(r)?"":"error"}" id="saveState">${statusMessage(r)}</span><button class="button primary" id="next" type="button">${state.index===state.items.length-1?"Save item":"Save & next →"}</button></nav>`;
+      previous.onclick=()=>navigate(-1);next.onclick=()=>state.index===state.items.length-1?saveCurrent():navigate(1);confirmAll.onclick=()=>{[purposeFit,privacyCheck,qualityCheck,sourceCheck].forEach(x=>x.checked=true);saveCurrent();};app.querySelectorAll("button[data-group]").forEach(b=>b.onclick=()=>decide(b.dataset.group,Number(b.dataset.index),b.dataset.decision));app.querySelectorAll("input,textarea").forEach(el=>el.addEventListener("change",saveCurrent));updateProgress();}
+    function navigate(delta){saveCurrent();state.index=Math.max(0,Math.min(state.items.length-1,state.index+delta));persist();render();window.scrollTo({top:0,behavior:"smooth"});}
+    async function exportCheck(){
+      saveCurrent();
+      const records=state.items.map(responseFor);
+      const payload=records.map(r=>JSON.stringify(r)).join("\n")+"\n";
+      let copied=false;
+      try{await navigator.clipboard.writeText(payload);copied=true;}catch(error){}
+      const blob=new Blob([payload],{type:"application/x-ndjson"});
+      const link=Object.assign(document.createElement("a"),{href:URL.createObjectURL(blob),download:"full-study-human-check-replacements-completed.jsonl"});
+      link.click();
+      exportButton.textContent=copied?"Copied + exported":"Exported — check Downloads";
+      setTimeout(()=>{URL.revokeObjectURL(link.href);exportButton.textContent="Export JSONL";},60000);
+    }
+    async function importCheck(file){const records=(await file.text()).split(/\r?\n/).filter(Boolean).map(JSON.parse),known=new Set(state.items.map(i=>i.candidate_id));if(records.length!==state.items.length||new Set(records.map(r=>r.candidate_id)).size!==records.length||records.some(r=>!known.has(r.candidate_id)))throw new Error("Import must contain every frozen candidate exactly once");records.forEach(r=>state.responses[r.candidate_id]=r);persist();render();}
+    async function boot(){try{const response=await fetch(SOURCE,{cache:"no-store"});if(!response.ok)throw new Error(`HTTP ${response.status}`);state.items=(await response.text()).split(/\r?\n/).filter(Boolean).map(JSON.parse);const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");state.responses=saved.responses||{};state.items.filter(item=>item.human_decision&&item.human_decision!=="pending").forEach(item=>state.responses[item.candidate_id]=item);state.index=Math.min(saved.index||0,state.items.length-1);persist();render();}catch(error){app.innerHTML=`<section class="empty"><span class="eyebrow">Human-check setup</span><h1>Serve the evaluation directory locally.</h1><p>Run <code>python3 -m http.server 8765 --directory evaluation</code>, then open <code>http://127.0.0.1:8765/review/full-study-replacement-check.html</code>.</p><p>${escapeHtml(error.message)}</p></section>`;}}
+    exportButton.onclick=exportCheck;importButton.onclick=()=>importFile.click();importFile.onchange=e=>importCheck(e.target.files[0]).catch(error=>alert(error.message));document.addEventListener("keydown",e=>{if(e.target.matches("textarea,input"))return;if(e.key==="ArrowLeft")navigate(-1);if(e.key==="ArrowRight")navigate(1);});boot();
+  </script>
+</body>
+</html>
