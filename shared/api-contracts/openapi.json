@@ -201,7 +201,7 @@
           "files": {
             "description": "One or more image files or ZIP archives. Supported extensions: .jpg, .jpeg, .png, .webp, .zip.",
             "items": {
-              "format": "binary",
+              "contentMediaType": "application/octet-stream",
               "type": "string"
             },
             "title": "Files",
@@ -219,7 +219,7 @@
           "files": {
             "description": "One or more brand context documents. Supported extensions: .txt, .docx, .pdf.",
             "items": {
-              "format": "binary",
+              "contentMediaType": "application/octet-stream",
               "type": "string"
             },
             "title": "Files",
@@ -2110,6 +2110,13 @@
       },
       "ValidationError": {
         "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
           "loc": {
             "items": {
               "anyOf": [
