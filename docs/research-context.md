@@ -8,7 +8,7 @@ Public repository: `https://github.com/franklinnweke/seo-studio-research`
 
 Default release branch: `main`; source development lineage: `codex/research-context-aware-metadata`
 
-Current gate: Gate 3 complete; the Gate 4 dataset, deterministic execution plan, and checkpoint controls are ready, while protocol freeze remains blocked by listener-security verification, separate-backup verification, and the deliberate draft-to-frozen transition
+Current gate: Gate 3 complete; the Gate 4 dataset, deterministic execution plan, checkpoint controls, and separate backup are ready, while protocol freeze remains blocked by listener-security verification and the deliberate draft-to-frozen transition
 
 ## Project in one paragraph
 
@@ -52,6 +52,7 @@ SEO Studio is a team-built Next.js and FastAPI image-optimization application wi
 - Product and evaluation CI workflows now enforce backend tests, OpenAPI drift, frontend lint/build, evaluation tests, JSON-schema drift, and licensed-pilot preflight. Ordinary GitHub runners never access the DGX or run model experiments.
 - The deterministic plan at `evaluation/configs/full-study-execution-plan-v1.jsonl` contains exactly 3,012 cells: 1,536 primary-generation, 1,152 decomposed-writer, and 324 deferred context-ablation cells. It regenerates byte-for-byte from seed `1721844270`, yields exactly 876 repeat-1 human-review items, and keeps context-model selection unresolved until the frozen selection record exists.
 - The full-study collector is phase-aware, append-only, resumable, plan-bound, digest-checked, storage-guarded, and prohibited from running against a draft protocol. One recorded transport recovery is permitted; timeout, schema, safety, and quality failures are final. Preserved pilot medians support a 34-hour planning estimate and 40-hour reservation, with at least 5 GiB free storage required.
+- The DGX project workspace now provides the separately verified `supervisor-backup-01` destination. A sanitized artifact completed matching upload, remote, and round-trip SHA-256 checks; the destination is project-owned, permission-restricted, and had 268 GiB available. The private path remains outside Git.
 
 The first non-common-inventory calibration remains preserved as diagnostic history. The final 76-item human-check recalibration is the authoritative feasibility result. Calibration evidence is not model-quality evidence.
 
@@ -75,7 +76,7 @@ Verified locally on July 23, 2026:
 - final manifest: 128 rows, 128 unique IDs, 128 unique image hashes, exact 32-per-domain balance, SHA-256 `1eb4842442fafb80642d43bdc74252d5cfdfbf75bdcf52a476975ca921f87e56`;
 - full-study preflight: `ready`, 128 items checked, three selected models checked, zero errors and zero warnings;
 - execution-plan validation: `valid`, 3,012 cells checked, zero errors, SHA-256 `87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc`;
-- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; `protocol status is draft`, `listener security verification is pending`, and `backup verification is pending` remain;
+- Gate 4 draft audit: structurally valid with three verified prompt hashes and zero errors; only `protocol status is draft` and `listener security verification is pending` remain;
 - Markdown index and handoff links: no broken local targets;
 - `git diff --check`: clean.
 - required `$davneet-dgx-access` status check: key authentication and expected host succeeded; shared Ollama 0.24.0 was active; the three frozen study packages remained installed; no model was loaded; the all-interfaces version endpoint was externally reachable; the security blocker remains; no DGX mutation occurred. Sanitized evidence is in `evaluation/configs/full-study-listener-reverification-20260723.json`.
@@ -89,8 +90,7 @@ Technical calibration has passed; the review protocol is feasible; and the final
 Outstanding technical freeze work:
 
 - resolve the failed private listener-reachability check through an approved mitigation; the dedicated workspace and limited non-GPU telemetry path are verified;
-- verify a separate backup destination outside the active run directory and keep its location private;
-- deliberately change the protocol from draft to frozen only after listener-security and backup evidence are recorded, then regenerate the audit and require `freeze_ready`.
+- deliberately change the protocol from draft to frozen only after listener-security evidence is recorded, then regenerate the audit and require `freeze_ready`.
 
 The Gate 4 draft resolves the design hierarchy: five original deployed-stack conditions plus amendments are reported for compatibility, while Qwen2.5-VL 3B, Qwen3.5 9B, and Gemma 3 12B enter the primary quality comparison. RQ1 has one primary outcome—hallucinated-claim rate—with supported-claim precision retained as the key secondary outcome. The study is estimation-first: report effect sizes and uncertainty, and do not reinterpret an underpowered null as evidence of equivalence.
 

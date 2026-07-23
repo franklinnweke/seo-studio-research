@@ -1,6 +1,6 @@
 {
   "evidence_version": 1,
-  "status": "backup_and_listener_pending",
+  "status": "listener_pending",
   "runtime_estimate": {
     "method": "Planning estimate from median non-transport wall times in the preserved deployed-stack pilot and fixed-writer matrix; not an outcome metric or execution guarantee.",
     "source_populations": [
@@ -75,8 +75,18 @@
   },
   "backup": {
     "required": true,
-    "location_reference": null,
-    "verified": false,
-    "rule": "Use a separately verified destination outside the active run directory; preserve append-only records and checksums after every segment."
+    "location_reference": "supervisor-backup-01",
+    "verified": true,
+    "verified_at": "2026-07-23T11:11:43-04:00",
+    "separate_machine": "supervisor_dgx_spark",
+    "available_gib_at_verification": 268,
+    "round_trip_test_sha256": "897b8075d3ee96f02510162ffb7f12112fc454843a359ebfacb2167f0d0f9746",
+    "round_trip_match": true,
+    "permissions": {
+      "directory_mode": "750",
+      "verification_file_mode": "640",
+      "project_account_owned": true
+    },
+    "rule": "After every collection segment, copy immutable records and checksums to this separate project-owned destination without overwriting an earlier segment."
   }
 }

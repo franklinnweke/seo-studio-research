@@ -1,0 +1,28 @@
+{
+  "evidence_version": 1,
+  "checked_at": "2026-07-23T11:11:43-04:00",
+  "access_authority": "$davneet-dgx-access",
+  "expected_host_verified": true,
+  "backup": {
+    "private_reference": "supervisor-backup-01",
+    "separate_machine_verified": true,
+    "project_owned_additive_directory": true,
+    "available_gib": 268,
+    "round_trip_sha256_verified": true,
+    "existing_files_modified_or_deleted": false
+  },
+  "ollama": {
+    "service_active": true,
+    "api_version": "0.24.0",
+    "models_loaded": 0,
+    "ssh_tunnel_verified": true,
+    "listener_binding": "all_interfaces",
+    "listener_security_verified": false,
+    "privileged_mitigation_applied": false,
+    "privileged_mitigation_blocker": "The authorized SSH account does not have non-interactive administrative access. No password was requested or handled."
+  },
+  "service_mutations_performed": [],
+  "preservation_boundary_observed": true,
+  "sensitive_connection_details_included": false,
+  "protocol_effect": "Backup verification is complete. Gate 4 remains blocked by listener security and draft status."
+}

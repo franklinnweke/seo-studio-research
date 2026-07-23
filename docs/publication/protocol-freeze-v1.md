@@ -178,7 +178,6 @@ The machine audit must continue returning `draft_blocked` until all remaining te
 The final 128-item Commons publication dataset is materialized. It contains 128 accepted and unique human-checked images, exact 32-per-domain balance, and frozen 128/64/36 analysis populations. Eight rejected rows remain preserved, and eight unique additive same-stratum replacements inherit their population assignments through a guarded reconciliation record. `evaluation/dataset/manifest-full-v1.jsonl` passes full-study preflight with zero errors and warnings.
 
 - resolve the failed private listener-reachability check through an institution-approved mitigation, then verify it without publishing connection details;
-- verify a separate backup destination outside the active run directory and record only its private reference;
 - change protocol status only after the resulting audit has no blockers.
 
 Run the offline audit with:

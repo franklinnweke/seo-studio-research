@@ -141,10 +141,10 @@
     "reserved_dgx_hours": 40.0,
     "projected_run_evidence_gib": 0.1,
     "minimum_free_storage_gib": 5.0,
-    "backup_location_reference": null,
-    "backup_verified": false,
+    "backup_location_reference": "supervisor-backup-01",
+    "backup_verified": true,
     "evidence_path": "configs/full-study-operational-readiness-v1.json",
-    "evidence_sha256": "8e3c99aee34ff0120239bd5180fc2b0daed67022af84122c8a5a1e262f91548a"
+    "evidence_sha256": "8bdbff694dff3975c0af5af8f58e0cd394b0cc6e247d96cf4c661a29b117695b"
   },
   "run_accounting": {
     "provisional_final_images": 128,
