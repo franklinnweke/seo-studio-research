@@ -202,6 +202,68 @@ def test_transport_recovery_is_explicit_and_bounded(tmp_path: Path, monkeypatch)
     assert recovered_transport.calls == 1
 
 
+def test_second_transport_failure_is_terminal_without_third_request(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr("seo_studio_eval.full_study._git_state", lambda _path: ("abc123", False))
+    run_dir = tmp_path / "run"
+    first_transport = FakeFullStudyTransport(fail_transport=True)
+    first, _ = collect_full_study_phase(
+        PROTOCOL,
+        CONFIG,
+        PINNED_PLAN,
+        phase="primary_generation",
+        base_url="http://127.0.0.1:11435",
+        run_dir=run_dir,
+        run_id="transport-exhaustion-test",
+        system_snapshot_ref="private-test-snapshot",
+        max_new_attempts=5,
+        transport=first_transport,
+        require_freeze=False,
+    )
+    second_transport = FakeFullStudyTransport(fail_transport=True)
+    second, _ = collect_full_study_phase(
+        PROTOCOL,
+        CONFIG,
+        PINNED_PLAN,
+        phase="primary_generation",
+        base_url="http://127.0.0.1:11435",
+        run_dir=run_dir,
+        run_id="transport-exhaustion-test",
+        system_snapshot_ref="private-test-snapshot",
+        max_new_attempts=5,
+        transport=second_transport,
+        require_freeze=False,
+    )
+    continuation_transport = FakeFullStudyTransport()
+    continued, _ = collect_full_study_phase(
+        PROTOCOL,
+        CONFIG,
+        PINNED_PLAN,
+        phase="primary_generation",
+        base_url="http://127.0.0.1:11435",
+        run_dir=run_dir,
+        run_id="transport-exhaustion-test",
+        system_snapshot_ref="private-test-snapshot",
+        max_new_attempts=1,
+        transport=continuation_transport,
+        require_freeze=False,
+    )
+
+    assert first.completed_cells == 0
+    assert first.paused_on_transport_error is True
+    assert second.completed_cells == 1
+    assert second.failed_cells == 1
+    assert second.paused_on_transport_error is True
+    assert continued.completed_cells == 2
+    assert continued.failed_cells == 1
+    assert continued.raw_attempt_records == 3
+    assert first_transport.calls == 1
+    assert second_transport.calls == 1
+    assert continuation_transport.calls == 1
+
+
 def test_resume_rejects_existing_record_drift(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr("seo_studio_eval.full_study._git_state", lambda _path: ("abc123", False))
     run_dir = tmp_path / "run"

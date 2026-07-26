@@ -154,13 +154,11 @@ def collect_full_study_phase(
     paused_on_transport = False
     for cell_index, cell in enumerate(cells):
         prior = existing.get(cell.cell_id, [])
-        final = [record for record in prior if not _recoverable_transport(record)]
-        if final:
-            _verify_record_matches_cell(final[0], cell, plan_hash)
+        final = _final_outcome(prior)
+        if final is not None:
+            _verify_record_matches_cell(final, cell, plan_hash)
             continue
         transports = [record for record in prior if _recoverable_transport(record)]
-        if len(transports) > 1:
-            raise ValueError(f"Transport recovery limit exceeded for {cell.cell_id}")
         if max_new_attempts is not None and new_records >= max_new_attempts:
             break
 
@@ -479,14 +477,12 @@ def _dependency_record(
     if dependency_id is None:
         return None
     records = existing.get(dependency_id, [])
-    final = [record for record in records if not _recoverable_transport(record)]
-    if not final:
+    final = _final_outcome(records)
+    if final is None:
         raise ValueError(
             f"{cell.cell_id}: required source cell {dependency_id} has no final outcome"
         )
-    if len(final) != 1:
-        raise ValueError(f"{dependency_id}: multiple final outcomes found")
-    return final[0]
+    return final
 
 
 def _load_existing_records(
@@ -516,7 +512,7 @@ def _load_existing_records(
         transports = [record for record in records if _recoverable_transport(record)]
         if len(finals) > 1:
             raise ValueError(f"Multiple final outcomes found for {cell_id}")
-        if len(transports) > 1:
+        if len(transports) > 2 or (finals and len(transports) > 1):
             raise ValueError(f"Transport recovery limit exceeded for {cell_id}")
     return grouped
 
@@ -531,14 +527,7 @@ def _collection_summary(
     paused_on_transport: bool,
 ) -> FullStudyCollectionSummary:
     outcomes = [
-        next(
-            (
-                record
-                for record in existing.get(cell.cell_id, [])
-                if not _recoverable_transport(record)
-            ),
-            None,
-        )
+        _final_outcome(existing.get(cell.cell_id, []))
         for cell in cells
     ]
     completed = [record for record in outcomes if record is not None]
@@ -627,6 +616,23 @@ def _verify_live_digests(models: list[ModelEntry], payload: dict[str, Any]) -> N
 
 def _recoverable_transport(record: RunRecord) -> bool:
     return record.error is not None and record.error.category == "transport_error"
+
+
+def _final_outcome(records: list[RunRecord]) -> RunRecord | None:
+    finals = [record for record in records if not _recoverable_transport(record)]
+    if len(finals) > 1:
+        raise ValueError("Multiple final outcomes found")
+    if finals:
+        return finals[0]
+    transports = sorted(
+        (record for record in records if _recoverable_transport(record)),
+        key=lambda record: (record.collection_attempt, record.started_at),
+    )
+    if len(transports) > 2:
+        raise ValueError("Transport recovery limit exceeded")
+    if len(transports) == 2:
+        return transports[-1]
+    return None
 
 
 def _model_identity(model: ModelEntry) -> ModelIdentity:

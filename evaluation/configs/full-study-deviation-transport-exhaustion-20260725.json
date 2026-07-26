@@ -1,0 +1,30 @@
+{
+  "affected_cell": {
+    "cell_id": "direct-r2-education-professional-service-07-p117771212",
+    "first_attempt_id": "full-study-primary-20260723-v1-0579-direct-r2-education-professional-service-07-p117771212-c1",
+    "first_attempt_sha256": "6eaac9102ea5e82649b0dee1db0f58249fe3d7979b906ad32628b2ae7fd9d55f",
+    "recovery_attempt_id": "full-study-primary-20260723-v1-0579-direct-r2-education-professional-service-07-p117771212-c2",
+    "recovery_attempt_sha256": "5f7e28ac540c40b0bc5b132853f6751eff7b8d851cefffdc73d4b5a29e397167"
+  },
+  "authorization": {
+    "authorized_at": "2026-07-25",
+    "basis": "Project lead approved terminalizing the exhausted recovery without another inference request and resuming with a deterministic non-LLM controller."
+  },
+  "decision": {
+    "additional_inference_requests_for_affected_cell": 0,
+    "analysis_disposition": "final infrastructure failure retained in the denominator",
+    "continuation": "Resume at the next planned cell after validation and clean commit.",
+    "terminal_record": "The existing collection-attempt-2 transport record is the terminal failed outcome; no synthetic third record is created."
+  },
+  "deviation_id": "full-study-transport-exhaustion-handling-20260725",
+  "execution_plan_sha256": "87daaa61f17d59a364b3632e9c3d205372bf878567be9afb82a5a3cddb30eccc",
+  "implementation": {
+    "change": "Interpret exactly two preserved transport-error records for one cell as an exhausted, terminal failed outcome across resume, summary, and dependency accounting.",
+    "reason": "The frozen protocol allows one visible transport recovery but the collector previously rejected the resulting two-transport terminal state instead of continuing after preserving it.",
+    "regression_test": "test_second_transport_failure_is_terminal_without_third_request"
+  },
+  "protocol_id": "seo-studio-full-study-v1",
+  "protocol_sha256": "962e4fb9e7e33b1fa0402252b1f86b6e1715ff6a68c06281f3b98aec6802a78c",
+  "scientific_controls_changed": [],
+  "schema_version": 1
+}
